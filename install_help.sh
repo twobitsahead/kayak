@@ -116,8 +116,12 @@ BuildBE() {
   zfs set canmount=noauto $RPOOL/ROOT/omnios
   zfs set mountpoint=legacy $RPOOL/ROOT/omnios
   log "Cleaning up boot environment"
-  beadm mount omnios /mnt
   ALTROOT=/mnt
+  beadm mount omnios $ALTROOT
+  # generate UUID for BE
+  BEUUID=`LD_LIBRARY_PATH=$ALTROOT/lib:$ALTROOT/usr/lib $ALTROOT/usr/bin/uuidgen`
+  zfs set org.opensolaris.libbe:uuid=$BEUUID $RPOOL/ROOT/omnios
+  zfs set org.opensolaris.libbe:policy=static $RPOOL/ROOT/omnios
   cp $ALTROOT/lib/svc/seed/global.db $ALTROOT/etc/svc/repository.db
   chmod 0600 $ALTROOT/etc/svc/repository.db
   chown root:sys $ALTROOT/etc/svc/repository.db
