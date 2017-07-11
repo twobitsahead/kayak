@@ -23,8 +23,8 @@ fail() {
 # NOTE --> The URL needs to be updated with every release.  
 # Change "bloody" to whatever release the current branch is.
 PUBLISHER=omnios
-OMNIOS_URL=https://pkg.omniti.com/omnios/r151022
-: ${PKGURL:=https://pkg.omniti.com/omnios/r151022}
+OMNIOS_URL=https://pkg.omniosce.org/r151022/core
+: ${PKGURL:=https://pkg.omniosce.org/r151022/core}
 : ${BZIP2:=bzip2}
 ZROOT=rpool
 OUT=
