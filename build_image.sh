@@ -110,6 +110,7 @@ UNNEEDED_MANIFESTS="application/management/net-snmp.xml
 
 SYSTEM="system/boot/real-mode system/boot/wanboot/internal
 	system/boot/loader system/boot/wanboot system/data/hardware-registry
+	system/boot/grub
 	system/data/keyboard/keytables system/data/terminfo
 	system/data/zoneinfo system/extended-system-utilities
 	system/file-system/autofs system/file-system/nfs
