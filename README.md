@@ -21,7 +21,7 @@ machine's SMF services.
 
 <target> must be specified.
 
-install-http:
+install-web:
 	Builds the <VERSION>.zfs.bz2 file, which is what Kayak uses
 	for any install it does. Independent target.
 
