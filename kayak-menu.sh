@@ -22,6 +22,7 @@
 #
 # Copyright (c) 2009, 2011, Oracle and/or its affiliates. All rights reserved.
 # Copyright 2017 OmniTI Computer Consulting, Inc. All rights reserved.
+# Copyright 2017 OmniOS Community Edition (OmniOSce) Association.
 #
 
 # This started its life as the Caiman text-installer menu, hence the old
@@ -52,27 +53,27 @@ klang=`grep -w $layout /usr/share/lib/keytables/type_$ktype/kbd_layouts | awk -F
 
 # Define the menu of commands and prompts
 menu_items=( \
-    (menu_str="Find disks, create rpool, and install OmniOS"		 \
+    (menu_str="Find disks, create rpool, and install OmniOSce"		 \
 	cmds=("/kayak/find-and-install.sh $klang")			 \
 	do_subprocess="true"						 \
 	msg_str="")							 \
-    (menu_str="Install OmniOS straight on to a preconfigured rpool"	 \
+    (menu_str="Install OmniOSce straight on to a preconfigured rpool"	 \
 	cmds=("/kayak/rpool-install.sh rpool $klang")			 \
 	do_subprocess="true"						 \
 	msg_str="")							 \
     (menu_str="Shell (for manual rpool creation, or post-install ops on /mnt)" \
 	cmds=("$ROOT_SHELL")						 \
 	do_subprocess="true"						 \
-	msg_str="To return to the main menu, exit the shell")	 \
+	msg_str="To return to the main menu, exit the shell")		 \
     # this string gets overwritten every time $TERM is updated
-    (menu_str="Terminal type (currently ""$TERM)"		 \
+    (menu_str="Terminal type (currently ""$TERM)"			 \
 	cmds=("prompt_for_term_type")					 \
 	do_subprocess="false"						 \
 	msg_str="")							 \
-    (menu_str="Reboot"					 \
+    (menu_str="Reboot"							 \
 	cmds=("/usr/sbin/reboot" "/usr/bin/sleep 10000")		 \
 	do_subprocess="true"						 \
-	msg_str="")							 \
+	msg_str="Restarting, please wait...")				 \
 )
 
 # Update the menu_str for the terminal type
@@ -159,7 +160,7 @@ for ((;;)) ; do
 	stty sane
 	clear
 	printf \
-	    "Welcome to the OmniOS installation menu"
+	    "Welcome to the OmniOSce installation menu"
 	print " \n\n"
 	for i in "${!menu_items[@]}"; do
 		print "\t$((${i} + 1))  ${menu_items[$i].menu_str}"
@@ -202,6 +203,14 @@ for ((;;)) ; do
 		[[ ! -z "${msg_str}" ]] && printf "%s\n" "${msg_str}"
 		for j in "${!menu_items[$input].cmds[@]}"; do
 			${menu_items[${input}].cmds[$j]}
+		done
+	fi
+
+	# Although the 'Reboot' action starts a long running
+	# sleep, the shutdown process kills that early on.
+	if [ "${menu_items[$input].menu_str}" = "Reboot" ] ; then
+		while :; do
+			sleep 10000
 		done
 	fi
 done

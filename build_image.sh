@@ -13,6 +13,7 @@
 
 #
 # Copyright 2017 OmniTI Computer Consulting, Inc.  All rights reserved.
+# Copyright 2017 OmniOS Community Edition (OmniOSce) Association.
 #
 
 fail() {
@@ -28,21 +29,21 @@ SRCDIR=$(dirname $0)
 DIDWORK=0
 BUILDNUM=${VERSION//r/}
 if [[ ${SRCDIR:0:1} != "/" ]]; then
-  SRCDIR=`pwd`/$SRCDIR
+	SRCDIR=`pwd`/$SRCDIR
 fi
 if [[ -z "${1}" ]]; then
-  echo "$0 <zfs pool> [checkpoint]"
-  exit 1
+	echo "$0 <zfs pool> [checkpoint]"
+	exit 1
 else
-  BASE=${1}
-  shift
-  BASEDIR=`zfs get -o value -H mountpoint $BASE`
+	BASE=${1}
+	shift
+	BASEDIR=`zfs get -o value -H mountpoint $BASE`
 fi
 MKFILEDIR=/tmp
 WORKDIR=$BASEDIR
 ROOTDIR=$WORKDIR/root
 if [[ ! -d $ROOTDIR ]]; then
-  zfs create -o compression=off $BASE/root || fail "zfs create failed"
+	zfs create -o compression=off $BASE/root || fail "zfs create failed"
 fi
 SVCCFG_DTD=${ROOTDIR}/usr/share/lib/xml/dtd/service_bundle.dtd.1
 SVCCFG_REPOSITORY=${ROOTDIR}/etc/svc/repository.db
@@ -233,37 +234,44 @@ load_keep_list() {
 }
 
 step() {
-	CHKPT=""
-	case "$1" in
+    CHKPT=""
+    case "$1" in
 
-	"begin")
+    "begin")
 	zfs destroy -r $BASE/root 2> /dev/null
 	zfs create -o compression=off $BASE/root || fail "zfs create failed"
 	chkpt pkg
 	;;
 
-	"pkg")
+    "pkg")
 
 	echo "Creating image of $PUBLISHER from $PKGURL"
-	$PKG image-create -F -p $PUBLISHER=$PKGURL $ROOTDIR || fail "image-create"
+	$PKG image-create -F -p $PUBLISHER=$PKGURL $ROOTDIR \
+	    || fail "image-create"
         # If a version was requested, respect it
 	if [[ -n $BUILDNUM ]]; then
-		$PKG -R $ROOTDIR install illumos-gate@11-0.$BUILDNUM omnios-userland@11-0.$BUILDNUM || fail "version constraint prep"
+		$PKG -R $ROOTDIR install illumos-gate@11-0.$BUILDNUM \
+		    omnios-userland@11-0.$BUILDNUM \
+		    || fail "version constraint prep"
 	fi
 	$PKG -R $ROOTDIR install $PKGS || fail "install"
 	if [[ -n $BUILDNUM ]]; then
-		$PKG -R $ROOTDIR uninstall illumos-gate omnios-userland || fail "version constraint cleanup"
+		$PKG -R $ROOTDIR uninstall illumos-gate omnios-userland \
+		    || fail "version constraint cleanup"
 	fi
 	chkpt fixup
 	;;
 
-	"fixup")
+    "fixup")
 
 	echo "Fixing up install root"
-	(cp $ROOTDIR/etc/vfstab $WORKDIR/vfstab && \
-		awk '{if($3!="/"){print;}}' $WORKDIR/vfstab > $ROOTDIR/etc/vfstab && \
-		echo "/devices/ramdisk:a - / ufs - no nologging" >> $ROOTDIR/etc/vfstab) || \
-		fail "vfstab / updated"
+	(
+		cp $ROOTDIR/etc/vfstab $WORKDIR/vfstab && \
+		    awk '{if($3!="/"){print;}}' $WORKDIR/vfstab \
+		    > $ROOTDIR/etc/vfstab && \
+		echo "/devices/ramdisk:a - / ufs - no nologging" \
+		    >> $ROOTDIR/etc/vfstab
+	) || fail "vfstab / updated"
 	rm $WORKDIR/vfstab
 	cp $ROOTDIR/lib/svc/seed/global.db $ROOTDIR/etc/svc/repository.db
 
@@ -271,7 +279,8 @@ step() {
 
 	${SVCCFG} import ${ROOTDIR}/lib/svc/manifest/milestone/sysconfig.xml
 	for xml in $UNNEEDED_MANIFESTS; do
-		rm -f ${ROOTDIR}/lib/svc/manifest/$xml && echo " --- tossing $xml"
+		rm -f ${ROOTDIR}/lib/svc/manifest/$xml && \
+		    echo " --- discarding $xml"
 	done
 	echo " --- initial manifest import"
 	# See if we can transform manifest-import to use the 'native' svccfg.
@@ -286,16 +295,30 @@ step() {
 
 	${SVCCFG} -s 'system/boot-archive' setprop 'start/exec=:true'
 	${SVCCFG} -s 'system/manifest-import' setprop 'start/exec=:true'
-	${SVCCFG} -s "system/intrd:default" setprop "general/enabled=false"
+	# system/intrd is discarded above
+	#${SVCCFG} -s "system/intrd:default" setprop "general/enabled=false"
 	${SVCCFG} -s "system/initial-boot" setprop "start/timeout_seconds=600"
+
 	echo " --- neutering the manifest import"
         echo "#!/bin/ksh" > ${ROOTDIR}/lib/svc/method/manifest-import
         echo "exit 0" >> ${ROOTDIR}/lib/svc/method/manifest-import
 	chmod 555 ${ROOTDIR}/lib/svc/method/manifest-import
+
+	echo " --- neutering hostname message on boot"
+	sed -i '/dev\/msglog/s/^/#/' ${ROOTDIR}/lib/svc/method/identity-node
+
+	echo " --- removing locale call from tzselect"
+	# The line in gettext is broken anyway. /bin/who is present
+	# in the miniroot and does not return any output. It will do.
+	sed -i '
+		/^LOCALE=/s^=.*^=/bin/who^
+		s/is_C=0/is_C=1/
+	' ${ROOTDIR}/usr/bin/tzselect
+
 	chkpt cull
 	;;
 
-	"cull")
+    "cull")
 	if [[ -z "$BIGROOT" ]]; then
 		load_keep_list data/*
 		while read file
@@ -308,32 +331,34 @@ step() {
 			fi
 		done < <(cd $ROOTDIR && find ./ | cut -c3-)
 		for path in $RMRF ; do
-			rm -rf ${ROOTDIR}$path && echo " -- tossing $path"	
+			rm -rf ${ROOTDIR}$path && echo " -- discarding $path"
 		done
 	fi
 
 	chkpt mkfs
 	;;
 
-	"mkfs")
+    "mkfs")
 	size=`/usr/bin/du -ks ${ROOTDIR}|/usr/bin/nawk '{print $1+10240}'`
 	echo " --- making image of size $size"
 	/usr/sbin/mkfile ${size}k $MKFILEDIR/miniroot || fail "mkfile"
 	lofidev=`/usr/sbin/lofiadm -a $MKFILEDIR/miniroot`
 	rlofidev=`echo $lofidev |sed s/lofi/rlofi/`
-	yes | /usr/sbin/newfs -m 0 $rlofidev 2> /dev/null > /dev/null || fail "newfs"
+	yes | /usr/sbin/newfs -m 0 $rlofidev 2> /dev/null > /dev/null \
+	    || fail "newfs"
 	chkpt mount
 	;;
 
-	"mount")
+    "mount")
 	mkdir -p $WORKDIR/mnt
 	/usr/sbin/mount -o nologging $lofidev $WORKDIR/mnt || fail "mount"
 	chkpt copy
 	;;
 
-	"copy")
+    "copy")
 	pushd $ROOTDIR >/dev/null
-	/usr/bin/find . | /usr/bin/cpio -pdum $WORKDIR/mnt 2> /dev/null > /dev/null || fail "populate root"
+	/usr/bin/find . | /usr/bin/cpio -pdum $WORKDIR/mnt 2>&1 >/dev/null \
+	    || fail "populate root"
 	/usr/sbin/devfsadm -r $WORKDIR/mnt > /dev/null
 	popd >/dev/null
 	mkdir $WORKDIR/mnt/kayak
@@ -352,13 +377,13 @@ step() {
 	chkpt umount
 	;;
 
-	"umount")
+    "umount")
 	/usr/sbin/umount $WORKDIR/mnt || fail "umount"
 	/usr/sbin/lofiadm -d $MKFILEDIR/miniroot || fail "lofiadm delete"
 	chkpt compress
 	;;
 
-	"compress")
+    "compress")
 	$GZIP_CMD -c -f $MKFILEDIR/miniroot > $WORKDIR/miniroot.gz
 	rm -f $MKFILEDIR/miniroot
 	chmod 644 $WORKDIR/miniroot.gz
@@ -366,7 +391,7 @@ step() {
 	ls -l $WORKDIR/miniroot.gz
 	;;
 
-	esac
+    esac
 }
 
 make_initial_boot() {
@@ -380,3 +405,4 @@ EOF
 while [[ -n "$CHKPT" ]]; do
 	step $CHKPT
 done
+
