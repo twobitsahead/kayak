@@ -147,7 +147,18 @@ rm -rf $PROTO/{usr,bin,sbin,lib,kernel}
 du -sh $PROTO/.
 
 # And finally, burn the ISO.
-mkisofs -o $DST_ISO -b boot/cdboot -c .catalog -no-emul-boot -boot-load-size 4 -boot-info-table -N -l -R -U -allow-multidot -no-iso-translate -cache-inodes -d -D -V "OmniOSce $VERSION" $PROTO
+mkisofs -N -l -R -U -d -D \
+	-o $DST_ISO \
+	-b boot/cdboot \
+	-c .catalog \
+	-no-emul-boot \
+	-boot-load-size 4 \
+	-boot-info-table \
+	-allow-multidot \
+	-no-iso-translate \
+	-cache-inodes \
+	-V "OmniOSce $VERSION" \
+	$PROTO
 
 rm -rf $PROTO $UFS_LOFI
 echo "$DST_ISO is ready"
