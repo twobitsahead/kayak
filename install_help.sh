@@ -109,8 +109,12 @@ BuildBE() {
   fi
   zfs set compression=on $RPOOL
   zfs create $RPOOL/ROOT
-  zfs set canmount=off $RPOOL/ROOT
-  zfs set mountpoint=legacy $RPOOL/ROOT
+  # The miniroot does not have any libshare SMF services so the following
+  # commands print an error.
+  (
+	zfs set canmount=off $RPOOL/ROOT
+	zfs set mountpoint=legacy $RPOOL/ROOT
+  ) | grep -v 'libshare SMF'
   log "Receiving image: $MEDIA"
   $GRAB $MEDIA | pv -B 128m -w 78 | $DECOMP | zfs receive -u $RPOOL/ROOT/omnios
   zfs set canmount=noauto $RPOOL/ROOT/omnios
@@ -122,6 +126,7 @@ BuildBE() {
   BEUUID=`LD_LIBRARY_PATH=$ALTROOT/lib:$ALTROOT/usr/lib $ALTROOT/usr/bin/uuidgen`
   zfs set org.opensolaris.libbe:uuid=$BEUUID $RPOOL/ROOT/omnios
   zfs set org.opensolaris.libbe:policy=static $RPOOL/ROOT/omnios
+  log "Setting BE UUID: $BEUUID"
   cp $ALTROOT/lib/svc/seed/global.db $ALTROOT/etc/svc/repository.db
   chmod 0600 $ALTROOT/etc/svc/repository.db
   chown root:sys $ALTROOT/etc/svc/repository.db
