@@ -13,6 +13,7 @@
 
 #
 # Copyright 2017 OmniTI Computer Consulting, Inc. All rights reserved.
+# Copyright 2017 OmniOS Community Edition (OmniOSce) Association.
 #
 
 #
@@ -30,7 +31,7 @@ if [[ -z $BUILDSEND_MP ]]; then
 fi
 
 if [[ -z $VERSION ]]; then
-	VERSION=`grep OmniOS $BUILDSEND_MP/root/etc/release | awk '{print $3}'`
+	VERSION=`head -1 $BUILDSEND_MP/root/etc/release | awk '{print $3}'`
 	echo "Using $VERSION..."
 fi
 
@@ -129,7 +130,7 @@ from_one_to_other usr/bin netstat
 
 # Remind people this is the installer.
 cat <<EOF > $PROTO/boot/loader.conf.local
-loader_menu_title="Welcome to the OmniOS installer"
+loader_menu_title="Welcome to the OmniOSce installer"
 autoboot_delay=5
 EOF
 
@@ -146,7 +147,18 @@ rm -rf $PROTO/{usr,bin,sbin,lib,kernel}
 du -sh $PROTO/.
 
 # And finally, burn the ISO.
-mkisofs -o $DST_ISO -b boot/cdboot -c .catalog -no-emul-boot -boot-load-size 4 -boot-info-table -N -l -R -U -allow-multidot -no-iso-translate -cache-inodes -d -D -V OmniOS $PROTO
+mkisofs -N -l -R -U -d -D \
+	-o $DST_ISO \
+	-b boot/cdboot \
+	-c .catalog \
+	-no-emul-boot \
+	-boot-load-size 4 \
+	-boot-info-table \
+	-allow-multidot \
+	-no-iso-translate \
+	-cache-inodes \
+	-V "OmniOSce $VERSION" \
+	$PROTO
 
 rm -rf $PROTO $UFS_LOFI
 echo "$DST_ISO is ready"
