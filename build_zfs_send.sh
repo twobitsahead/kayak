@@ -24,7 +24,7 @@ fail() {
 # Change "bloody" to whatever release the current branch is.
 PUBLISHER=omnios
 OMNIOS_URL=https://pkg.omniosce.org/r151022/core
-: ${PKGURL:=https://pkg.omniosce.org/r151022/core}
+: ${PKGURL:=$OMNIOS_URL}
 : ${BZIP2:=bzip2}
 ZROOT=rpool
 OUT=
@@ -60,12 +60,7 @@ else
   zfs create $ZROOT/$name || fail "zfs create"
   MP=`zfs get -H mountpoint $ZROOT/$name | awk '{print $3}'`
   pkg image-create -F -p $PUBLISHER=$PKGURL $MP || fail "image-create"
-  # If r151006, use a specific version to avoid missing incorporation
-  if [[ "$name" == "r151006" ]]; then
-    entire_version="151006:20131210T224515Z"
-  else
-    entire_version=${name//r/}
-  fi
+  entire_version=${name//r/}
   pkg -R $MP install entire@11-0.$entire_version openssh-server || fail "install entire"
   zfs snapshot $ZROOT/$name@entire
 fi
@@ -95,15 +90,19 @@ fi
 echo "Setting omnios publisher to $OMNIOS_URL"
 pkg -R $MP unset-publisher omnios
 pkg -R $MP set-publisher -P --no-refresh -g $OMNIOS_URL omnios
-# Starting with r151014, require signatures for the omnios publisher.
-# NOTE:  Uncomment this line when you branch off a release.  "bloody" packages
-# are unsigned, but release ones are, and we should require checking their
-# signatures.
-pkg -R $MP set-publisher --set-property signature-policy=require-signatures omnios
 
+# Starting with r151014, require signatures for the omnios publisher.
+if [[ $OMNIOS_URL != */bloody/* ]]; then
+  echo "Setting signature policy to require."
+  pkg -R $MP set-publisher \
+    --set-property signature-policy=require-signatures omnios
+fi
+
+echo "Creating compressed stream"
 zfs snapshot $ZROOT/$name@kayak || fail "snap"
-zfs send $ZROOT/$name@kayak | $BZIP2 -9 > $OUT || fail "send/compress"
+zfs send $ZROOT/$name@kayak | pv | $BZIP2 -9 > $OUT || fail "send/compress"
 if [[ "$CLEANUP" -eq "1" ]]; then
   zfs destroy $ZROOT/$name@kayak || fail "could not remove snapshot"
   zfs destroy $ZROOT/$name || fail "could not remove zfs filesystem"
 fi
+

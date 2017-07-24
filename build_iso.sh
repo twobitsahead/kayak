@@ -61,9 +61,10 @@ gunzip -c $KAYAK_ROOTBALL > $KR_FILE
 LOFI_RPATH=`lofiadm -a $KR_FILE`
 mkdir $KAYAK_ROOT
 mount $LOFI_RPATH $KAYAK_ROOT
-tar -cf - -C $KAYAK_ROOT . | tar -xf - -C $MNT
+echo "Adding files from miniroot"
+tar -cf - -C $KAYAK_ROOT . | pv | tar -xf - -C $MNT
 mkdir $PROTO
-tar -cf - -C $KAYAK_ROOT . | tar -xf - -C $PROTO
+tar -cf - -C $KAYAK_ROOT . | pv | tar -xf - -C $PROTO
 umount $KAYAK_ROOT
 rmdir $KAYAK_ROOT
 lofiadm -d $LOFI_RPATH
@@ -75,7 +76,8 @@ rm $KR_FILE
 # 
 
 # The full ZFS image (also already-created) for actual installation.
-cp $ZFS_IMG $MNT/root/.
+echo "Adding ZFS image"
+pv $ZFS_IMG > $MNT/root/`basename $ZFS_IMG`
 
 # A cheesy way to get the boot menu to appear at boot time.
 cp -p ./takeover-console $MNT/kayak/.
@@ -138,7 +140,8 @@ EOF
 #
 umount $MNT
 lofiadm -d $LOFI_PATH
-cp $UFS_LOFI $PROTO/platform/i86pc/amd64/boot_archive
+echo "Installing boot archive"
+pv $UFS_LOFI > $PROTO/platform/i86pc/amd64/boot_archive
 digest -a sha1 $UFS_LOFI > $PROTO/platform/i86pc/amd64/boot_archive.hash
 rm -rf $PROTO/{usr,bin,sbin,lib,kernel}
 du -sh $PROTO/.

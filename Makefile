@@ -29,13 +29,14 @@ INSTALLS=anon.dtrace.conf anon.system build_image.sh build_zfs_send.sh \
 	loader.conf.local rpool-install.sh \
 	sample/000000000000.sample sample/menu.lst.000000000000
 
-TFTP_FILES=$(DESTDIR)/tftpboot/boot/platform/i86pc/kernel/amd64/unix \
+TFTP_FILES=\
 	$(DESTDIR)/tftpboot/kayak/miniroot.gz \
 	$(DESTDIR)/tftpboot/kayak/miniroot.gz.hash \
 	$(DESTDIR)/tftpboot/boot/grub/menu.lst \
-	$(DESTDIR)/tftpboot/pxeboot $(DESTDIR)/tftpboot/boot/loader.conf.local \
+	$(DESTDIR)/tftpboot/boot/loader.conf.local \
 	$(DESTDIR)/tftpboot/boot/forth $(DESTDIR)/tftpboot/boot/defaults \
-	$(DESTDIR)/tftpboot/pxegrub
+	$(DESTDIR)/tftpboot/boot/platform/i86pc/kernel/amd64/unix \
+	$(DESTDIR)/tftpboot/pxeboot $(DESTDIR)/tftpboot/pxegrub
 
 WEB_FILES=$(DESTDIR)/var/kayak/kayak/$(VERSION).zfs.bz2
 IMG_FILES=corner.png tail_bg_v1.png OmniOS_logo_medium.png tail_bg_v2.png
@@ -52,25 +53,25 @@ $(BUILDSEND_MP)/kayak_$(VERSION).zfs.bz2:	build_zfs_send.sh
 	@test -d "$(BUILDSEND_MP)" || (echo "$(BUILDSEND) missing" && false)
 	./build_zfs_send.sh -d $(BUILDSEND) $(VERSION)
 
-$(DESTDIR)/tftpboot/pxegrub:	/boot/grub/pxegrub
+$(DESTDIR)/tftpboot/pxegrub:	$(BUILDSEND_MP)/root/boot/grub/pxegrub
 	cp -p $< $@
 
-$(DESTDIR)/tftpboot/pxeboot:	/boot/pxeboot
+$(DESTDIR)/tftpboot/pxeboot:	$(BUILDSEND_MP)/root/boot/pxeboot
 	cp -p $< $@
 
 $(DESTDIR)/tftpboot/boot/loader.conf.local:	loader.conf.local
 	cp -p $< $@
 
-$(DESTDIR)/tftpboot/boot/forth:	/boot/forth
+$(DESTDIR)/tftpboot/boot/forth:	$(BUILDSEND_MP)/root/boot/forth
 	cp -rp $< $@
 
-$(DESTDIR)/tftpboot/boot/defaults:	/boot/defaults
+$(DESTDIR)/tftpboot/boot/defaults:	$(BUILDSEND_MP)/root/boot/defaults
 	cp -rp $< $@
 
 $(DESTDIR)/tftpboot/boot/grub/menu.lst:	sample/menu.lst.000000000000
 	sed -e 's/@VERSION@/$(VERSION)/' $< > $@
 
-$(DESTDIR)/tftpboot/boot/platform/i86pc/kernel/amd64/unix:	/platform/i86pc/kernel/amd64/unix
+$(DESTDIR)/tftpboot/boot/platform/i86pc/kernel/amd64/unix:	$(BUILDSEND_MP)/root/platform/i86pc/kernel/amd64/unix
 	cp -p $< $@
 
 $(DESTDIR)/tftpboot/kayak/miniroot.gz:	$(BUILDSEND_MP)/miniroot.gz
