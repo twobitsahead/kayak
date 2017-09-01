@@ -251,6 +251,7 @@ step() {
 	$PKG image-create -F -p $PUBLISHER=$PKGURL $ROOTDIR \
 	    || fail "image-create"
 	$PKG -R $ROOTDIR change-facet doc.man=false
+	$PKG -R $ROOTDIR change-facet devel=false
         # If a version was requested, respect it
 	if [[ -n $BUILDNUM ]]; then
 		$PKG -R $ROOTDIR install illumos-gate@11-0.$BUILDNUM \
