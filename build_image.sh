@@ -173,8 +173,8 @@ DRIVERS="driver/audio driver/crypto/dca driver/crypto/tpm driver/firewire
 
 PARTS="release/name release/notices service/picl install/beadm SUNWcs SUNWcsd
 	library/libidn shell/pipe-viewer text/less editor/vim web/curl
-        developer/linker file/gnu-coreutils openssh openssh-server
-	diagnostic/diskinfo"
+	developer/linker file/gnu-coreutils system/xopen/xcu4
+	openssh openssh-server diagnostic/diskinfo"
 
 PKGS="$PARTS $SYSTEM $DRIVERS"
 
@@ -252,7 +252,7 @@ step() {
 	    || fail "image-create"
 	$PKG -R $ROOTDIR change-facet doc.man=false
 	$PKG -R $ROOTDIR change-facet devel=false
-        # If a version was requested, respect it
+	# If a version was requested, respect it
 	if [[ -n $BUILDNUM ]]; then
 		$PKG -R $ROOTDIR install illumos-gate@11-0.$BUILDNUM \
 		    omnios-userland@11-0.$BUILDNUM \
@@ -301,11 +301,11 @@ step() {
 	${SVCCFG} -s 'system/manifest-import' setprop 'start/exec=:true'
 	# system/intrd is discarded above
 	#${SVCCFG} -s "system/intrd:default" setprop "general/enabled=false"
-	${SVCCFG} -s "system/initial-boot" setprop "start/timeout_seconds=600"
+	${SVCCFG} -s "system/initial-boot" setprop "start/timeout_seconds=3600"
 
 	echo " --- neutering the manifest import"
-        echo "#!/bin/ksh" > ${ROOTDIR}/lib/svc/method/manifest-import
-        echo "exit 0" >> ${ROOTDIR}/lib/svc/method/manifest-import
+	echo "#!/bin/ksh" > ${ROOTDIR}/lib/svc/method/manifest-import
+	echo "exit 0" >> ${ROOTDIR}/lib/svc/method/manifest-import
 	chmod 555 ${ROOTDIR}/lib/svc/method/manifest-import
 
 	echo " --- neutering hostname message on boot"

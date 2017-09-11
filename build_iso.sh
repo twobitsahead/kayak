@@ -79,6 +79,9 @@ rm $KR_FILE
 echo "Adding ZFS image"
 pv $ZFS_IMG > $MNT/root/`basename $ZFS_IMG`
 
+# Extra files
+cp -p ./ipcalc ./passutil nossh.xml $MNT/kayak/.
+
 # A cheesy way to get the boot menu to appear at boot time.
 cp -p ./takeover-console $MNT/kayak/.
 cat <<EOF > $MNT/root/.bashrc
