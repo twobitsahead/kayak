@@ -32,48 +32,84 @@
 export LOGNAME=root
 
 # Block all signals which could terminate the menu or return to a parent process
-trap "" TSTP INT TERM ABRT QUIT
+debug=0
+[ "$1" != '-t' ] && trap "" TSTP INT TERM ABRT QUIT || debug=1
 
-# Determine which shell program to use by grabbing this user's login-shell
-# from /etc/passwd
-ROOT_SHELL=$(/usr/bin/getent passwd $LOGNAME |/usr/bin/cut -d':' -f7)
+dmsg()
+{
+	[ $debug -eq 1 ] && echo "$@"
+}
 
-# On the off chance that $LOGNAME has no shell (default grabbed from passwd(4)p)
-if [[ -z "$ROOT_SHELL" ]]; then
-	ROOT_SHELL="/usr/bin/sh"
-fi
+# If an installation has been completed, there will be a boot environment
+# and it will be mounted on /mnt
+installed()
+{
+	[ -d /mnt/lib ] || return 1
+	beadm list -H > /dev/null 2>&1
+}
 
 # Get the user's keyboard choice out of the way now.
 /usr/bin/kbd -s
 /usr/bin/loadkeys
-# Remember it post-installation scribbling into installed-image /etc/default/kbd
-ktype=`/usr/bin/kbd -l | grep type | awk -F= '{print $2}'`
-layout=`/usr/bin/kbd -l | grep layout | awk -F= '{print $2}' | awk '{print $1}'`
-klang=`grep -w $layout /usr/share/lib/keytables/type_$ktype/kbd_layouts | awk -F= '{print $1}'`
+# Remember it for configuration of final installed image.
+ktype=`/usr/bin/kbd -l | grep '^type=' | cut -d= -f2`
+layout=`/usr/bin/kbd -l | grep '^layout=' | cut -d= -f2 | awk '{print $1}'`
+klang=`grep -w $layout /usr/share/lib/keytables/type_$ktype/kbd_layouts \
+    | cut -d= -f1`
+
+dmsg "klang = $klang"
 
 # Define the menu of commands and prompts
+
+# Preinstall menu
 menu_items=( \
-    (menu_str="Find disks, create rpool, and install OmniOSce"		 \
-	cmds=("/kayak/find-and-install.sh $klang")			 \
-	do_subprocess="true"						 \
-	msg_str="")							 \
-    (menu_str="Install OmniOSce straight on to a preconfigured rpool"	 \
-	cmds=("/kayak/rpool-install.sh rpool $klang")			 \
-	do_subprocess="true"						 \
-	msg_str="")							 \
-    (menu_str="Shell (for manual rpool creation, or post-install ops on /mnt)" \
-	cmds=("$ROOT_SHELL")						 \
-	do_subprocess="true"						 \
-	msg_str="To return to the main menu, exit the shell")		 \
+    (menu_str="Find disks, create rpool, and install OmniOSce"		\
+	cmds=("/kayak/find-and-install.sh $klang")			\
+	default="true"							\
+	do_subprocess="true")						\
+    (menu_str="Install OmniOSce straight on to a preconfigured rpool"	\
+	cmds=("/kayak/rpool-install.sh rpool $klang")			\
+	do_subprocess="true")						\
+    (menu_str="Shell (for manual rpool creation)"			\
+	cmds=("/usr/bin/bash")						\
+	do_subprocess="true"						\
+	msg_str="To return to the main menu, exit the shell")		\
     # this string gets overwritten every time $TERM is updated
-    (menu_str="Terminal type (currently ""$TERM)"			 \
-	cmds=("prompt_for_term_type")					 \
-	do_subprocess="false"						 \
-	msg_str="")							 \
-    (menu_str="Reboot"							 \
-	cmds=("/usr/sbin/reboot" "/usr/bin/sleep 10000")		 \
-	do_subprocess="true"						 \
-	msg_str="Restarting, please wait...")				 \
+    (menu_str="Terminal type (currently ""$TERM)"			\
+	cmds=("prompt_for_term_type")					\
+	do_subprocess="false")						\
+    (menu_str="Reboot"							\
+	cmds=("/usr/sbin/reboot")					\
+	do_subprocess="true"						\
+	noreturn="true"							\
+	msg_str="Restarting, please wait...")				\
+    (menu_str="Halt"							\
+	cmds=("/sbin/beadm umount /mnt" "/sbin/uadmin 2 6")		\
+	do_subprocess="true"						\
+	noreturn="true"							\
+	msg_str="Halting system, please wait...")			\
+)
+
+# Postinstall menu
+pi_menu_items=( \
+    (menu_str="Configure the installed OmniOS system"			\
+	cmds=("/kayak/config-menu.sh")					\
+	do_subprocess="true")						\
+    (menu_str="Shell (for post-install ops on /mnt)"			\
+	cmds=("/usr/bin/bash")						\
+	do_subprocess="true"						\
+	msg_str="To return to the main menu, exit the shell")		\
+    (menu_str="Reboot"							\
+	cmds=("/usr/sbin/reboot")					\
+	do_subprocess="true"						\
+	noreturn="true"							\
+	msg_str="Restarting, please wait...")				\
+    (menu_str="Halt"							\
+	cmds=("/sbin/beadm umount /mnt" "/sbin/uadmin 2 6")		\
+	do_subprocess="true"						\
+	noreturn="true"							\
+	default="true"							\
+	msg_str="Halting system, please wait...")			\
 )
 
 # Update the menu_str for the terminal type
@@ -83,7 +119,7 @@ function update_term_menu_str
 {
     # update the menu string to reflect the current TERM
     for i in "${!menu_items[@]}"; do
-	    if [[ "${menu_items[$i].cmds[0]}" = "prompt_for_term_type" ]] ; then
+	    if [ "${menu_items[$i].cmds[0]}" = "prompt_for_term_type" ]; then
 		menu_items[$i].menu_str="Terminal type (currently $TERM)"
 	    fi
     done
@@ -136,13 +172,17 @@ function prompt_for_term_type
 		read "term?Enter terminal type [$TERM]: " || continue
 
 		# if the user just hit return, don't set the term variable
-		[[ "${term}" = "" ]] && return
+		[ -z "${term}" ] && return
 			
 		# check if the user specified option is valid
-		term_entry=`/usr/bin/ls /usr/gnu/share/terminfo/*/$term 2> /dev/null`
-		[[ ! -z ${term_entry} ]] && break
-		print "terminal type not supported. Supported terminal types can be \n" "${term}"
-		print "found by using the Shell to list the contents of /usr/gnu/share/terminfo.\n\n"
+		term_entry=`/usr/bin/ls /usr/gnu/share/terminfo/*/$term \
+		    2> /dev/null`
+		[ -n "${term_entry}" ] && break
+		echo
+		echo "Terminal type not supported."
+		echo "Supported terminal types can be found by using the"
+		echo "shell to list the contents of /usr/gnu/share/terminfo."
+		echo
 	done
 
 	export TERM="${term}"
@@ -151,19 +191,19 @@ function prompt_for_term_type
 
 set_term_type
 
-# default to the Installer option
-defaultchoice=1
-
-for ((;;)) ; do
-
+while :; do
 	# Display the menu.
 	stty sane
 	clear
-	printf \
-	    "Welcome to the OmniOSce installation menu"
-	print " \n\n"
-	for i in "${!menu_items[@]}"; do
-		print "\t$((${i} + 1))  ${menu_items[$i].menu_str}"
+
+	# Pick the right menu
+	installed && nameref menu=pi_menu_items || nameref menu=menu_items
+
+	printf "Welcome to the OmniOSce installation menu\n\n"
+	for i in "${!menu[@]}"; do
+		nameref item=menu[$i]
+		print "\t$((i + 1))  ${item.menu_str}"
+		[ -n "${item.default}" ] && defaultchoice=$((i + 1))
 	done
 
 	# Take an entry (by number). If multiple numbers are
@@ -174,43 +214,42 @@ for ((;;)) ; do
 	read input dummy 2>/dev/null
 
 	# If no input was supplied, select the default option
-	[[ -z ${input} ]] && input=$defaultchoice
+	[ -z "${input}" ] && input=$defaultchoice
 
-	# First char must be a digit.
-	if [[ ${input} =~ [^1-9] || ${input} > ${#menu_items[@]} ]] ; then
+	# Choice must only contain digits
+	if [[ ${input} =~ [^1-9] || ${input} > ${#menu[@]} ]]; then
 		continue
 	fi
 
-	# Reorient to a zero base.
-	input=$((${input} - 1))
+	# Re-orient to a zero base.
+	((input = input - 1))
 
-	nameref msg_str=menu_items[$input].msg_str
+	nameref item=menu[$input]
 
 	# Launch commands as a subprocess.
 	# However, launch the functions within the context 
 	# of the current process.
-	if [[ "${menu_items[$input].do_subprocess}" = "true" ]] ; then
+	if [[ "${item.do_subprocess}" = "true" ]]; then
 		(
 		trap - TSTP INT TERM ABRT QUIT
 		# Print out a message if requested
-		[[ ! -z "${msg_str}" ]] && printf "%s\n" "${msg_str}"
-		for j in "${!menu_items[$input].cmds[@]}"; do
-			${menu_items[${input}].cmds[$j]}
+		[ -n "${item.msg_str}" ] && printf "%s\n" "${item.msg_str}"
+		for j in "${!item.cmds[@]}"; do
+			${item.cmds[$j]}
 		done
 		)
 	else
 		# Print out a message if requested
-		[[ ! -z "${msg_str}" ]] && printf "%s\n" "${msg_str}"
-		for j in "${!menu_items[$input].cmds[@]}"; do
-			${menu_items[${input}].cmds[$j]}
+		[ -n "${item.msg_str}" ] && printf "%s\n" "${item.msg_str}"
+		for j in "${!item.cmds[@]}"; do
+			${item.cmds[$j]}
 		done
 	fi
 
-	# Although the 'Reboot' action starts a long running
-	# sleep, the shutdown process kills that early on.
-	if [ "${menu_items[$input].menu_str}" = "Reboot" ] ; then
+	if [[ "${item.noreturn}" = "true" ]]; then
 		while :; do
 			sleep 10000
 		done
 	fi
 done
+

@@ -1,0 +1,30 @@
+#!/bin/ksh
+
+SITE=https://github.com/nmav/ipcalc/archive/
+VER=0.2.0
+URL=$SITE/$VER.tar.gz
+
+dir=`/usr/gnu/bin/mktemp -d`
+
+(
+	cd $dir
+	wget $URL
+	gtar -zxf $VER.tar.gz
+	cd ipcalc-$VER
+	for f in *; do
+		[ -f "$f" ] || continue
+		sed -i 's/"ipcalc: /"/' $f
+	done
+	gmake \
+		CC=gcc \
+		LIBS="-lsocket -lnsl -lresolv" \
+		USE_GEOIP=no \
+		USE_DYN_GEOIP=no \
+		CFLAGS=-D_KERNEL
+)
+
+cp $dir/ipcalc-$VER/ipcalc .
+strip ipcalc
+
+rm -rf $dir
+
