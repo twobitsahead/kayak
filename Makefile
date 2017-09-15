@@ -11,13 +11,23 @@
 
 #
 # Copyright 2017 OmniTI Computer Consulting, Inc.  All rights reserved.
+# Copyright 2017 OmniOS Community Edition (OmniOSce) Association.
 #
 
 VERSION?=$(shell awk '$$1 == "OmniOS" { print $$3 }' /etc/release)
+ifeq ($(shell zonename),global)
 BUILDSEND=rpool/kayak_image
+else
+BUILDSEND="$(shell zfs list -H -o name /)/kayak_image"
+endif
 
+ZFSCREATE:=$(shell \
+	zfs list -H -o name $(BUILDSEND) 2>/dev/null || \
+	    zfs create -o mountpoint=/kayak_image $(BUILDSEND) \
+)
 
 BUILDSEND_MP=$(shell zfs get -o value -H mountpoint $(BUILDSEND))
+DESTDIR=$(BUILDSEND_MP)
 
 all:
 
@@ -25,7 +35,8 @@ INSTALLS=anon.dtrace.conf anon.system build_image.sh build_zfs_send.sh \
 	data/access.log data/boot data/etc data/filelist.ramdisk data/kernel \
 	data/known_extras data/mdb data/platform disk_help.sh install_help.sh \
 	install_image.sh takeover-console.c Makefile net_help.sh README.md \
-	build_iso.sh digest find-and-install.sh kayak-menu.sh usbgen.sh \
+	build_iso.sh digest find-and-install.sh kayak-menu.sh config-menu.sh \
+	usbgen.sh ipcalc passutil.c \
 	loader.conf.local rpool-install.sh \
 	sample/000000000000.sample sample/menu.lst.000000000000
 
@@ -130,8 +141,18 @@ install-web:	server-dirs $(WEB_FILES)
 takeover-console:	takeover-console.c
 	gcc -o takeover-console takeover-console.c
 
-install-iso:	takeover-console install-tftp install-web
+passutil:	passutil.c
+	gcc -o passutil passutil.c
+
+ipcalc:	build_ipcalc
+	./build_ipcalc
+
+install-iso:	takeover-console ipcalc passutil install-tftp install-web
 	BUILDSEND_MP=$(BUILDSEND_MP) VERSION=$(VERSION) ./build_iso.sh
 
 install-usb:	install-iso
 	./usbgen.sh $(BUILDSEND_MP)/$(VERSION).iso $(BUILDSEND_MP)/$(VERSION).usb-dd /tmp
+
+clean:
+	rm -f takeover-console passutil ipcalc
+

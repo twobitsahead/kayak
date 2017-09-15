@@ -29,7 +29,6 @@ fi
 
 echo "Installing from ZFS image $ZFS_IMAGE"
 
-
 . /kayak/disk_help.sh
 . /kayak/install_help.sh
 
@@ -44,7 +43,7 @@ reality_check() {
 }
 
 # Select a host name
-NEWHOST="unknown"
+NEWHOST="omniosce"
 until [[ $NEWHOST == "" ]]; do
     HOSTNAME=$NEWHOST
     echo -n "Please enter a hostname or press RETURN if you want [$HOSTNAME]: "
@@ -68,12 +67,17 @@ LANG=C
 BuildBE $RPOOL $ZFS_IMAGE
 ApplyChanges $HOSTNAME $TZ $LANG $keyboard_layout
 MakeBootable $RPOOL
+# Disable SSH by default for interactive installations
+[ -f /kayak/nossh.xml ] && cp /kayak/nossh.xml $ALTROOT/etc/svc/profile/site/
 zpool list -v $RPOOL
 echo ""
 beadm list
-echo ""
-echo "$RPOOL now has a working and mounted boot environment, per above."
-echo "Once back at the main menu, you can reboot from there, or"
-echo "re-enter the shell to modify your new BE before its first boot."
+cat << EOM
+
+$RPOOL now has a working and mounted boot environment, per above.
+Once back at the main menu, you can configure the initial system settings,
+reboot, or enter the shell to modify your new BE before its first boot.
+
+EOM
 echo -n "Press RETURN to go back to the menu: "
 read

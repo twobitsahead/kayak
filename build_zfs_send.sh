@@ -101,7 +101,7 @@ fi
 echo "Creating compressed stream"
 zfs snapshot $ZROOT/$name@kayak || fail "snap"
 zfs send $ZROOT/$name@kayak | pv | $BZIP2 -9 > $OUT || fail "send/compress"
-if [[ "$CLEANUP" -eq "1" ]]; then
+if [ "$CLEANUP" -eq "1" ]; then
   zfs destroy $ZROOT/$name@kayak || fail "could not remove snapshot"
   zfs destroy $ZROOT/$name || fail "could not remove zfs filesystem"
 fi

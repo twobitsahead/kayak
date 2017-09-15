@@ -77,3 +77,7 @@
 0 /usr/bin/printf
 0 /usr/bin/tee
 0 /usr/bin/tzselect
+0 /lib/libofmt.so.1
+0 /lib/amd64/libofmt.so.1
+0 /usr/xpg4/bin/egrep
+0 /usr/lib/security/crypt_sha256.so.1

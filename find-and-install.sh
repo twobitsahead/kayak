@@ -19,11 +19,12 @@
 
 keyboard_layout=${1:-US-English}
 SCRATCH=/tmp/di.$$
+# In a KVM, the disks don't show up on the first invocation of diskinfo.
+# More investigation required so, for now, run it twice.
+diskinfo
 diskinfo > $SCRATCH
 numdisks=`wc -l $SCRATCH | awk '{print $1}'`
-echo "numdisks before $numdisks"
 numdisks=$(($numdisks - 1))
-echo "numdisks after $numdisks"
 
 # Number of disks on one page, must be <= 7.
 onepage=7
@@ -88,7 +89,6 @@ until [[ $finished == 1 ]]; do
     fi
     rm /tmp/dp.$$
 done
-
 
 reality_check() {
     mkfile 64m /tmp/test.$$
