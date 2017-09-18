@@ -69,7 +69,6 @@
 0 /platform/i86xpv/kernel/drv/amd64/pci
 0 /platform/i86xpv/kernel/drv/amd64/evtchn
 0 /platform/i86xpv/kernel/drv/amd64/xenbus
-0 /platform/i86xpv/kernel/drv/amd64/xdt
 0 /platform/i86xpv/kernel/drv/amd64/npe
 0 /platform/i86xpv/kernel/drv/amd64/pci-ide
 0 /platform/i86xpv/kernel/drv/amd64/xpvtap
@@ -88,7 +87,6 @@
 0 /platform/i86xpv/kernel/drv/amd64/domcaps
 0 /platform/i86xpv/kernel/drv/amd64/xnbu
 0 /platform/i86xpv/kernel/drv/pit_beep.conf
-0 /platform/i86xpv/kernel/drv/xdt.conf
 0 /platform/i86xpv/kernel/drv/pci-ide.conf
 0 /platform/i86xpv/kernel/drv/xencons.conf
 0 /platform/i86xpv/kernel/drv/ioat.conf

@@ -176,7 +176,6 @@
 20501924 /kernel/drv/amd64/ipsecah
 20501940 /kernel/drv/amd64/tzmon
 20501962 /kernel/drv/amd64/audio
-20501985 /kernel/drv/amd64/pcser
 20501986 /kernel/drv/amd64/qlc
 20502004 /kernel/misc/amd64/fctl
 20502070 /platform/i86pc/kernel/drv/amd64/dr
@@ -244,7 +243,6 @@
 20502931 /lib/libsecdb.so.1
 20502931 /lib/amd64/libsecdb.so.1
 20502931 /lib/libsqlite-sys.so.2.8.15
-20502931 /lib/amd64/libsqlite-sys.so.2.8.15
 20502934 /etc/user_attr
 20503070 /usr/sbin
 20503082 /lib/svc/method
@@ -324,7 +322,6 @@
 20505898 /lib/svc/method/svc-autofs
 20505898 /lib/svc/method/svc-allocate
 20505898 /lib/svc/method/mpxio-upgrade
-20505898 /lib/svc/method/svc-mdmonitor
 20505898 /lib/svc/method/net-init
 20505899 /lib/svc/method/svc-poold
 20505899 /lib/svc/method/net-netmask
@@ -337,7 +334,6 @@
 20505899 /lib/svc/method/svc-sockfilter
 20505899 /lib/svc/method/svc-intrd
 20505899 /lib/svc/method/net-routing-setup
-20505900 /lib/svc/method/svc-metainit
 20505900 /lib/svc/method/yp
 20505900 /lib/svc/method/net-svc
 20505900 /lib/svc/method/devices-audio
@@ -348,7 +344,6 @@
 20505900 /lib/svc/method/svc-cron
 20505900 /lib/svc/method/npivconfig
 20505901 /lib/svc/method/svc-syseventd
-20505901 /lib/svc/method/svc-wusb
 20505901 /lib/svc/method/dns-install
 20505901 /lib/svc/method/svc-zonestat
 20505901 /lib/svc/method/svc-zones
@@ -368,7 +363,6 @@
 20505902 /lib/svc/method/net-iptun
 20505902 /lib/svc/method/svc-boot-config
 20505903 /lib/svc/method/ldap-client
-20505903 /lib/svc/method/svc-metasync
 20505903 /lib/svc/method/net-ipqos
 20505903 /lib/svc/method/svc-dumpadm
 20505903 /lib/svc/method/rpc-bind
@@ -449,7 +443,6 @@
 20507173 /lib/libtsol.so.2
 20507181 /lib/inet/ipmgmtd
 20507196 /lib/libipadm.so.1
-20507196 /lib/amd64/libipadm.so.1
 20507208 /etc/ipadm
 20507208 /etc/ipadm/ipadm.conf
 20507384 /etc/security
@@ -509,7 +502,6 @@
 20515010 /kernel/misc/amd64/klmmod
 20515013 /kernel/fs/amd64/nfs
 20515040 /kernel/misc/amd64/rpcsec
-20515125 /kernel/drv/amd64/md
 20515162 /kernel/drv/amd64/fcip
 20515177 /usr/kernel/drv/bpf.conf
 20515177 /usr/kernel/drv/amd64/bpf
@@ -559,10 +551,8 @@
 20515887 /usr/bin/cat
 20515910 /var/svc/profile
 20516062 /sbin/ibd_upgrade
-20516083 /sbin/wusbadm
 20516083 /sbin/umount
 20516083 /sbin/route
-20516083 /sbin/metastat
 20516083 /sbin/rc0
 20516084 /sbin/fiocompress
 20516084 /sbin/in.mpathd
@@ -572,8 +562,6 @@
 20516084 /sbin/uname
 20516084 /sbin/devprop
 20516084 /sbin/rc3
-20516084 /sbin/metarecover
-20516084 /sbin/metainit
 20516085 /sbin/swapadd
 20516085 /sbin/su.static
 20516085 /sbin/tzreload
@@ -597,11 +585,9 @@
 20516088 /sbin/sulogin
 20516088 /sbin/ipmpstat
 20516088 /sbin/sync
-20516088 /sbin/metadb
 20516088 /sbin/flowstat
 20516088 /sbin/rc2
 20516089 /sbin/zpool
-20516089 /sbin/metadevadm
 20516089 /sbin/hostconfig
 20516089 /sbin/dhcpinfo
 20516089 /sbin/zfs
@@ -820,11 +806,7 @@
 20558145 /etc/dhcp
 20558145 /etc/dhcp/inittab
 20558147 /lib/libdhcpagent.so.1
-20558468 /kernel/drv/md.conf
 20558469 /dev/md/admin
-20558477 /lib/libmeta.so.1
-20558488 /etc/lvm
-20558488 /etc/lvm/mddb.cf
 20558731 /lib/svc/share/fs_include.sh
 20558732 /etc/vfstab
 20558734 /etc/mnttab
@@ -861,10 +843,8 @@
 20559793 /usr/kernel/fs/amd64
 20559793 /usr/kernel/fs/amd64/fdfs
 20559877 /etc/svc/repository.db-journal
-20559882 /etc/svc/repository-boot-tmpPcaqba
 20560464 /etc/dev
 20560464 /etc/dev/.devfsadm_dev.lock
-20560466 /etc/devdi_test_db.98
 20560467 /etc/dev/.devlink_db_lock
 20560467 /etc/dev/.devlink_db
 20560470 /usr/lib/devfsadm
@@ -878,10 +858,6 @@
 20560484 /usr/lib/devfsadm/linkmod/SUNW_sgen_link.so
 20560485 /lib/libdevid.so.1
 20560485 /lib/amd64/libdevid.so.1
-20560485 /lib/libsum.so.1
-20560485 /lib/amd64/libsum.so.1
-20560485 /lib/libdll.so.1
-20560485 /lib/amd64/libdll.so.1
 20560486 /usr/lib/devfsadm/linkmod/SUNW_ieee1394_link.so
 20560488 /usr/lib/devfsadm/linkmod/SUNW_xen_link.so
 20560488 /usr/lib/devfsadm/linkmod/SUNW_ramdisk_link.so
@@ -891,7 +867,6 @@
 20560492 /usr/lib/devfsadm/linkmod/SUNW_misc_link_i386.so
 20560493 /usr/lib/devfsadm/linkmod/SUNW_cfg_link.so
 20560494 /usr/lib/devfsadm/linkmod/SUNW_misc_link.so
-20560495 /usr/lib/devfsadm/linkmod/SUNW_md_link.so
 20560498 /lib/libadm.so.1
 20560499 /lib/libefi.so.1
 20560525 /usr/lib/devfsadm/linkmod/SUNW_fssnap_link.so
@@ -912,12 +887,9 @@
 20560566 /etc/devices
 20560601 /etc/inet/ipaddrsel.conf
 20560602 /usr/sbin/ipaddrsel
-20560631 /etc/devices/snapshot_cache.tmp
 20560640 /etc/path_to_inst
 20560641 /kernel/sys/amd64/inst_sync
 20560652 /usr/bin/pgrep
-20560659 /etc/path_to_inst.98
-20560660 /etc/path_to_inst.old.98
 20560664 /dev/ramdisk
 20560665 /dev/ramdisk/a
 20560667 /dev/rramdisk
@@ -945,7 +917,6 @@
 20560716 /usr/lib/inet/in.mpathd
 20560716 /lib/inet/in.mpathd
 20560728 /etc/default/mpathd
-20560745 /devices/pci@0,0/pci-ide@1,1/ide@0
 20560747 /dev/rdsk/c0d0s0
 20560765 /etc/shadow
 20560773 /etc/sdp.conf
@@ -993,7 +964,6 @@
 20560940 /dev/rdsk/c0d0p2
 20560940 /dev/rdsk/c0d0p3
 20560940 /dev/rdsk/c0d0p4
-20560942 /devices/pci@0,0/pci-ide@1,1/ide@1
 20560942 /dev/dsk/c1t0d0s0
 20560942 /dev/removable-media/dsk
 20560942 /dev/removable-media/dsk/c1t0d0s0
@@ -1095,7 +1065,6 @@
 20561135 /etc/saf/_sactab
 20561136 /etc/saf/zsmon
 20561136 /etc/saf/zsmon/_pmtab
-20561153 /etc/dev/.devlink_db_tmp
 20561205 /usr/sbin/amd64
 20561205 /usr/sbin/amd64/prtconf
 20561225 /usr/bin/rm
@@ -1107,7 +1076,6 @@
 20561709 /var/adm/utmpx
 20561710 /var/adm/wtmpx
 20561712 /var/svc/log/svc.startd.log
-20561850 /etc/dladm/datalink.conf.new
 20562442 /var/svc/log/system-initial-boot:default.log
 20562493 /lib/svc/share/initial_include.sh
 20562494 /etc/svc/profile
@@ -1134,12 +1102,10 @@
 20563000 /kayak/net_help.sh
 20563000 /kayak/disk_help.sh
 20563095 /etc/default/dhcpagent
-20563132 /etc/dhcp/iaid
 20563196 /var/svc/log/system-manifest-import:default.log
 20563316 /etc/default/login
 20563434 /var/svc/log/system-boot-config:default.log
 20563498 /usr/sbin/uadmin
-20567577 /etc/dhcp/e1000g0.dhc
 20567658 /usr/bin/date
 20567747 /usr/bin/tr
 20567765 /usr/bin/sed
@@ -1149,11 +1115,13 @@
 20567964 /usr/bin/amd64/curl
 20567971 /usr/lib/amd64/libcurl.so.4
 20567971 /usr/lib/amd64/libcurl.so.4.4.0
+20567973 /usr/lib/libidn.so.11
 20567973 /usr/lib/amd64/libidn.so.11
-20567974 /usr/lib/amd64/libidn.so.11.6.15
+20567973 /usr/lib/libidn.so.11.6.16
+20567973 /usr/lib/amd64/libidn.so.11.6.16
 20567979 /usr/lib/amd64/libssl.so.1.0.0
 20567979 /usr/lib/amd64/libnghttp2.so.14
-20567979 /usr/lib/amd64/libnghttp2.so.14.13.1
+20567979 /usr/lib/amd64/libnghttp2.so.14.14.0
 20567979 /lib/amd64/libssl.so.1.0.0
 20567983 /usr/lib/amd64/libcrypto.so.1.0.0
 20567983 /lib/amd64/libcrypto.so.1.0.0
@@ -1216,7 +1184,6 @@
 20568815 /usr/sbin/fdisk
 20568833 /usr/lib/fs/ufs/mboot
 20568835 /lib/libfdisk.so.1
-20568869 /etc/devdi_test_db.195
 20569046 /dev/dsk/c0d1s0
 20569047 /dev/dsk/c0d1s1
 20569048 /dev/dsk/c0d1s2
@@ -1239,7 +1206,6 @@
 20569070 /dev/dsk/c0d1p4
 20569071 /dev/dsk/c0d1
 20569164 /usr/sbin/fmthard
-20569215 /etc/devdi_test_db.200
 20569375 /usr/sbin/zpool
 20569389 /lib/libzfs.so.1
        0 /lib/libzfs_core.so.1
@@ -1255,7 +1221,6 @@
 20569418 /usr/lib/amd64/libdiskmgt.so
 20569418 /usr/lib/amd64/libdiskmgt.so.1
 20569420 /opt
-20569445 /usr/lib/libmeta.so
 20570233 /lib/libzfs.so
        0 /lib/libzfs_core.so
 20570233 /lib/amd64/libzfs.so
@@ -1265,7 +1230,6 @@
 20570288 /kernel/sched
 20570288 /kernel/sched/amd64
 20570288 /kernel/sched/amd64/SDC
-20570392 /etc/zfs/zpool.cache.tmp
 20570395 /rpool
 20570406 /usr/lib/fs/smb
 20570406 /usr/lib/fs/smb/libshare_smb.so.1
@@ -1284,7 +1248,6 @@
 20570411 /usr/lib/fs/autofs/libshare_autofs.so.1
 20570413 /usr/lib/fs/smbfs
 20570413 /usr/lib/fs/smbfs/libshare_smbfs.so.1
-20570415 /usr/lib/fs/cachefs
 20570744 /usr/sbin/zfs
 20571296 /usr/bin/pv
 20571357 /usr/bin/bzip2
@@ -1313,7 +1276,6 @@
 20707355 /etc/zones
 20707355 /etc/zones/index
 20707813 /usr/bin/hostname
-20707911 /var/tmp/sh-thd-1334268610
 20707977 /usr/bin/touch
 20708500 /usr/bin/uname
 20708628 /usr/bin/df
@@ -1383,7 +1345,6 @@
 20725823 /usr/bin/file
 20805662 /usr/sbin/mkfile
 20805895 /usr/sbin/lofiadm
-20805917 /etc/devname_check_RDONLY
 20805923 /usr/lib/devfsadm/devfsadmd
 20805948 /etc/dev/.devfsadm_daemon.lock
 20805953 /etc/sysevent
@@ -1391,7 +1352,6 @@
 20805955 /etc/sysevent/devfsadm_event_channel/1
 20805962 /etc/dev/.devfsadm_synch_door
 20805963 /etc/dev/.devname_lookup_door
-20806994 /etc/devdi_test_db.4319
 20807069 /etc/logindevperm
 20807404 /dev/lofi/2
 20807405 /dev/rlofi/2
@@ -1403,8 +1363,6 @@
 20807639 /kernel/sys/amd64/kaio
 20808309 /usr/lib/fs/mntfs/mount
 20808483 /usr/bin/cpio
-20808620 /var/tmp/cpioQSaqDi
-20809049 /var/tmp/cpiovZaWDi
 20819699 /usr/kernel/pcbe
 20819700 /usr/kernel/pcbe/amd64
 20828439 /kernel/fs/amd64/ctfs
@@ -1468,12 +1426,6 @@
 20872055 /usr/lib/libkvm.so.1
 20872055 /usr/lib/amd64/libkvm.so
 20872055 /usr/lib/amd64/libkvm.so.1
-20872055 /usr/lib/libsaveargs.so
-20872055 /usr/lib/libsaveargs.so.1
-20872055 /usr/lib/amd64/libsaveargs.so
-20872055 /usr/lib/amd64/libsaveargs.so.1
-20872055 /usr/lib/libuutil.so
-20872055 /usr/lib/libuutil.so.1
 20872055 /usr/lib/amd64/libuutil.so
 20872055 /usr/lib/amd64/libuutil.so.1
 20872055 /usr/lib/libnvpair.so
