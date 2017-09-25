@@ -1,5 +1,7 @@
 #!/bin/ksh
 
+# Copyright 2017 OmniOS Community Edition (OmniOSce) Association.
+
 SITE=https://github.com/nmav/ipcalc/archive/
 VER=0.2.0
 URL=$SITE/$VER.tar.gz
