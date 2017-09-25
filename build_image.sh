@@ -27,7 +27,7 @@ PUBLISHER=omnios
 : ${GZIP_CMD:=gzip}
 SRCDIR=$(dirname $0)
 DIDWORK=0
-BUILDNUM=${VERSION//r/}
+BUILDNUM=${VERSION//[a-z]/}
 if [[ ${SRCDIR:0:1} != "/" ]]; then
 	SRCDIR=`pwd`/$SRCDIR
 fi
@@ -219,16 +219,18 @@ if [[ -z "$CHKPT" ]]; then
 fi
 
 declare -A keep_list
+declare -a match_list
 load_keep_list() {
-	for datafile in $*
-	do
+	for datafile in $*; do
 		FCNT=0
-		while read file
-		do
-			if [[ -n "$file" ]]; then
+		while read file; do
+			[ -z "$file" ] && continue
+			if [[ $file = *\** ]]; then
+				match_list+=($file)
+			else
 				keep_list+=([$file]="x")
-				FCNT=$(($FCNT + 1))
 			fi
+			((FCNT = FCNT + 1))
 		done < <(cut -f2- -d/ $datafile)
 		echo " --- keeping $FCNT files from $datafile"
 	done
@@ -322,14 +324,15 @@ step() {
     "cull")
 	if [[ -z "$BIGROOT" ]]; then
 		load_keep_list data/*
-		while read file
-		do
-			if [[ -n "$file" && \
-			      ${keep_list[$file]} == "" && \
-			      -e "$ROOTDIR/$file" && \
-			      ! -d $ROOTDIR/$file ]] ; then
-				rm -f $ROOTDIR/$file
-			fi
+		while read file; do
+			[ -z "$file" ] && continue
+			[ -n "${keep_list[$file]}" ] && continue
+			[ -e "$ROOTDIR/$file" ] || continue
+			[ -d "$ROOTDIR/$file" ] && continue
+			for x in ${match_list[@]}; do
+				[[ $file = $x ]] && continue 2
+			done
+			rm -f "$ROOTDIR/$file"
 		done < <(cd $ROOTDIR && find ./ | cut -c3-)
 		for path in $RMRF ; do
 			rm -rf ${ROOTDIR}$path && echo " -- discarding $path"
