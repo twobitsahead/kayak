@@ -31,7 +31,8 @@ if [[ -z $BUILDSEND_MP ]]; then
 fi
 
 if [[ -z $VERSION ]]; then
-	VERSION=`head -1 $BUILDSEND_MP/root/etc/release | awk '{print $3}'`
+	VERSION=`head -1 $BUILDSEND_MP/root/etc/release | awk '{print $3}' \
+	    sed 's/[a-z]//g'`
 	echo "Using $VERSION..."
 fi
 

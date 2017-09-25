@@ -60,7 +60,7 @@ else
   zfs create $ZROOT/$name || fail "zfs create"
   MP=`zfs get -H mountpoint $ZROOT/$name | awk '{print $3}'`
   pkg image-create -F -p $PUBLISHER=$PKGURL $MP || fail "image-create"
-  entire_version=${name//r/}
+  entire_version=${name//[a-z]/}
   pkg -R $MP install entire@11-0.$entire_version openssh-server || fail "install entire"
   zfs snapshot $ZROOT/$name@entire
 fi
