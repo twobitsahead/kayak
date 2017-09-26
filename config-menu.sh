@@ -166,7 +166,8 @@ load_networking()
 	# Some sensible defaults
 	[ -z "$net_ifmode" ] && net_ifmode=static
 	[ -z "$net_if" ] \
-	    && net_if="`/sbin/dladm show-phys -p -o link | head -1`"
+	    && net_if="`/sbin/dladm show-phys -p -o link,media \
+	       | grep ':Ethernet$' | head -1 | cut -d: -f1`"
 	[ -z "$net_dns" ] && net_dns=80.80.80.80
 }
 
@@ -196,6 +197,7 @@ cfg_interface()
 
 	i=0
 	/sbin/dladm show-phys | while read line; do
+		[[ $line = *Infiniband* ]] && continue
 		if [ $i -eq 0 ]; then
 			printf "   $line\n"
 		else
