@@ -1,0 +1,23 @@
+#!/bin/ksh
+
+SITE=https://mirrors.omniosce.org/dialog
+VER=1.3-20170509
+FILE=dialog-$VER.tgz
+URL=$SITE/$FILE
+
+dir=`/usr/gnu/bin/mktemp -d`
+
+(
+	cd $dir
+	wget $URL
+	gtar -zxf $FILE
+	cd dialog-$VER
+	./configure
+	gmake
+)
+
+cp $dir/dialog-$VER/dialog .
+strip dialog
+
+rm -rf $dir
+

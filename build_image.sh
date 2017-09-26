@@ -174,7 +174,7 @@ DRIVERS="driver/audio driver/crypto/dca driver/crypto/tpm driver/firewire
 PARTS="release/name release/notices service/picl install/beadm SUNWcs SUNWcsd
     library/libidn shell/pipe-viewer text/less editor/vim web/curl
     developer/linker file/gnu-coreutils system/xopen/xcu4
-    openssh openssh-server diagnostic/diskinfo"
+    openssh openssh-server diagnostic/diskinfo network/netcat"
 
 PKGS="$PARTS $SYSTEM $DRIVERS"
 

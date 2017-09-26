@@ -81,7 +81,10 @@ echo "Adding ZFS image"
 pv $ZFS_IMG > $MNT/root/`basename $ZFS_IMG`
 
 # Extra files
-cp -p ./ipcalc ./passutil nossh.xml $MNT/kayak/.
+cp -p ipcalc passutil nossh.xml \
+    dialog dialog.rc dialog.sh dialog-tzselect \
+    kbd.list \
+    $MNT/kayak/.
 
 # A cheesy way to get the boot menu to appear at boot time.
 cp -p ./takeover-console $MNT/kayak/.
