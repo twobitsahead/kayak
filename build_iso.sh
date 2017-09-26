@@ -20,18 +20,19 @@
 # Build an ISO installer using the Kayak tools.
 #
 
-if [[ `id -u` != "0" ]]; then
+if [ `id -u` != "0" ]; then
 	echo "You must be root to run this script."
 	exit 1
 fi
 
-if [[ -z $BUILDSEND_MP ]]; then
+if [ -z "$BUILDSEND_MP" ]; then
 	echo "Using /rpool/kayak_image for BUILDSEND_MP"
 	BUILDSEND_MP=/rpool/kayak_image
 fi
 
-if [[ -z $VERSION ]]; then
-	VERSION=`head -1 $BUILDSEND_MP/root/etc/release | awk '{print $3}'`
+if [ -z "$VERSION" ]; then
+	VERSION=`head -1 $BUILDSEND_MP/root/etc/release | awk '{print $3}' \
+	    sed 's/[a-z]//g'`
 	echo "Using $VERSION..."
 fi
 
@@ -112,7 +113,7 @@ devfsadm -r $MNT
 #
 from_one_to_other() {
     dir=$1
-    if [[ -z $PREBUILT_ILLUMOS || ! -d $PREBUILT_ILLUMOS/proto/root_i386/$dir ]]
+    if [ -z $PREBUILT_ILLUMOS -o ! -d $PREBUILT_ILLUMOS/proto/root_i386/$dir ]
     then
 	FROMDIR=/
     else
@@ -166,3 +167,6 @@ mkisofs -N -l -R -U -d -D \
 rm -rf $PROTO $UFS_LOFI
 echo "$DST_ISO is ready"
 ls -lt $DST_ISO
+
+# Vim hints
+# vim:ts=4:sw=4:et:
