@@ -226,13 +226,13 @@ SetKeyboardLayout()
       # "setprop keyboard-layout <foo>" in the newly-installed root's
       # /boot/solaris/bootenv.rc (aka. eeprom(1M) storage for amd64/i386).
       layout=$1
-      sed "s/keyboard-layout Unknown/keyboard-layout $layout/g" \
-	  < $ALTROOT/boot/solaris/bootenv.rc > /tmp/bootenv.rc
-      mv /tmp/bootenv.rc $ALTROOT/boot/solaris/bootenv.rc
-      # Also modify the SMF manifest, assuming US-English was set by default.
-      sed "s/US-English/$layout/g" \
-	 < $ALTROOT/lib/svc/manifest/system/keymap.xml > /tmp/keymap.xml
-      cp -f /tmp/keymap.xml $ALTROOT/lib/svc/manifest/system/keymap.xml
+      sed -i "s/keyboard-layout Unknown/keyboard-layout $layout/g" \
+	  $ALTROOT/boot/solaris/bootenv.rc
+      # Also modify the system/keymap service
+      Postboot "/usr/sbin/svccfg -s system/keymap:default"\
+         "setprop keymap/layout = '$layout'"
+      Postboot "/usr/sbin/svcadm refresh system/keymap:default"
+      Postboot "/usr/sbin/svcadm restart system/keymap:default"
 }
 
 ApplyChanges(){
