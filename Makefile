@@ -45,6 +45,7 @@ TFTP_FILES=\
 	$(DESTDIR)/tftpboot/kayak/miniroot.gz.hash \
 	$(DESTDIR)/tftpboot/boot/grub/menu.lst \
 	$(DESTDIR)/tftpboot/boot/loader.conf.local \
+	$(DESTDIR)/tftpboot/boot/loader.rc \
 	$(DESTDIR)/tftpboot/boot/forth $(DESTDIR)/tftpboot/boot/defaults \
 	$(DESTDIR)/tftpboot/boot/platform/i86pc/kernel/amd64/unix \
 	$(DESTDIR)/tftpboot/pxeboot $(DESTDIR)/tftpboot/pxegrub
@@ -70,8 +71,11 @@ $(DESTDIR)/tftpboot/pxegrub:	$(BUILDSEND_MP)/root/boot/grub/pxegrub
 $(DESTDIR)/tftpboot/pxeboot:	$(BUILDSEND_MP)/root/boot/pxeboot
 	cp -p $< $@
 
-$(DESTDIR)/tftpboot/boot/loader.conf.local:	loader.conf.local
+$(DESTDIR)/tftpboot/boot/loader.rc:	$(BUILDSEND_MP)/root/boot/loader.rc
 	cp -p $< $@
+
+$(DESTDIR)/tftpboot/boot/loader.conf.local:	loader.conf.local
+	sed -e 's/@VERSION@/$(VERSION)/' $< > $@
 
 $(DESTDIR)/tftpboot/boot/forth:	$(BUILDSEND_MP)/root/boot/forth
 	cp -rp $< $@
