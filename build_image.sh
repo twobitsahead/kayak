@@ -338,7 +338,7 @@ step() {
             rm -f "$ROOTDIR/$file"
         done < <(cd $ROOTDIR && find ./ | cut -c3-)
         for path in $RMRF ; do
-            rm -rf ${ROOTDIR}$path && echo " -- discarding $path"
+            rm -rf ${ROOTDIR}$path && echo " --- discarding $path"
         done
     fi
 
