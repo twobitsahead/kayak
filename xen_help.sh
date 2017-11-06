@@ -22,6 +22,7 @@
 # Copyright 2013 by Andrzej Szeszo. All rights reserved.
 #
 # Copyright 2013 OmniTI Computer Consulting, Inc.  All rights reserved.
+# Copyright 2017 OmniOS Community Edition (OmniOSce) Association.
 # Use is subject to license terms.
 #
 
@@ -40,8 +41,8 @@ SetupPart() {
 0 0 0 0 0 0 0 0 0 0
 EOF
 
-    #NUMSECT=`fdisk -G /dev/rdsk/${DISK}p0|awk '!/^\*/ { print $1 * $5 * $6 - 34816 }'`
-    NUMSECT=`iostat -En $DISK|nawk '/^Size:/ { sub("<",""); print $3/512 - 34816 }'`
+    NUMSECT=`iostat -En $DISK|nawk '
+	/^Size:/ { sub("<",""); print $3/512 - 34816 }'`
 
     fdisk -A 6:0:0:0:0:0:0:0:2048:32768 /dev/rdsk/${DISK}p0
     fdisk -A 191:0:0:0:0:0:0:0:34816:$NUMSECT /dev/rdsk/${DISK}p0
@@ -71,11 +72,27 @@ SetupZPool() {
 
     log "Setting up '${RPOOL}' zpool"
 
-    # some of the commands below were borrowed from disk_help.sh
+    prtvtoc -h /dev/rdsk/${DISK}p0  > /tmp/xenparts
 
-    prtvtoc -h /dev/rdsk/${DISK}p0 | \
-    awk '/./{p=0;} {if($1=="2"){size=$5;p=1;} if($1=="8"){start=$5;p=1;} if(p==1){print $1" "$2" "$3" "$4" "$5;}} END{size=size-start; print "0 2 00 "start" "size;}' | \
-    sort -n | fmthard -s /dev/stdin /dev/rdsk/${DISK}s2 >/dev/null
+    # Re-install slice 8 to create a VTOC (fdisk will have erased it)
+    prtvtoc -h /dev/rdsk/c4t0d0s2 | \
+	awk '$1 == 8 {print}' | fmthard -s - /dev/rdsk/${DISK}s2
+
+    # Create partition 0 which will be used for the zpool
+    prtvtoc -h /dev/rdsk/${DISK}p0 | nawk '
+	BEGIN		{ p=0 }
+	# Record the size of partition 2 (entire disk)
+	$1 == "2"	{ size = $5; p = 1 }
+	# Record the size of partition 8 (boot)
+	$1 == "8"	{ start = $5; p = 1 }
+	p == 1		{ print $1, $2, $3, $4, $5 }
+	END		{
+				size = size - start
+				# Create partiton 0
+				print "0 2 00", start, size
+			}
+	' | sort -n | tee -a /tmp/xenparts \
+	  | fmthard -s - /dev/rdsk/${DISK}s2
 
     zpool create -f ${RPOOL} /dev/dsk/${DISK}s0
 
@@ -123,7 +140,7 @@ PrepareBE() {
     chown -R root:root /${RPOOL}/boot
     chmod 444 /${RPOOL}/boot/grub/bootsign/pool_${RPOOL}
 
-    RELEASE=`head -1 $ALTROOT/etc/release | sed -e 's/ *//;'`
+    RELEASE=`head -1 $ALTROOT/etc/release | awk '{print $3}'`
 
     cat <<EOF >/${RPOOL}/boot/grub/menu.lst
 default 0
@@ -145,18 +162,23 @@ EOF
 
     # Allow root to ssh in
     log "...setting PermitRootLogin=yes in sshd_config"
-    sed -i -e 's%^PermitRootLogin.*%PermitRootLogin yes%' $ALTROOT/etc/ssh/sshd_config
+    sed -i -e 's%^PermitRootLogin.*%PermitRootLogin yes%' \
+	$ALTROOT/etc/ssh/sshd_config
     
     # Prevent direct root non-RSA logins (passwd -N equivalent)
     log "...NP'ing root's password"
     sed -i -e 's/^root:\$.*:/root:NP:6445::::::/;' $ALTROOT/etc/shadow
 
-    # Set up to use DNS (hello, this is the year 2013. I never really understood this)
+    # Set up to use DNS
     log "...enabling DNS resolution"
     cp $ALTROOT/etc/nsswitch.dns $ALTROOT/etc/nsswitch.conf
 
-    # Install ec2-credential and ec2-api-tools packages. rsync needed for vagrant
+    # Install ec2-credential and ec2-api-tools packages.
+    # rsync needed for vagrant
     log "...installing EC2 and rsync packages"
     pkg -R $ALTROOT install network/rsync ec2-credential ec2-api-tools
 
+    # Enable signature policy
+    #pkg -R $ALTROOT set-publisher \
+	#--set-property signature-policy=require-signatures omnios
 }
