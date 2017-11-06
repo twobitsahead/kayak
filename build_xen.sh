@@ -21,12 +21,12 @@
 # CDDL HEADER END
 #
 # Copyright 2013 by Andrzej Szeszo. All rights reserved.
-#
 # Copyright 2013 OmniTI Computer Consulting, Inc.  All rights reserved.
+# Copyright 2017 OmniOS Community Edition (OmniOSce) Association.
 # Use is subject to license terms.
 #
 
-[[ $(id -u) != 0 ]] && echo Please run this script as root && exit 1
+[ "`id -u`" != 0 ] && echo Run this script as root && exit 1
 
 . install_help.sh 2>/dev/null
 . net_help.sh
@@ -34,14 +34,41 @@
 
 set -e
 
-DISK=c0t2d0
-ZFSSEND=/var/kayak/kayak/r151006.zfs.bz2
+VERSION=`head -1 /etc/release | awk '{print $3}' | sed 's/[a-z]//g'`
+ZFSSEND=/kayak_image/kayak_r$VERSION.zfs.bz2
 PVGRUB=pv-grub.gz.d3950d8
 
 RPOOL=syspool
 BENAME=omnios
 ALTROOT=/mnt
 UNIX=/platform/i86xpv/kernel/amd64/unix
+
+[ -f "$ZFSSEND" ] || ZFSSEND="omniosce-r$VERSION.zfs.bz2"
+[ ! -f $ZFSSEND ] && echo "ZFS Image ($ZFSSEND) missing" && exit 
+
+# Find the disk
+
+DISK="`diskinfo -pH | grep -w 8589934592 | awk '{print $2}'`"
+[ -z "$DISK" ] && echo "Cannot find 8GiB disk" && exit 1
+cat << EOM
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+`diskinfo`
+
+If you continue, disk $DISK will be completely erased
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+EOM
+echo "Using disk $DISK...return to continue, ^C to abort...\\c"
+read a
+
+if [ ! -f $PVGRUB ]; then
+	wget https://downloads.omniosce.org/media/misc/pv-grub.gz.d3950d8
+fi
+
+# Begin
 
 zpool destroy $RPOOL 2>/dev/null || true
 
@@ -54,7 +81,7 @@ MountBE
 
 # we need custom PV kernel because of this:
 # https://www.illumos.org/issues/3172
-if [[ -f $UNIX ]]; then
+if [ -f $UNIX ]; then
     cp $UNIX $ALTROOT/platform/i86xpv/kernel/amd64/unix
     chown root:sys $ALTROOT/platform/i86xpv/kernel/amd64/unix
 fi
@@ -67,8 +94,10 @@ Postboot '/sbin/ipadm create-if xnf0'
 Postboot '/sbin/ipadm create-addr -T dhcp xnf0/v4'
 Postboot 'for i in 0 1 2 3 4 5 6 7 8 9; do curl -f http://169.254.169.254/ >/dev/null 2>&1 && break; sleep 1; done'
 Postboot 'HOSTNAME=$(/usr/bin/curl http://169.254.169.254/latest/meta-data/hostname)'
-Postboot '[[ -z $HOSTNAME ]] || (/usr/bin/hostname $HOSTNAME && echo $HOSTNAME >/etc/nodename)'
+Postboot '[ -z "$HOSTNAME" ] || (/usr/bin/hostname $HOSTNAME && echo $HOSTNAME >/etc/nodename)'
 
 UmountBE
 
-zpool export ${RPOOL}
+zdb -C $RPOOL
+zpool export $RPOOL
+
