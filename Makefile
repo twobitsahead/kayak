@@ -149,6 +149,9 @@ takeover-console:	src/takeover-console.c
 passutil:	src/passutil.c
 	gcc -o $@ $<
 
+zpool_patch:	src/zpool_patch.c
+	gcc -Isrc/include -o $@ $< -lnvpair -lzfs
+
 ipcalc:	build_ipcalc
 	./build_ipcalc
 
@@ -159,5 +162,5 @@ install-usb:	install-iso
 	./usbgen.sh $(BUILDSEND_MP)/$(VERSION).iso $(BUILDSEND_MP)/$(VERSION).usb-dd /tmp
 
 clean:
-	rm -f takeover-console passutil ipcalc
+	rm -f takeover-console passutil ipcalc zpool_patch
 
