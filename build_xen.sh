@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# CDDL HEADER START
+# {{{ CDDL HEADER START
 #
 # The contents of this file are subject to the terms of the
 # Common Development and Distribution License, Version 1.0 only
@@ -18,7 +18,7 @@
 # fields enclosed by brackets "[]" replaced with your own identifying
 # information: Portions Copyright [yyyy] [name of copyright owner]
 #
-# CDDL HEADER END
+# CDDL HEADER END }}}
 #
 # Copyright 2013 by Andrzej Szeszo. All rights reserved.
 # Copyright 2013 OmniTI Computer Consulting, Inc.  All rights reserved.
@@ -29,10 +29,12 @@
 [ "`id -u`" != 0 ] && echo Run this script as root && exit 1
 
 . install_help.sh 2>/dev/null
+. disk_help.sh
 . net_help.sh
 . xen_help.sh
 
-set -e
+VMODE=hvm
+USEGRUB=0
 
 VERSION=`head -1 /etc/release | awk '{print $3}' | sed 's/[a-z]//g'`
 ZFSSEND=/kayak_image/kayak_r$VERSION.zfs.bz2
@@ -64,40 +66,80 @@ EOM
 echo "Using disk $DISK...return to continue, ^C to abort...\\c"
 read a
 
-if [ ! -f $PVGRUB ]; then
-	wget https://downloads.omniosce.org/media/misc/pv-grub.gz.d3950d8
+if [ $VMODE = pv -a  ! -f $PVGRUB ]; then
+    wget https://downloads.omniosce.org/media/misc/pv-grub.gz.d3950d8
 fi
 
 # Begin
 
 zpool destroy $RPOOL 2>/dev/null || true
 
-SetupPart
-SetupPVGrub
-SetupZPool
-ZFSRecvBE
-
-MountBE
-
-# we need custom PV kernel because of this:
-# https://www.illumos.org/issues/3172
-if [ -f $UNIX ]; then
-    cp $UNIX $ALTROOT/platform/i86xpv/kernel/amd64/unix
-    chown root:sys $ALTROOT/platform/i86xpv/kernel/amd64/unix
+if [ $VMODE = pv ]; then
+    SetupPVPart
+    SetupPVGrub
+    SetupPVZPool
+else
+    if [ $USEGRUB -eq 1 ]; then
+        SetupHVMPart
+        zpool create -f $RPOOL ${DISK}s0
+    else
+        # Use whole-disk EFI
+        zpool create -f $RPOOL ${DISK}
+    fi
 fi
 
-PrepareBE
-ApplyChanges
-SetTimezone UTC
+BE_Create_Root $RPOOL
+BE_Receive_Image cat "bzip2 -dc" $RPOOL $BENAME $ZFSSEND
+BE_Mount $RPOOL $BENAME $ALTROOT raw
+BE_SetUUID $RPOOL $BENAME $ALTROOT
+BE_SeedSMF $ALTROOT
+BE_LinkMsglog $ALTROOT
 
+if [ $USEGRUB -eq 1 ]; then
+    Grub_MakeBootable
+else
+    MakeBootable $RPOOL $BENAME
+fi
+
+ApplyChanges
+Xen_Customise
+
+SetTimezone UTC
 Postboot '/sbin/ipadm create-if xnf0'
 Postboot '/sbin/ipadm create-addr -T dhcp xnf0/v4'
-Postboot 'for i in 0 1 2 3 4 5 6 7 8 9; do curl -f http://169.254.169.254/ >/dev/null 2>&1 && break; sleep 1; done'
-Postboot 'HOSTNAME=$(/usr/bin/curl http://169.254.169.254/latest/meta-data/hostname)'
-Postboot '[ -z "$HOSTNAME" ] || (/usr/bin/hostname $HOSTNAME && echo $HOSTNAME >/etc/nodename)'
+Postboot 'for i in $(seq 0 9); do curl -f http://169.254.169.254/ >/dev/null 2>&1 && break; sleep 1; done'
+Postboot 'HOSTNAME=$(curl http://169.254.169.254/latest/meta-data/hostname)'
+Postboot '[ -z "$HOSTNAME" ] || (hostname $HOSTNAME && echo $HOSTNAME >/etc/nodename)'
+Postboot 'exit $SMF_EXIT_OK'
 
-UmountBE
+BE_Umount $BENAME $ALTROOT raw
 
-zdb -C $RPOOL
 zpool export $RPOOL
 
+# Once zpool_patch is able to properly update the vdev labels, the following
+# code can be used to automate volume creation. For now, the pool needs
+# to be imported under Xen.
+exit 0
+
+gmake zpool_patch
+./zpool_patch /dev/rdsk/${DISK}s0
+
+zdb -e -CC $RPOOL | sed -n '/^Configuration for import/,/^$/p'
+
+echo "Creating raw disk image"
+dd if=/dev/rdsk/${DISK}p0 of=xen-$VERSION.raw bs=2048
+
+echo "Creating VMDK"
+vmdkver=0.2
+dir=VMDK-stream-converter-$vmdkver
+file=$dir.tar.gz
+if [ ! -d $dir ]; then
+    wget -O /tmp/$file https://mirrors.omniosce.org/vmdk/$file
+    gtar zxf /tmp/$file
+fi
+
+./$dir/VMDKstream.py xen-$VERSION.raw xen-$VERSION.vmdk
+rm -f xen-$VERSION.raw
+
+# Vim hints
+# vim:ts=4:sw=4:et:fdm=marker
