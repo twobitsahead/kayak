@@ -2,19 +2,20 @@
 
 # Copyright 2017 OmniOS Community Edition (OmniOSce) Association.
 
+MIRROR=https://mirrors.omniosce.org
 PROG=ipcalc
-SITE=https://mirrors.omniosce.org/$PROG/
 VER=0.2.0
-URL=$SITE/$PROG-$VER.tar.gz
+FILE=$PROG-$VER.tar.gz
+URL=$MIRROR/$PROG/$FILE
 
 dir=`/usr/gnu/bin/mktemp -d`
 
 (
 	cd $dir
 	wget $URL
-	gtar -zxf $PROG-$VER.tar.gz
+	gtar -zxf $FILE
 	cd $PROG-$VER
-	# Remove 'ipcalc: ' prefix from all error messages
+	# Remove 'ipcalc: ' prefix from error messages.
 	for f in *; do
 		[ -f "$f" ] || continue
 		sed -i 's/"ipcalc: /"/' $f
@@ -27,8 +28,8 @@ dir=`/usr/gnu/bin/mktemp -d`
 		CFLAGS=-D_KERNEL
 )
 
-cp $dir/$PROG-$VER/ipcalc .
-strip ipcalc
+cp $dir/$PROG-$VER/$PROG .
+strip $PROG
 
 rm -rf $dir
 

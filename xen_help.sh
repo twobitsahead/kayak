@@ -1,5 +1,5 @@
 #
-# CDDL HEADER START
+# {{{ CDDL HEADER START
 #
 # The contents of this file are subject to the terms of the
 # Common Development and Distribution License, Version 1.0 only
@@ -17,7 +17,7 @@
 # fields enclosed by brackets "[]" replaced with your own identifying
 # information: Portions Copyright [yyyy] [name of copyright owner]
 #
-# CDDL HEADER END
+# CDDL HEADER END }}}
 #
 # Copyright 2013 by Andrzej Szeszo. All rights reserved.
 #
@@ -30,8 +30,7 @@ log() {
     echo "$*"
 }
 
-SetupPart() {
-
+SetupPVPart() {
     log "Setting up partition table on /dev/rdsk/${DISK}p0" 
 
     cat <<EOF | fdisk -F /dev/stdin /dev/rdsk/${DISK}p0
@@ -46,6 +45,39 @@ EOF
 
     fdisk -A 6:0:0:0:0:0:0:0:2048:32768 /dev/rdsk/${DISK}p0
     fdisk -A 191:0:0:0:0:0:0:0:34816:$NUMSECT /dev/rdsk/${DISK}p0
+}
+
+CreateSlice0() {
+    disks -C
+
+    prtvtoc -h /dev/rdsk/${DISK}p0  > /tmp/xenparts
+
+    # Create partition 0 which will be used for the zpool
+    prtvtoc -h /dev/rdsk/${DISK}p0 | nawk '
+	BEGIN		{ p=0 }
+	# Record the size of partition 2 (entire disk)
+	$1 == "2"	{ size = $5; p = 1 }
+	# Record the size of partition 8 (boot)
+	$1 == "8"	{ start = $5; p = 1 }
+	p == 1		{ print $1, $2, $3, $4, $5 }
+	END		{
+				size = size - start
+				# Create partiton 0
+				print "0 2 00", start, size
+			}
+	' | sort -n | tee -a /tmp/xenparts \
+	  | fmthard -s - /dev/rdsk/${DISK}s2
+
+    disks -C
+}
+
+SetupHVMPart() {
+    # Use an SMI label for HVM images
+    log "Setting up partition table on /dev/rdsk/${DISK}p0" 
+
+    # Single 'solaris2' partition
+    fdisk -B /dev/rdsk/${DISK}p0
+    CreateSlice0
 }
 
 SetupPVGrub() {
@@ -68,72 +100,22 @@ EOF
     umount $ALTROOT
 }
 
-SetupZPool() {
+SetupPVZPool() {
 
     log "Setting up '${RPOOL}' zpool"
-
-    prtvtoc -h /dev/rdsk/${DISK}p0  > /tmp/xenparts
 
     # Re-install slice 8 to create a VTOC (fdisk will have erased it)
     prtvtoc -h /dev/rdsk/c4t0d0s2 | \
 	awk '$1 == 8 {print}' | fmthard -s - /dev/rdsk/${DISK}s2
 
-    # Create partition 0 which will be used for the zpool
-    prtvtoc -h /dev/rdsk/${DISK}p0 | nawk '
-	BEGIN		{ p=0 }
-	# Record the size of partition 2 (entire disk)
-	$1 == "2"	{ size = $5; p = 1 }
-	# Record the size of partition 8 (boot)
-	$1 == "8"	{ start = $5; p = 1 }
-	p == 1		{ print $1, $2, $3, $4, $5 }
-	END		{
-				size = size - start
-				# Create partiton 0
-				print "0 2 00", start, size
-			}
-	' | sort -n | tee -a /tmp/xenparts \
-	  | fmthard -s - /dev/rdsk/${DISK}s2
+    CreateSlice0
 
     zpool create -f ${RPOOL} /dev/dsk/${DISK}s0
-
-    zfs set compression=on ${RPOOL}
-    zfs create ${RPOOL}/ROOT
-#    zfs set canmount=off ${RPOOL}/ROOT
-    zfs set mountpoint=legacy ${RPOOL}/ROOT
 }
 
-ZFSRecvBE() {
-    log "Receiving ${RPOOL}/ROOT/${BENAME} filesystem"
-    cat $ZFSSEND | pv -B 128m | bzip2 -dc | zfs receive -u ${RPOOL}/ROOT/${BENAME}
-    zfs set canmount=noauto ${RPOOL}/ROOT/${BENAME}
-    zfs set mountpoint=legacy ${RPOOL}/ROOT/${BENAME}
-    zfs destroy ${RPOOL}/ROOT/${BENAME}@kayak || true
-}
-
-MountBE() {
-    log "Mounting BE"
-    mount -F zfs ${RPOOL}/ROOT/${BENAME} $ALTROOT
-}
-
-UmountBE() {
-    log "Unmounting BE"
-    umount $ALTROOT
-}
-
-PrepareBE() {
-
-    log "Preparing BE"
-
-    cp $ALTROOT/lib/svc/seed/global.db $ALTROOT/etc/svc/repository.db
-    chmod 0600 $ALTROOT/etc/svc/repository.db
-    chown root:sys $ALTROOT/etc/svc/repository.db
-
-    /usr/sbin/devfsadm -r $ALTROOT
-
-    [[ -L $ALTROOT/dev/msglog ]] || \
-    ln -s ../devices/pseudo/sysmsg@0:msglog $ALTROOT/dev/msglog
-
+Grub_MakeBootable() {
     # GRUB stuff
+    echo "BE_HAS_GRUB=true" > $ALTROOT/etc/default/be
     log "...setting up GRUB and the BE"
     mkdir -p /${RPOOL}/boot/grub/bootsign
     touch /${RPOOL}/boot/grub/bootsign/pool_${RPOOL}
@@ -146,39 +128,46 @@ PrepareBE() {
 default 0
 timeout 3
 
-title ${BENAME}
-findroot (pool_${RPOOL},1,a)
+title ${RELEASE}
+findroot (pool_${RPOOL},0,a)
 bootfs ${RPOOL}/ROOT/${BENAME}
 kernel$ /platform/i86pc/kernel/amd64/unix -B \$ZFS-BOOTFS
 module$ /platform/i86pc/amd64/boot_archive
 #============ End of LIBBE entry =============
 EOF
 
-    sed -i -e "s/^title.*/title $RELEASE/;" /${RPOOL}/boot/grub/menu.lst
-
-    bootadm update-archive -R $ALTROOT
-
     zpool set bootfs=${RPOOL}/ROOT/${BENAME} ${RPOOL}
 
+    log "Activate"
+    beadm activate -v $BENAME
+    $ALTROOT/boot/solaris/bin/update_grub -R $ALTROOT
+    bootadm update-archive -R $ALTROOT
+}
+
+Xen_Customise() {
     # Allow root to ssh in
     log "...setting PermitRootLogin=yes in sshd_config"
-    sed -i -e 's%^PermitRootLogin.*%PermitRootLogin yes%' \
-	$ALTROOT/etc/ssh/sshd_config
+    sed -i -e 's%^PermitRootLogin.*%PermitRootLogin without-password%' \
+	    $ALTROOT/etc/ssh/sshd_config
     
-    # Prevent direct root non-RSA logins (passwd -N equivalent)
-    log "...NP'ing root's password"
-    sed -i -e 's/^root:\$.*:/root:NP:6445::::::/;' $ALTROOT/etc/shadow
-
     # Set up to use DNS
     log "...enabling DNS resolution"
-    cp $ALTROOT/etc/nsswitch.dns $ALTROOT/etc/nsswitch.conf
+    EnableDNS
 
     # Install ec2-credential and ec2-api-tools packages.
     # rsync needed for vagrant
     log "...installing EC2 and rsync packages"
     pkg -R $ALTROOT install network/rsync ec2-credential ec2-api-tools
 
-    # Enable signature policy
-    #pkg -R $ALTROOT set-publisher \
-	#--set-property signature-policy=require-signatures omnios
+    # Remove disk links so they will be correctly generated on first boot.
+    rm -f $ALTROOT/dev/dsk/* $ALTROOT/dev/rdsk/*
+    touch $ALTROOT/reconfigure
+
+    # Decrease boot delay
+    cat << EOM > $ALTROOT/boot/loader.conf.local
+autoboot_delay=1
+EOM
 }
+
+# Vim hints
+# vim:ts=4:sw=4:et:fdm=marker

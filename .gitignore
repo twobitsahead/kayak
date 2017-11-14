@@ -2,5 +2,8 @@ kayak_root/
 takeover-console
 ipcalc
 passutil
+zpool_patch
 run
 pv-grub*
+VMDK*
+*.vmdk
