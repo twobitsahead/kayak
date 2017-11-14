@@ -34,9 +34,9 @@ all:
 INSTALLS=anon.dtrace.conf anon.system build_image.sh build_zfs_send.sh \
 	data/access.log data/boot data/etc data/filelist.ramdisk data/kernel \
 	data/known_extras data/mdb data/platform disk_help.sh install_help.sh \
-	install_image.sh takeover-console.c Makefile net_help.sh README.md \
+	install_image.sh src/takeover-console.c Makefile net_help.sh README.md \
 	build_iso.sh digest find-and-install.sh kayak-menu.sh config-menu.sh \
-	usbgen.sh ipcalc passutil.c \
+	usbgen.sh ipcalc src/passutil.c \
 	loader.conf.local rpool-install.sh \
 	sample/000000000000.sample sample/menu.lst.000000000000
 
@@ -122,6 +122,7 @@ server-dirs:
 	mkdir -p $(DESTDIR)/var/kayak/img
 	mkdir -p $(DESTDIR)/usr/share/kayak/data
 	mkdir -p $(DESTDIR)/usr/share/kayak/sample
+	mkdir -p $(DESTDIR)/usr/share/kayak/src
 	mkdir -p $(DESTDIR)/var/kayak/log
 	mkdir -p $(DESTDIR)/var/svc/manifest/network
 	mkdir -p $(DESTDIR)/var/svc/method
@@ -142,11 +143,11 @@ install-tftp:	tftp-dirs $(TFTP_FILES)
 
 install-web:	server-dirs $(WEB_FILES)
 
-takeover-console:	takeover-console.c
-	gcc -o takeover-console takeover-console.c
+takeover-console:	src/takeover-console.c
+	gcc -o $@ $<
 
-passutil:	passutil.c
-	gcc -o passutil passutil.c
+passutil:	src/passutil.c
+	gcc -o $@ $<
 
 ipcalc:	build_ipcalc
 	./build_ipcalc
