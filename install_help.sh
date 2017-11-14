@@ -1,5 +1,6 @@
 #!/usr/bin/bash
 
+# {{{ CDDL licence header
 #
 # This file and its contents are supplied under the terms of the
 # Common Development and Distribution License ("CDDL"), version 1.0.
@@ -10,9 +11,11 @@
 # source.  A copy of the CDDL is also available via the Internet at
 # http://www.illumos.org/license/CDDL.
 #
+# }}}
 
 #
 # Copyright 2017 OmniTI Computer Consulting, Inc.  All rights reserved.
+# Copyright 2017 OmniOS Community Edition (OmniOSce) Association.
 #
 
 LOG_SETUP=0
@@ -90,51 +93,118 @@ ForceDHCP(){
   sleep 1
 }
 
+BE_Create_Root() {
+    local _rpool="${1:?rpool}"
+
+    zfs set compression=on $_rpool
+    zfs create $_rpool/ROOT
+    # The miniroot does not have any libshare SMF services so the following
+    # commands print an error.
+    (
+        zfs set canmount=off $_rpool/ROOT
+        zfs set mountpoint=legacy $_rpool/ROOT
+    ) 2>&1 | grep -v 'libshare SMF'
+}
+
+BE_Receive_Image() {
+    local _grab="${1:?grab}"
+    local _decomp="${2:?decomp}"
+    local _rpool="${3:?rpool}"
+    local _bename="${4:?bename}"
+    local _media="${5:?media}"
+
+    log "Receiving image: $MEDIA"
+    $_grab $_media | pv -B 128m -w 78 | $_decomp \
+        | zfs receive -u $_rpool/ROOT/$_bename
+    zfs set canmount=noauto $_rpool/ROOT/$_bename
+    zfs set mountpoint=legacy $_rpool/ROOT/$_bename
+}
+
+BE_Mount() {
+    local _rpool=${1:?rpool}
+    local _bename=${2:?bename}
+    local _root=${3:?root}
+    local _method${4:-beadm}
+
+    log "Mounting BE $_bename on $_root"
+
+    if [ "$_method" = beadm ]; then
+        beadm mount $_bename $_root
+    else
+        mount -F zfs $_rpool/ROOT/$_bename $_root
+    fi
+    export ALTROOT=$_root
+}
+
+BE_Umount() {
+    local _bename=${1:?bename}
+    local _root=${2:?root}
+    local _method${3:-beadm}
+
+    log "Unmounting BE $_bename"
+    if [ "$_method" = beadm ]; then
+        beadm umount $_bename
+    else
+        umount $_root
+    fi
+}
+
+BE_SetUUID() {
+    local _rpool=${1:?rpool}
+    local _bename=${2:?bename}
+    local _root=${3:?root}
+
+    local uuid=`LD_LIBRARY_PATH=$_root/lib:$_root/usr/lib \
+        $_root/usr/bin/uuidgen`
+
+    log "Setting BE $_bename UUID: $uuid"
+    zfs set org.opensolaris.libbe:uuid=$uuid $_rpool/ROOT/$_bename
+    zfs set org.opensolaris.libbe:policy=static $_rpool/ROOT/$_bename
+}
+
+BE_SeedSMF() {
+    local _root=${1:?root}
+
+    log "Seeding SMF database"
+    cp $_root/lib/svc/seed/global.db $_root/etc/svc/repository.db
+    chmod 0600 $_root/etc/svc/repository.db
+    chown root:sys $_root/etc/svc/repository.db
+}
+
+BE_LinkMsglog() {
+    local _root=${1:?root}
+
+    /usr/sbin/devfsadm -r $_root
+    [ -L "$_root/dev/msglog" ] || \
+        ln -s ../devices/pseudo/sysmsg@0:msglog $_root/dev/msglog
+}
+
 BuildBE() {
-  RPOOL=${1:-rpool}
-  if [[ -z $2 ]]; then
-      BOOTSRVA=`/sbin/dhcpinfo BootSrvA`
-      MEDIA=`getvar install_media`
-      MEDIA=`echo $MEDIA | sed -e "s%//\:%//$BOOTSRVA\:%g;"`
-      MEDIA=`echo $MEDIA | sed -e "s%///%//$BOOTSRVA/%g;"`
-      DECOMP="bzip2 -dc"
-      GRAB="curl -s"
-  else
-      # ASSUME $2 is a file path.  TODO: Parse the URL...
-      MEDIA=$2
-      # TODO: make switch statement based on $MEDIA's extension.
-      # e.g. "bz2" ==> "bzip -dc", "7z" ==> 
-      DECOMP="bzip2 -dc"
-      GRAB=cat
-  fi
-  zfs set compression=on $RPOOL
-  zfs create $RPOOL/ROOT
-  # The miniroot does not have any libshare SMF services so the following
-  # commands print an error.
-  (
-	zfs set canmount=off $RPOOL/ROOT
-	zfs set mountpoint=legacy $RPOOL/ROOT
-  ) | grep -v 'libshare SMF'
-  log "Receiving image: $MEDIA"
-  $GRAB $MEDIA | pv -B 128m -w 78 | $DECOMP | zfs receive -u $RPOOL/ROOT/omnios
-  zfs set canmount=noauto $RPOOL/ROOT/omnios
-  zfs set mountpoint=legacy $RPOOL/ROOT/omnios
-  log "Cleaning up boot environment"
-  ALTROOT=/mnt
-  beadm mount omnios $ALTROOT
-  # generate UUID for BE
-  BEUUID=`LD_LIBRARY_PATH=$ALTROOT/lib:$ALTROOT/usr/lib $ALTROOT/usr/bin/uuidgen`
-  zfs set org.opensolaris.libbe:uuid=$BEUUID $RPOOL/ROOT/omnios
-  zfs set org.opensolaris.libbe:policy=static $RPOOL/ROOT/omnios
-  log "Setting BE UUID: $BEUUID"
-  cp $ALTROOT/lib/svc/seed/global.db $ALTROOT/etc/svc/repository.db
-  chmod 0600 $ALTROOT/etc/svc/repository.db
-  chown root:sys $ALTROOT/etc/svc/repository.db
-  /usr/sbin/devfsadm -r /mnt
-  [[ -L $ALTROOT/dev/msglog ]] || \
-    ln -s ../devices/pseudo/sysmsg@0:msglog $ALTROOT/dev/msglog
-  MakeSwapDump
-  zfs destroy $RPOOL/ROOT/omnios@kayak
+    RPOOL=${1:-rpool}
+    if [ -z "$2" ]; then
+        BOOTSRVA=`/sbin/dhcpinfo BootSrvA`
+        MEDIA=`getvar install_media`
+        MEDIA=`echo $MEDIA | sed -e "s%//\:%//$BOOTSRVA\:%g;"`
+        MEDIA=`echo $MEDIA | sed -e "s%///%//$BOOTSRVA/%g;"`
+        DECOMP="bzip2 -dc"
+        GRAB="curl -s"
+    else
+        # ASSUME $2 is a file path.  TODO: Parse the URL...
+        MEDIA=$2
+        # TODO: make switch statement based on $MEDIA's extension.
+        # e.g. "bz2" ==> "bzip -dc", "7z" ==> 
+        DECOMP="bzip2 -dc"
+        GRAB=cat
+    fi
+
+    BE_Create_Root $RPOOL
+    BE_Receive_Image "$GRAB" "$DECOMP" $RPOOL omnios $MEDIA
+    BE_Mount $RPOOL omnios /mnt
+    BE_SetUUID $RPOOL omnios /mnt
+    BE_SeedSMF /mnt
+    BE_LinkMsglog /mnt
+    MakeSwapDump
+    zfs destroy $RPOOL/ROOT/omnios@kayak
 }
 
 FetchConfig(){
@@ -161,24 +231,25 @@ FetchConfig(){
 }
 
 MakeBootable(){
-  RPOOL=${1:-rpool}
+  local _rpool=${1:-rpool}
+  local _bename=${2:-omnios}
   log "Making boot environment bootable"
-  zpool set bootfs=$RPOOL/ROOT/omnios rpool
+  zpool set bootfs=$_rpool/ROOT/$_bename $_rpool
   # Must do beadm activate first on the off chance we're bootstrapping from
   # GRUB.
   beadm activate omnios || return 1
 
-  if [[ ! -z $1 ]]; then
+  if [ -n "$1" ]; then
       # Generate kayak-disk-list from zpool status.
       # NOTE: If this is something on non-s0 slices, the installboot below
       # will fail most likely, which is possibly a desired result.
-      zpool list -v $RPOOL | egrep -v "NAME|rpool|mirror" | \
-	  awk '{print $1}' | sed -E 's/s0$//g' > /tmp/kayak-disk-list
+      zpool list -v $_rpool | egrep -v "NAME|$_rpool|mirror" | \
+	      awk '{print $1}' | sed -E 's/s0$//g' > /tmp/kayak-disk-list
   fi
 
-  # NOTE:  This installboot loop assumes we're doing GPT whole-disk rpools.
-  for i in `cat /tmp/kayak-disk-list`
-  do
+  # NOTE: This installboot loop assumes we're doing GPT whole-disk rpools.
+  for i in `cat /tmp/kayak-disk-list`; do
+      echo "Installing loader bootblocks on /dev/rdsk/${i}s0"
       installboot -mfF /boot/pmbr /boot/gptzfsboot /dev/rdsk/${i}s0 || return 1
   done
 
@@ -293,3 +364,6 @@ RunInstall(){
   log "Install complete"
   return 0
 }
+
+# Vim hints
+# vim:ts=4:sw=4:et:fdm=marker
