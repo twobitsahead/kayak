@@ -102,7 +102,7 @@ BuildRpoolOnly() {
     echo ${i} >> /tmp/kayak-disk-list
   done
   log "zpool destroy $RPOOL (just in case we've been run twice)"
-  zpool destroy $RPOOL 2> /dev/null
+  zpool destroy $RPOOL 2> /dev/null || true
   log "Creating root pool with: zpool create -f $RPOOL $ztype $ztgt"
   # Just let "zpool create" do its thing. We want GPT disks now.
   zpool create -f $RPOOL $ztype $ztgt || bomb "Failed to create root pool $RPOOL"
@@ -114,7 +114,7 @@ BuildRpool() {
 GetTargetVolSize() {
     # Aim for 25% of physical memory (minimum 1G)
     # prtconf always reports in megabytes
-    local mem=`/usr/sbin/prtconf | /bin/awk '/^Memory size/ { print $3 }'`
+    local mem=`/usr/sbin/prtconf -m`
     if [[ $mem -lt 4096 ]]; then
         local vsize=1
     else
