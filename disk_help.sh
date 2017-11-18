@@ -1,6 +1,6 @@
 #!/usr/bin/bash
 
-#
+# {{{ CDDL HEADER
 # This file and its contents are supplied under the terms of the
 # Common Development and Distribution License ("CDDL"), version 1.0.
 # You may only use this file in accordance with the terms of version
@@ -9,10 +9,11 @@
 # A full copy of the text of the CDDL should have accompanied this
 # source.  A copy of the CDDL is also available via the Internet at
 # http://www.illumos.org/license/CDDL.
-#
+# }}}
 
 #
 # Copyright 2017 OmniTI Computer Consulting, Inc.  All rights reserved.
+# Copyright 2017 OmniOS Community Edition (OmniOSce) Association.
 #
 
 ListDisks() {
@@ -164,11 +165,25 @@ MakeSwapDump() {
         savecore="-y"
     fi
 
+    blocksize="`getconf PAGESIZE`"
+    [ -z "$blocksize" ] && blocksize=4096   # x86 default
+
     for volname in swap dump; do
-        /sbin/zfs create -V ${finalsize}G $RPOOL/$volname || \
-            bomb "Failed to create $RPOOL/$volname"
+        /sbin/zfs create \
+            -V ${finalsize}G \
+            -b $blocksize \
+            -o logbias=throughput \
+            -o sync=always \
+            -o primarycache=metadata \
+            -o secondarycache=none \
+            $RPOOL/$volname \
+            || bomb "Failed to create $RPOOL/$volname"
     done
-    printf "/dev/zvol/dsk/$RPOOL/swap\t-\t-\tswap\t-\tno\t-\n" >> $ALTROOT/etc/vfstab
-    Postboot /usr/sbin/dumpadm $savecore -d /dev/zvol/dsk/$RPOOL/dump
+    printf "/dev/zvol/dsk/$RPOOL/swap\t-\t-\tswap\t-\tno\t-\n" \
+        >> $ALTROOT/etc/vfstab
+    Postboot /usr/sbin/dumpadm $savecore -c curproc \
+        -d /dev/zvol/dsk/$RPOOL/dump
     return 0
 }
+# Vim hints
+# vim:ts=4:sw=4:et:fdm=marker
