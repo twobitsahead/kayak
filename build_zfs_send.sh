@@ -20,6 +20,12 @@ fail() {
     exit 1
 }
 
+note() {
+    echo "***"
+    echo "*** $*"
+    echo "***"
+}
+
 # NOTE --> The URL needs to be updated with every release.    
 # Change "bloody" to whatever release the current branch is.
 PUBLISHER=omnios
@@ -57,27 +63,34 @@ if zfs list $ZROOT/$name@entire > /dev/null 2>&1; then
 else
     zfs create $ZROOT/$name || fail "zfs create"
     MP=`zfs get -H mountpoint $ZROOT/$name | awk '{print $3}'`
+    note "Creating IPS image"
     pkg image-create -F -p $PUBLISHER=$PKGURL $MP || fail "image-create"
     entire_version=${name//[a-z]/}
-    pkg -R $MP install entire@11-0.$entire_version openssh-server \
-        || fail "install entire"
+    entire_fmri="entire@11-0.$entire_version"
+    note "Installing $entire_fmri"
+    pkg -R $MP install $entire_fmri || fail "install entire"
+    # Install the optional packages from entire too
+    note "Installing optional packages"
+    pkg -R $MP install \
+        `pkg -R $MP contents -H -a type=optional -o fmri $entire_fmri` \
+        || fail "install optional entire"
     zfs snapshot $ZROOT/$name@entire
 fi
 
 if [ -n "$PROFILE" ]; then
-    echo "Applying custom profile: $PROFILE"
+    note "Applying custom profile: $PROFILE"
     [ -r "$PROFILE" ] || fail "Cannot find file: $PROFILE"
     while read line; do
         TMPPUB=`echo $line | cut -f1 -d=`
         TMPURL=`echo $line | cut -f2 -d=`
         if [ -n "$TMPURL" -a "$TMPURL" != "$TMPPUB" ]; then
-            echo "Setting publisher: $TMPPUB / $TMPURL"
+            note "Setting publisher: $TMPPUB / $TMPURL"
             pkg -R $MP set-publisher -g $TMPURL $TMPPUB \
                 || fail "set publisher $TMPPUB"
             PUBLISHER=$TMPPUB
             PKGURL=$TMPURL
         else
-            echo "Installing additional package: $line"
+            note "Installing additional package: $line"
             pkg -R $MP install -g $PKGURL $line || fail "install $line"
         fi
     done < <(grep . $PROFILE | grep -v '^ *#')
@@ -86,18 +99,18 @@ fi
 if [ -n "$PUBLISHER_OVERRIDE" ]; then
     OMNIOS_URL=$PKGURL
 fi
-echo "Setting omnios publisher to $OMNIOS_URL"
+note "Setting omnios publisher to $OMNIOS_URL"
 pkg -R $MP unset-publisher omnios
 pkg -R $MP set-publisher -P --no-refresh -g $OMNIOS_URL omnios
 
 # Starting with r151014, require signatures for the omnios publisher.
 if [[ $OMNIOS_URL != */bloody/* ]]; then
-    echo "Setting signature policy to require."
+    note "Setting signature policy to require."
     pkg -R $MP set-publisher \
         --set-property signature-policy=require-signatures omnios
 fi
 
-echo "Creating compressed stream"
+note "Creating compressed stream"
 zfs snapshot $ZROOT/$name@kayak || fail "snap"
 zfs send $ZROOT/$name@kayak | pv | $BZIP2 -9 > $OUT || fail "send/compress"
 if [ "$CLEANUP" -eq "1" ]; then
