@@ -1,6 +1,6 @@
 #!/bin/ksh
 #
-# CDDL HEADER START
+# {{{ CDDL HEADER START
 #
 # The contents of this file are subject to the terms of the
 # Common Development and Distribution License (the "License").
@@ -17,13 +17,11 @@
 # fields enclosed by brackets "[]" replaced with your own identifying
 # information: Portions Copyright [yyyy] [name of copyright owner]
 #
-# CDDL HEADER END
-#
-#
+# CDDL HEADER END }}}
+
 # Copyright (c) 2009, 2011, Oracle and/or its affiliates. All rights reserved.
 # Copyright 2017 OmniTI Computer Consulting, Inc. All rights reserved.
 # Copyright 2018 OmniOS Community Edition (OmniOSce) Association.
-#
 
 # This started its life as the Caiman text-installer menu, hence the old
 # OpenSolaris CDDL statement.
@@ -38,7 +36,16 @@ export LOGNAME=root
 # Running on the console so use the appropriate terminal type
 export TERM=sun-color
 
+export VERSION=`head -1 /etc/release | awk '{print $3}' | sed 's/[a-z]*$//g'`
+
 . /kayak/dialog.sh
+
+if [ $debug -eq 0 ]; then
+	echo
+	echo "Scanning for media..."
+	mkdir /.cdrom
+	/kayak/mount_media $VERSION
+fi
 
 # If dialogue is supported, offer the user a choice.
 if [ -n "$USE_DIALOG" ]; then
@@ -277,3 +284,5 @@ while :; do
 	fi
 done
 
+# Vim hints
+# vim:fdm=marker

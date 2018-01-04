@@ -153,7 +153,7 @@ done
 TZ=`tail -1 /tmp/tz.$$`
 rm -f /tmp/tz.$$
 
-ZFS_IMAGE=/root/*.zfs.bz2
+ZFS_IMAGE=/.cdrom/image/*.zfs.bz2
 echo "Installing from ZFS image $ZFS_IMAGE"
 
 # Because of kayak's small miniroot, just use C as the language for now.

@@ -149,6 +149,9 @@ takeover-console:	src/takeover-console.c
 passutil:	src/passutil.c
 	gcc -o $@ $<
 
+mount_media:	src/mount_media.c
+	gcc -o $@ $< -ldevinfo
+
 zpool_patch:	src/zpool_patch.c
 	gcc -Isrc/include -o $@ $< -lnvpair -lzfs
 

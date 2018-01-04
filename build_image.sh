@@ -395,7 +395,7 @@ step() {
     rm -f $MKFILEDIR/miniroot
     chmod 644 $WORKDIR/miniroot.gz
     echo " === Finished ==="
-    ls -l $WORKDIR/miniroot.gz
+    $GZIP_CMD -l $WORKDIR/miniroot.gz
     ;;
 
     esac

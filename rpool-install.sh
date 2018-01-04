@@ -16,7 +16,7 @@
 #
 
 RPOOL=${1:-rpool}
-ZFS_IMAGE=/root/*.zfs.bz2
+ZFS_IMAGE=/.cdrom/image/*.zfs.bz2
 keyboard_layout=${2:-US-English}
 
 zpool list $RPOOL >& /dev/null

@@ -3,6 +3,7 @@ takeover-console
 ipcalc
 dialog
 passutil
+mount_media
 zpool_patch
 kbd.list
 run
