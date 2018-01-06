@@ -154,6 +154,7 @@ menu_items=( \
 pi_menu_items=( \
     (menu_str="Configure the installed OmniOS system"			\
 	cmds=("/kayak/config-menu.sh")					\
+	dcmds=("/kayak/config-menu.sh -dialog")				\
 	do_subprocess="true")						\
     (menu_str="Shell (for post-install ops on /mnt)"			\
 	cmds=("/usr/bin/bash")						\

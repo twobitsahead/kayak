@@ -8,6 +8,11 @@
 # Boolean    -  <ON|OFF>
 # Attribute  -  (foreground,background,highlight?)
 
+bindkey formfield TAB  form_NEXT
+bindkey formbox   TAB  form_NEXT
+bindkey formfield BTAB form_prev
+bindkey formbox   BTAB form_prev
+
 # Set aspect-ratio.
 aspect = 0
 
@@ -100,7 +105,7 @@ tag_selected_color = button_label_active_color
 tag_key_color = button_key_inactive_color
 
 # Selected tag key color
-tag_key_selected_color = (RED,BLUE,ON)
+tag_key_selected_color = (GREEN,BLUE,ON)
 
 # Check box color
 check_color = (YELLOW,BLACK,OFF)
@@ -118,13 +123,13 @@ darrow_color = uarrow_color
 itemhelp_color = (WHITE,BLACK,OFF)
 
 # Active form text color
-form_active_text_color = button_active_color
+form_active_text_color = (YELLOW,BLUE,OFF)
 
 # Form text color
-form_text_color = (WHITE,CYAN,ON)
+form_text_color = (YELLOW,BLACK,ON)
 
 # Readonly form item color
-form_item_readonly_color = (CYAN,WHITE,ON)
+form_item_readonly_color = (YELLOW,BLACK,ON)
 
 # Dialog box gauge color
 gauge_color = title_color
