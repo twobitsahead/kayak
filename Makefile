@@ -11,7 +11,7 @@
 
 #
 # Copyright 2017 OmniTI Computer Consulting, Inc.  All rights reserved.
-# Copyright 2017 OmniOS Community Edition (OmniOSce) Association.
+# Copyright 2018 OmniOS Community Edition (OmniOSce) Association.
 #
 
 VERSION?=$(shell awk '$$1 == "OmniOS" { print $$3 }' /etc/release)
