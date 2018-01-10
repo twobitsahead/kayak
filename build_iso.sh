@@ -1,6 +1,6 @@
 #!/usr/bin/bash
 
-#
+# {{{ CDDL HEADER
 # This file and its contents are supplied under the terms of the
 # Common Development and Distribution License ("CDDL"), version 1.0.
 # You may only use this file in accordance with the terms of version
@@ -9,11 +9,11 @@
 # A full copy of the text of the CDDL should have accompanied this
 # source.  A copy of the CDDL is also available via the Internet at
 # http://www.illumos.org/license/CDDL.
-#
+# }}}
 
 #
 # Copyright 2017 OmniTI Computer Consulting, Inc. All rights reserved.
-# Copyright 2017 OmniOS Community Edition (OmniOSce) Association.
+# Copyright 2018 OmniOS Community Edition (OmniOSce) Association.
 #
 
 #
@@ -32,93 +32,137 @@ fi
 
 if [ -z "$VERSION" ]; then
 	VERSION=`head -1 $BUILDSEND_MP/root/etc/release | awk '{print $3}' \
-	    | sed 's/[a-z]//g'`
-	echo "Using $VERSION..."
+	    | sed 's/[a-z]*$//g'`
 fi
+echo "Using version $VERSION..."
 
-# Many of these depend on sufficient space in /tmp by default.  Please
-# modify as you deem appropriate.
-PROTO=/tmp/proto
-KAYAK_ROOTBALL=$BUILDSEND_MP/miniroot.gz
-KAYAK_ROOT=/tmp/miniroot.$$
-KR_FILE=/tmp/kr.$$
-MNT=/mnt
-UFS_LOFI=/tmp/boot_archive
-LOFI_SIZE=600M
-DST_ISO=$BUILDSEND_MP/${VERSION}.iso
+stage()
+{
+	echo "***"
+	echo "*** $*"
+	echo "***"
+}
+
+# Allow temporary directory override
+: ${TMPDIR:=/tmp}
+
+KAYAK_MINIROOT=$BUILDSEND_MP/miniroot.gz
 ZFS_IMG=$BUILDSEND_MP/kayak_${VERSION}.zfs.bz2
 
-# Create a UFS lofi file and mount the UFS filesystem in $MNT.  This will
+[ ! -f $KAYAK_MINIROOT -o ! -f $ZFS_IMG ] && echo "Missing files." && exit 1
+
+ISO_ROOT=$TMPDIR/iso_root
+BA_ROOT=$TMPDIR/boot_archive
+
+KAYAK_ROOT=$TMPDIR/miniroot.$$
+KR_FILE=$TMPDIR/kr.$$
+MNT=/mnt
+BA_SIZE=225M
+DST_ISO=$BUILDSEND_MP/${VERSION}.iso
+
+#############################################################################
+#
+# The kayak mini-root is used for both the ISO root filesystem and for the
+# miniroot that is loaded and mounted on / when booted.
+#
+
+set -o errexit
+
+mkdir $KAYAK_ROOT
+mkdir $ISO_ROOT
+
+# Create a UFS lofi file and mount the UFS filesystem in $MNT. This will
 # form the boot_archive for the ISO.
-mkfile $LOFI_SIZE $UFS_LOFI
-LOFI_PATH=`lofiadm -a $UFS_LOFI`
+
+stage "Mounting source miniroot"
+# Uncompress and mount the miniroot
+gunzip -c $KAYAK_MINIROOT > $KR_FILE
+LOFI_RPATH=`lofiadm -a $KR_FILE`
+mount $LOFI_RPATH $KAYAK_ROOT
+
+stage "Creating UFS image for new miniroot"
+mkfile $BA_SIZE $BA_ROOT
+LOFI_PATH=`lofiadm -a $BA_ROOT`
 echo 'y' | newfs $LOFI_PATH
 mount $LOFI_PATH $MNT
 
-# Clone the already-created Kayak miniroot and copy it into both $MNT, and
-# into a now-created $PROTO. $PROTO will form the directory that gets
-# sprayed onto the ISO.
-gunzip -c $KAYAK_ROOTBALL > $KR_FILE
-LOFI_RPATH=`lofiadm -a $KR_FILE`
-mkdir $KAYAK_ROOT
-mount $LOFI_RPATH $KAYAK_ROOT
-echo "Adding files from miniroot"
-tar -cf - -C $KAYAK_ROOT . | pv | tar -xf - -C $MNT
-mkdir $PROTO
-tar -cf - -C $KAYAK_ROOT . | pv | tar -xf - -C $PROTO
+# Copy the files from the miniroot to the new miniroot...
+sz=`du -sh $KAYAK_ROOT | awk '{print $1}'`
+stage "Adding files to new miniroot"
+tar -cf - -C $KAYAK_ROOT . | pv -s $sz | tar -xf - -C $MNT
+# ...and to the ISO root
+stage "Adding files to ISO root"
+tar -cf - -C $KAYAK_ROOT . | pv -s $sz | tar -xf - -C $ISO_ROOT
+
+# Clean-up
+stage "Unmounting source miniroot"
 umount $KAYAK_ROOT
 rmdir $KAYAK_ROOT
 lofiadm -d $LOFI_RPATH
 rm $KR_FILE
 
-#
-# Put additional goodies into the boot-archive on $MNT, which is
-# what'll be / (via ramdisk) once one boots the ISO.
-# 
+# Place the full ZFS image into the ISO root so it does not form part of the
+# boot archive (otherwise the boot seems to hang for several minutes while
+# the miniroot is loaded)
 
-# The full ZFS image (also already-created) for actual installation.
-echo "Adding ZFS image"
-pv $ZFS_IMG > $MNT/root/`basename $ZFS_IMG`
+stage "Adding ZFS image to ISO root"
+mkdir -p $ISO_ROOT/image
+pv $ZFS_IMG > $ISO_ROOT/image/`basename $ZFS_IMG`
+# Create a file to indicate that this is the right volume set on which to
+# find the image - see src/mount_media.c
+echo $VERSION > $ISO_ROOT/.volsetid
+
+# Put additional files into the boot-archive on $MNT, which is
+# what will be / (via ramdisk) once the ISO is booted.
+
+stage "Adding extra files to miniroot"
 
 # Extra files
-cp -p ./ipcalc ./passutil nossh.xml $MNT/kayak/.
+cp -p \
+    takeover-console \
+    ipcalc passutil mount_media nossh.xml \
+    dialog dialog.rc dialog.sh dialog-tzselect \
+    kbd.list \
+    $MNT/kayak/.
 
-# A cheesy way to get the boot menu to appear at boot time.
-cp -p ./takeover-console $MNT/kayak/.
+if [ -n "$REFRESH_KAYAK" ]; then
+	# For testing, make sure files in miniroot are current
+	for f in $MNT/kayak/*; do
+		[ -f "$f" ] || continue
+		echo "REFRESH $f"
+		cp `basename $f` $MNT/kayak
+	done
+fi
+
 cat <<EOF > $MNT/root/.bashrc
 export PATH=/usr/bin:/usr/sbin:/sbin
 export HOME=/root
 EOF
-# Have initialboot make an interactive installer get invoked.
+
+# Have initialboot invoke an interactive installer.
 cat <<EOF > $MNT/.initialboot
-# Adjust initial-boot's start timeout so the installer has plenty of time
-# to interact and work.  An hour (3600 secs) seems okay.
-if [[ \`svcprop -p start/timeout_seconds initial-boot\` != 3600 ]]; then
-	svccfg -s system/initial-boot setprop "start/timeout_seconds=3600"
-	svcadm refresh system/initial-boot
-	. /.initialboot
-else
-	/kayak/takeover-console /kayak/kayak-menu.sh
-fi
+/kayak/takeover-console /kayak/kayak-menu.sh
+exit 0
 EOF
+# Increase the timeout
+SVCCFG_REPOSITORY=$MNT/etc/svc/repository.db \
+    svccfg -s system/initial-boot setprop "start/timeout_seconds=86400"
 
 # Refresh the devices on the miniroot.
 devfsadm -r $MNT
 
 #
-# The ISO's miniroot is going to be larger than the PXE miniroot.  To that
+# The ISO's miniroot is going to be larger than the PXE miniroot. To that
 # end, some files not listed in the exception list do need to show up on
-# the miniroot.  Use PREBUILT_ILLUMOS if available, or the current system
+# the miniroot. Use PREBUILT_ILLUMOS if available, or the current system
 # if not.
 #
 from_one_to_other() {
     dir=$1
-    if [ -z $PREBUILT_ILLUMOS -o ! -d $PREBUILT_ILLUMOS/proto/root_i386/$dir ]
-    then
-	FROMDIR=/
-    else
-	FROMDIR=$PREBUILT_ILLUMOS/proto/root_i386
-    fi
+
+    FROMDIR=/
+    [ -n "$PREBUILT_ILLUMOS" -a -d $PREBUILT_ILLUMOS/proto/root_i386/$dir ] \
+        && FROMDIR=$PREBUILT_ILLUMOS/proto/root_i386
 
     shift
     tar -cf - -C $FROMDIR/$dir ${@:-.} | tar -xf - -C $MNT/$dir
@@ -133,22 +177,29 @@ from_one_to_other usr/sbin ping
 from_one_to_other usr/bin netstat
 
 # Remind people this is the installer.
-cat <<EOF > $PROTO/boot/loader.conf.local
+cat <<EOF > $ISO_ROOT/boot/loader.conf.local
 loader_menu_title="Welcome to the OmniOSce installer"
-autoboot_delay=5
+autoboot_delay=10
 EOF
 
 #
-# Okay, we've populated the new ISO miniroot.  Close it up and install it
-# on $PROTO as the boot archive.
+# Okay, we've populated the new miniroot. Close it up and install it
+# on $ISO_ROOT as the boot archive.
 #
+stage "Miniroot size"
+df -h $MNT
+stage "Unmounting boot archive image"
 umount $MNT
 lofiadm -d $LOFI_PATH
-echo "Installing boot archive"
-pv $UFS_LOFI > $PROTO/platform/i86pc/amd64/boot_archive
-digest -a sha1 $UFS_LOFI > $PROTO/platform/i86pc/amd64/boot_archive.hash
-rm -rf $PROTO/{usr,bin,sbin,lib,kernel}
-du -sh $PROTO/.
+stage "Installing boot archive"
+pv $BA_ROOT | gzip -9c > $ISO_ROOT/platform/i86pc/amd64/boot_archive.gz
+ls -lh $ISO_ROOT/platform/i86pc/amd64/boot_archive.gz | awk '{print $5}'
+digest -a sha1 $BA_ROOT \
+    > $ISO_ROOT/platform/i86pc/amd64/boot_archive.hash
+rm -f $BA_ROOT
+stage "Removing unecessary files from ISO root"
+rm -rf $ISO_ROOT/{usr,bin,sbin,lib,kernel}
+stage "ISO root size: `du -sh $ISO_ROOT/.`"
 
 # And finally, burn the ISO.
 mkisofs -N -l -R -U -d -D \
@@ -162,11 +213,11 @@ mkisofs -N -l -R -U -d -D \
 	-no-iso-translate \
 	-cache-inodes \
 	-V "OmniOSce $VERSION" \
-	$PROTO
+	$ISO_ROOT
 
-rm -rf $PROTO $UFS_LOFI
-echo "$DST_ISO is ready"
-ls -lt $DST_ISO
+rm -rf $ISO_ROOT
+stage "$DST_ISO is ready"
+ls -lh $DST_ISO
 
 # Vim hints
-# vim:ts=4:sw=4:et:
+# vim:fdm=marker

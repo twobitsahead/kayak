@@ -1,6 +1,6 @@
 #!/bin/ksh
 #
-# CDDL HEADER START
+# {{{ CDDL HEADER START
 #
 # The contents of this file are subject to the terms of the
 # Common Development and Distribution License (the "License").
@@ -17,24 +17,57 @@
 # fields enclosed by brackets "[]" replaced with your own identifying
 # information: Portions Copyright [yyyy] [name of copyright owner]
 #
-# CDDL HEADER END
-#
-#
+# CDDL HEADER END }}}
+
 # Copyright (c) 2009, 2011, Oracle and/or its affiliates. All rights reserved.
 # Copyright 2017 OmniTI Computer Consulting, Inc. All rights reserved.
-# Copyright 2017 OmniOS Community Edition (OmniOSce) Association.
-#
+# Copyright 2018 OmniOS Community Edition (OmniOSce) Association.
 
 # This started its life as the Caiman text-installer menu, hence the old
 # OpenSolaris CDDL statement.
 
-# LOGNAME variable is needed to display the shell prompt appropriately
-export LOGNAME=root
-
-# Block all signals which could terminate the menu or return to a parent process
+# Block all signals which could terminate the menu or return to a parent
+# process
 debug=0
 [ "$1" != '-t' ] && trap "" TSTP INT TERM ABRT QUIT || debug=1
 
+# LOGNAME variable is needed to display the shell prompt appropriately
+export LOGNAME=root
+# Running on the console so use the appropriate terminal type
+export TERM=sun-color
+
+export VERSION=`head -1 /etc/release | awk '{print $3}' | sed 's/[a-z]*$//g'`
+
+. /kayak/dialog.sh
+
+if [ $debug -eq 0 ]; then
+	echo
+	echo "Scanning for media..."
+	mkdir /.cdrom
+	/kayak/mount_media $VERSION
+fi
+
+# If dialogue is supported, offer the user a choice.
+if [ -n "$USE_DIALOG" ]; then
+	i=10
+	echo; echo
+	echo "Press return to start the OmniOSce installer."
+	while [ $i -gt 0 ]; do
+		unit=second
+		[ $i -gt 1 ] && unit=seconds
+		printf "\rTo use the old text installer, press T within %d %s..." $i $unit
+		read -t 1 -N 1 mode
+		stat=$?
+		case $stat/$mode in
+			0/[tT])	export USE_DIALOG=; break ;;
+			0/*)	break ;;
+		esac
+		((i = i - 1))
+	done
+	echo
+fi
+
+# Print a message if in debug mode
 dmsg()
 {
 	[ $debug -eq 1 ] && echo "$@"
@@ -49,7 +82,32 @@ installed()
 }
 
 # Get the user's keyboard choice out of the way now.
-/usr/bin/kbd -s
+if [ -n "$USE_DIALOG" ]; then
+	tmpf=`mktemp`
+	dialog \
+		--title "Please select a keyboard layout" \
+		--no-ok \
+		--no-tags \
+		--no-lines \
+		--nocancel \
+		--default-item US-English \
+		--menu "Use the arrow keys to move up and down the list" \
+		19 0 16 \
+		`cat /kayak/kbd.list | sed 's/.*/& &/'` \
+		2> $tmpf
+	stat=$?
+	if [ $stat -eq 0 ]; then
+		layout=`cat $tmpf`
+	elif [ $debug -eq 1 -a $stat -gt 4 ]; then
+		exit 0
+	else
+		layout=US-English
+	fi
+	rm -f $tmpf
+	/usr/bin/kbd -s $layout
+else
+	/usr/bin/kbd -s
+fi
 /usr/bin/loadkeys
 # Remember it for configuration of final installed image.
 ktype=`/usr/bin/kbd -l | grep '^type=' | cut -d= -f2`
@@ -61,10 +119,16 @@ dmsg "klang = $klang"
 
 # Define the menu of commands and prompts
 
+d_detecting()
+{
+	d_info "Detecting disks, please wait..."
+}
+
 # Preinstall menu
 menu_items=( \
     (menu_str="Find disks, create rpool, and install OmniOSce"		\
 	cmds=("/kayak/find-and-install.sh $klang")			\
+	dcmds=("d_detecting x", "/kayak/dialog-install.sh $klang")\
 	default="true"							\
 	do_subprocess="true")						\
     (menu_str="Install OmniOSce straight on to a preconfigured rpool"	\
@@ -74,10 +138,6 @@ menu_items=( \
 	cmds=("/usr/bin/bash")						\
 	do_subprocess="true"						\
 	msg_str="To return to the main menu, exit the shell")		\
-    # this string gets overwritten every time $TERM is updated
-    (menu_str="Terminal type (currently ""$TERM)"			\
-	cmds=("prompt_for_term_type")					\
-	do_subprocess="false")						\
     (menu_str="Reboot"							\
 	cmds=("/usr/sbin/reboot")					\
 	do_subprocess="true"						\
@@ -94,6 +154,7 @@ menu_items=( \
 pi_menu_items=( \
     (menu_str="Configure the installed OmniOS system"			\
 	cmds=("/kayak/config-menu.sh")					\
+	dcmds=("/kayak/config-menu.sh -dialog")				\
 	do_subprocess="true")						\
     (menu_str="Shell (for post-install ops on /mnt)"			\
 	cmds=("/usr/bin/bash")						\
@@ -112,93 +173,14 @@ pi_menu_items=( \
 	msg_str="Halting system, please wait...")			\
 )
 
-# Update the menu_str for the terminal type
-# entry. Every time the terminal type has been
-# updated, this function must be called.
-function update_term_menu_str
+display_text_menu()
 {
-    # update the menu string to reflect the current TERM
-    for i in "${!menu_items[@]}"; do
-	    if [ "${menu_items[$i].cmds[0]}" = "prompt_for_term_type" ]; then
-		menu_items[$i].menu_str="Terminal type (currently $TERM)"
-	    fi
-    done
-}
-
-# Set the TERM variable as follows:
-#
-# Just set it to "sun-color" for now.
-#
-function set_term_type
-{
-    export TERM=sun-color
-    update_term_menu_str
-}
-
-# Prompt the user for terminal type
-function prompt_for_term_type
-{
-	integer i
-
-	# list of suggested termtypes
-	typeset termtypes=(
-		typeset -a fixedlist
-		integer list_len        # number of terminal types
-	)
-
-	# hard coded common terminal types
-	termtypes.fixedlist=(
-		[0]=(  name="sun-color"		desc="PC Console"           )
-		[1]=(  name="xterm"		desc="xterm"		    )
-		[2]=(  name="vt100"		desc="DEC VT100"	    )
-	)
-
-	termtypes.list_len=${#termtypes.fixedlist[@]}
-
-	# Start with a newline before presenting the choices
-	print
-	printf "Indicate the type of terminal being used, such as:\n"
-
-	# list suggested terminal types
-	for (( i=0 ; i < termtypes.list_len ; i++ )) ; do
-		nameref node=termtypes.fixedlist[$i]
-		printf "  %-10s %s\n" "${node.name}" "${node.desc}"
-	done
-
-	print
-	# Prompt user to select terminal type and check for valid entry
-	typeset term=""
-	while true ; do
-		read "term?Enter terminal type [$TERM]: " || continue
-
-		# if the user just hit return, don't set the term variable
-		[ -z "${term}" ] && return
-			
-		# check if the user specified option is valid
-		term_entry=`/usr/bin/ls /usr/gnu/share/terminfo/*/$term \
-		    2> /dev/null`
-		[ -n "${term_entry}" ] && break
-		echo
-		echo "Terminal type not supported."
-		echo "Supported terminal types can be found by using the"
-		echo "shell to list the contents of /usr/gnu/share/terminfo."
-		echo
-	done
-
-	export TERM="${term}"
-	update_term_menu_str
-}
-
-set_term_type
-
-while :; do
 	# Display the menu.
 	stty sane
-	clear
-
 	# Pick the right menu
 	installed && nameref menu=pi_menu_items || nameref menu=menu_items
 
+	clear
 	printf "Welcome to the OmniOSce installation menu\n\n"
 	for i in "${!menu[@]}"; do
 		nameref item=menu[$i]
@@ -212,6 +194,62 @@ while :; do
 	dummy=""
 	print -n "\nPlease enter a number [${defaultchoice}]: "
 	read input dummy 2>/dev/null
+}
+
+display_dialog_menu()
+{
+	installed && nameref menu=pi_menu_items || nameref menu=menu_items
+
+	typeset -a args=()
+	for i in "${!menu[@]}"; do
+		nameref item=menu[$i]
+		args+=($((i + 1)) "${item.menu_str}")
+		[ -n "${item.default}" ] && defaultchoice=$((i + 1))
+	done
+
+	tmpf=`mktemp`
+	dialog \
+		--title "Welcome to the OmniOSce installer" \
+		--hline "Use arrow or hot keys to select one of the options above" \
+		--no-ok \
+		--no-tags \
+		--no-lines \
+		--nocancel \
+		--default-item $defaultchoice \
+		--menu "\n " \
+		0 0 0 \
+		"${args[@]}" 2> $tmpf
+	stat=$?
+	if [ $stat -eq 0 ]; then
+		input=`cat $tmpf`
+	elif [ $debug -eq 1 -a $stat -gt 4 ]; then
+		exit 0
+	else
+		input=err
+	fi
+	rm -f $tmpf
+}
+
+display_menu()
+{
+	[ -n "$USE_DIALOG" ] && display_dialog_menu || display_text_menu
+}
+
+run_cmds()
+{
+	if [ -n "$USE_DIALOG" -a -n "${item.dcmds}" ]; then
+		for j in "${!item.dcmds[@]}"; do
+			${item.dcmds[$j]}
+		done
+	else
+		for j in "${!item.cmds[@]}"; do
+			${item.cmds[$j]}
+		done
+	fi
+}
+
+while :; do
+	display_menu
 
 	# If no input was supplied, select the default option
 	[ -z "${input}" ] && input=$defaultchoice
@@ -223,33 +261,29 @@ while :; do
 
 	# Re-orient to a zero base.
 	((input = input - 1))
-
 	nameref item=menu[$input]
+
+	# Print out a message if requested
+	[ -n "${item.msg_str}" ] && printf "%s\n" "${item.msg_str}"
 
 	# Launch commands as a subprocess.
 	# However, launch the functions within the context 
 	# of the current process.
-	if [[ "${item.do_subprocess}" = "true" ]]; then
+	if [ "${item.do_subprocess}" = "true" ]; then
 		(
-		trap - TSTP INT TERM ABRT QUIT
-		# Print out a message if requested
-		[ -n "${item.msg_str}" ] && printf "%s\n" "${item.msg_str}"
-		for j in "${!item.cmds[@]}"; do
-			${item.cmds[$j]}
-		done
+			trap - TSTP INT TERM ABRT QUIT
+			run_cmds
 		)
 	else
-		# Print out a message if requested
-		[ -n "${item.msg_str}" ] && printf "%s\n" "${item.msg_str}"
-		for j in "${!item.cmds[@]}"; do
-			${item.cmds[$j]}
-		done
+		run_cmds
 	fi
 
-	if [[ "${item.noreturn}" = "true" ]]; then
+	if [ "${item.noreturn}" = "true" ]; then
 		while :; do
 			sleep 10000
 		done
 	fi
 done
 
+# Vim hints
+# vim:fdm=marker

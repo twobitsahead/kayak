@@ -11,7 +11,7 @@
 
 #
 # Copyright 2017 OmniTI Computer Consulting, Inc.  All rights reserved.
-# Copyright 2017 OmniOS Community Edition (OmniOSce) Association.
+# Copyright 2018 OmniOS Community Edition (OmniOSce) Association.
 #
 
 VERSION?=$(shell awk '$$1 == "OmniOS" { print $$3 }' /etc/release)
@@ -36,7 +36,7 @@ INSTALLS=anon.dtrace.conf anon.system build_image.sh build_zfs_send.sh \
 	data/known_extras data/mdb data/platform disk_help.sh install_help.sh \
 	install_image.sh src/takeover-console.c Makefile net_help.sh README.md \
 	build_iso.sh digest find-and-install.sh kayak-menu.sh config-menu.sh \
-	usbgen.sh ipcalc src/passutil.c \
+	usbgen.sh ipcalc dialog src/passutil.c \
 	loader.conf.local rpool-install.sh \
 	sample/000000000000.sample sample/menu.lst.000000000000
 
@@ -149,18 +149,31 @@ takeover-console:	src/takeover-console.c
 passutil:	src/passutil.c
 	gcc -o $@ $<
 
+mount_media:	src/mount_media.c
+	gcc -o $@ $< -ldevinfo
+
 zpool_patch:	src/zpool_patch.c
 	gcc -Isrc/include -o $@ $< -lnvpair -lzfs
 
 ipcalc:	build_ipcalc
 	./build_ipcalc
 
-install-iso:	takeover-console ipcalc passutil install-tftp install-web
+dialog:	build_dialog
+	./build_dialog
+
+bins: takeover-console ipcalc dialog passutil mount_media kbd.list
+
+kbd.list: /usr/share/lib/keytables/type_6/kbd_layouts
+	grep = /usr/share/lib/keytables/type_6/kbd_layouts | cut -d= -f1 \
+		> kbd.list
+
+install-iso:	bins kbd.list install-tftp install-web
 	BUILDSEND_MP=$(BUILDSEND_MP) VERSION=$(VERSION) ./build_iso.sh
 
 install-usb:	install-iso
 	./usbgen.sh $(BUILDSEND_MP)/$(VERSION).iso $(BUILDSEND_MP)/$(VERSION).usb-dd /tmp
 
 clean:
-	rm -f takeover-console passutil ipcalc zpool_patch
+	rm -f takeover-console passutil mount_media ipcalc dialog zpool_patch \
+		kbd.list
 

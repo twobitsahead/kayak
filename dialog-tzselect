@@ -1,0 +1,339 @@
+#!/usr/bin/ksh
+#
+# Copyright 2005 Sun Microsystems, Inc.  All rights reserved.
+# Copyright 2018 OmniOS Community Edition (OmniOSce) Association.
+# Use is subject to license terms.
+#
+# Ask the user about the time zone, and place the resulting TZ in a file
+# whose name is specified in the first argument.
+
+# Contributed by Paul Eggert
+
+. /kayak/dialog.sh
+
+output="${1:?Output}"
+
+AWK=/usr/bin/nawk
+GREP=/usr/bin/grep
+EXPR=/usr/bin/expr
+SORT=/usr/bin/sort
+PRINTF=/usr/bin/printf
+DATE=/usr/bin/date
+
+TZDIR=/usr/share/lib/zoneinfo
+
+# Messages
+ERR_NO_SETUP="%s: time zone files are not set up correctly"
+INFO_LOCATION="Please identify a location so that time zone rules \
+can be set correctly."
+INFO_SELECT_CONT="Please select a continent or ocean."
+INFO_POSIX="none - I want to specify the time zone using the POSIX \
+TZ format."
+WARN_ENTER_NUM="Please enter a number in range."
+INFO_ENTER_POSIX="Please enter the desired value of the TZ environment \
+variable."
+INFO_POSIX_EX="For example, GST-10 is a zone named GST that is 10 hours \
+ahead (east) of UTC."
+ERR_INV_POSIX="\`%s\' is not a conforming POSIX time zone string."
+INFO_SELECT_CNTRY="Please select a country or region."
+INFO_SELECT_TZ="Please select one of the following time zone regions."
+INFO_EXTRA1="Local time is now:       %s"
+INFO_EXTRA2="Universal Time is now:   %s"
+INFO_INFO="The following information has been given:"
+INFO_TZ="Therefore TZ='%s' will be used."
+INFO_OK="Is the above information OK?"
+
+# Make sure the tables are readable.
+TZ_COUNTRY_TABLE=$TZDIR/tab/country.tab
+TZ_ZONE_TABLE=$TZDIR/tab/zone_sun.tab
+for f in $TZ_COUNTRY_TABLE $TZ_ZONE_TABLE; do
+	<$f || {
+		$PRINTF >&2 "$ERR_NO_SETUP\n" $0
+		exit 1
+	}
+done
+
+newline='
+'
+IFS=$newline
+
+get_continent()
+{
+	dialog \
+		--colors \
+		--title "$INFO_LOCATION" \
+		--no-ok \
+		--no-tags \
+		--no-lines \
+		--nocancel \
+		--menu "\n$INFO_SELECT_CONT\n\Zn" \
+		19 0 11 \
+		Africa Africa \
+		America Americas \
+		Antarctica Antarctica \
+		Arctic "Arctic Ocean" \
+		Asia Asia \
+		Atlantic "Atlantic Ocean" \
+		Australia Australia \
+		Europe Europe \
+		Pacific "Pacific Ocean" \
+		Indian "Indian Ocean" \
+		none "$INFO_POSIX" \
+		2> $tmpf
+	stat=$?
+	[ $stat -eq 0 ] || return 1
+	continent="`cat $tmpf`"
+	rm -f $tmpf
+	return 0
+}
+
+get_posix_tz()
+{
+	# Ask the user for a POSIX TZ string. Check that it conforms.
+	dialog \
+		--title "$INFO_ENTER_POSIX" \
+		--colors \
+		--inputbox "\n$INFO_POSIX_EX\n\Zn" \
+		12 69 "" 2> $tmpf
+	[ $? -ne 0 ] && continue 2
+	TZ="`cat $tmpf`"
+	rm -f $tmpf
+
+	LC_ALL=C $AWK -v TZ="$TZ" 'BEGIN {
+		tzname = "[^-+,0-9][^-+,0-9][^-+,0-9]+"
+		time = "[0-2]?[0-9](:[0-5][0-9](:[0-5][0-9])?)?"
+		offset = "[-+]?" time
+		date = "(J?[0-9]+|M[0-9]+\.[0-9]+\.[0-9]+)"
+		datetime = "," date "(/" time ")?"
+		tzpattern = "^(:.*|" tzname offset "(" tzname \
+		  "(" offset ")?(" datetime datetime ")?)?)$"
+		if (TZ ~ tzpattern) exit 1
+		exit 0
+	}'
+	if [ $? -ne 0 ]; then
+		d_msg $($PRINTF "$ERR_INV_POSIX" "$TZ")
+		return 1
+	fi
+	TZ_for_date=$TZ
+	return 0
+}
+
+get_country()
+{
+	# Get list of names of countries in the continent or ocean.
+	countries=$($AWK -F'\t' \
+	    -v continent="$continent" \
+	    -v TZ_COUNTRY_TABLE="$TZ_COUNTRY_TABLE" \
+	    '
+		/^#/ { next }
+		$3 ~ ("^" continent "/") {
+			if (!cc_seen[$1]++) cc_list[++ccs] = $1
+		}
+		END {
+			while (getline <TZ_COUNTRY_TABLE) {
+				if ($0 !~ /^#/) cc_name[$1] = $2
+			}
+			for (i = 1; i <= ccs; i++) {
+				country = cc_list[i]
+				if (cc_name[country]) {
+				  country = cc_name[country]
+				}
+				print country
+			}
+		}
+	' <$TZ_ZONE_TABLE | $SORT -f)
+
+	# i18n country names
+	c=0
+	set -A icountry
+	unset args; set -a args
+	for country in $countries; do
+		icountry[c]=$country
+		ocountry[c]="$country"
+		args+=("$country" "${icountry[$c]}")
+		((c = c + 1))
+	done
+
+	if [[ $countries = *"$newline"* ]]; then
+		# If there's more than one country, ask the user which one.
+		dialog \
+			--colors \
+			--title "$INFO_SELECT_CNTRY" \
+			--no-ok \
+			--no-tags \
+			--nocancel \
+			--menu "" \
+			19 0 11 \
+			${args[@]} 2> $tmpf
+		[ $? -ne 0 ] && return 1
+		xcountry="`cat $tmpf`"
+		country="$xcountry"
+		rm -f $tmpf
+	else
+		country=$countries
+		xcountry=$countries
+	fi
+	return 0
+}
+
+get_region()
+{
+	# Get list of names of time zone rule regions in the country.
+	regions=$($AWK -F'\t' \
+	    -v country="$country" \
+	    -v TZ_COUNTRY_TABLE="$TZ_COUNTRY_TABLE" \
+	    '
+		BEGIN {
+			cc = country
+			while (getline <TZ_COUNTRY_TABLE) {
+				if ($0 !~ /^#/  &&  country == $2) {
+					cc = $1
+					break
+				}
+			}
+		}
+		$1 == cc { print $5 }
+	' <$TZ_ZONE_TABLE)
+
+	# I18n region names
+	c=0
+	set -A iregion
+	unset args; set -a args
+	for region in $regions; do
+		iregion[c]=$region
+		oregion[c]="$region"
+		args+=("$region" "${iregion[$c]}")
+		((c = c + 1))
+	done
+
+	if [[ $regions = *"$newline"* ]]; then
+		# If there's one or more region, ask the user which one.
+		dialog \
+			--colors \
+			--title "$INFO_SELECT_TZ" \
+			--no-ok \
+			--no-tags \
+			--nocancel \
+			--menu "" \
+			19 0 11 \
+			${args[@]} 2> $tmpf
+		[ $? -ne 0 ] && return 1
+		xregion="`cat $tmpf`"
+		region="$xregion"
+		rm -f $tmpf
+	else
+		region=$regions
+		xregion=$regions
+	fi
+	return 0
+}
+
+build_tz()
+{
+	# Determine TZ from country and region.
+	TZ=$($AWK -F'\t' \
+	    -v country="$country" \
+	    -v region="$region" \
+	    -v TZ_COUNTRY_TABLE="$TZ_COUNTRY_TABLE" \
+	    '
+		BEGIN {
+			cc = country
+			while (getline <TZ_COUNTRY_TABLE) {
+				if ($0 !~ /^#/  &&  country == $2) {
+					cc = $1
+					break
+				}
+			}
+		}
+
+		$1 == cc && $5 == region { 
+			# Check if tzname mapped to 
+			# backward compatible tzname
+			if ($4 == "-") {
+				print $3
+			} else {
+				print $4
+			}
+		}
+	' <$TZ_ZONE_TABLE)
+
+	# Make sure the corresponding zoneinfo file exists.
+	TZ_for_date=$TZDIR/$TZ
+	<$TZ_for_date || return 1
+	# Absolute path TZ's not supported
+	TZ_for_date=$TZ
+	return 0
+}
+
+check_tz()
+{
+	# Use the proposed TZ to output the current date relative to UTC.
+	# Loop until they agree in seconds.
+	# Give up after 8 unsuccessful tries.
+
+	extra_info1=
+	extra_info2=
+	for i in 1 2 3 4 5 6 7 8; do
+		TZdate=$(LANG=C TZ="$TZ_for_date" $DATE)
+		UTdate=$(LANG=C TZ=UTC0 $DATE)
+		TZsec=$($EXPR "$TZdate" : '.*:\([0-5][0-9]\)')
+		UTsec=$($EXPR "$UTdate" : '.*:\([0-5][0-9]\)')
+		case $TZsec in
+		$UTsec)
+			extra_info1=$($PRINTF "$INFO_EXTRA1" "$TZdate")
+			extra_info2=$($PRINTF "$INFO_EXTRA2" "$UTdate")
+			break
+			;;
+		esac
+	done
+
+	case $country+$region in
+		?*+?*)	msg="$xcountry\n	$xregion\n" ;;
+		?*+)	msg="	$xcountry\n" ;;
+		+)	msg="	TZ='$TZ'\n"
+	esac
+
+	tzmsg=$($PRINTF "$INFO_TZ" $TZ)
+
+	dialog \
+		--colors \
+		--title "$INFO_INFO" \
+		--yesno "\n$msg\n
+$tzmsg\n
+\n
+$extra_info1\n
+$extra_info2\n
+\n
+$INFO_OK\n\Zn
+" 0 0
+	[ $? -ne 0 ] && return 1
+	return 0
+}
+
+# Begin the main loop. We come back here if the user wants to retry.
+while :; do
+	continent=
+	country=
+	region=
+
+	tmpf=`mktemp`
+
+	get_continent || continue
+
+	if [ "$continent" = "none" ]; then
+		get_posix_tz || continue
+	else
+		get_country || continue
+		get_region || continue
+		if ! build_tz; then
+			d_msg $($PRINTF "$ERR_NO_SETUP\n" $0$)
+			continue
+		fi
+	fi
+
+	check_tz || continue
+	break
+done
+
+$PRINTF "%s\n" "$TZ" > $output
+

@@ -15,7 +15,7 @@
 
 #
 # Copyright 2017 OmniTI Computer Consulting, Inc.  All rights reserved.
-# Copyright 2017 OmniOS Community Edition (OmniOSce) Association.
+# Copyright 2018 OmniOS Community Edition (OmniOSce) Association.
 #
 
 LOG_SETUP=0
@@ -114,8 +114,16 @@ BE_Receive_Image() {
     local _media="${5:?media}"
 
     log "Receiving image: $MEDIA"
-    $_grab $_media | pv -B 128m -w 78 | $_decomp \
-        | zfs receive -u $_rpool/ROOT/$_bename
+    pv="pv -B 128m"
+    [ "$_grab" = cat ] && pv+=" -s `ls -lh $_media | awk '{print $5}'`"
+
+    if [ -n "$USE_DIALOG" ]; then
+        ($_grab $_media | $pv -n | $_decomp \
+            | zfs receive -u $_rpool/ROOT/$_bename) 2>&1 \
+            | dialog --gauge 'Installing ZFS image' 7 70
+    else
+        $_grab $_media | $pv | $_decomp | zfs receive -u $_rpool/ROOT/$_bename
+    fi
     zfs set canmount=noauto $_rpool/ROOT/$_bename
     zfs set mountpoint=legacy $_rpool/ROOT/$_bename
 }
@@ -298,7 +306,7 @@ SetKeyboardLayout()
       # /boot/solaris/bootenv.rc (aka. eeprom(1M) storage for amd64/i386).
       layout=$1
       sed -i "s/keyboard-layout Unknown/keyboard-layout $layout/g" \
-	  $ALTROOT/boot/solaris/bootenv.rc
+          $ALTROOT/boot/solaris/bootenv.rc
       # Also modify the system/keymap service
       Postboot "/usr/sbin/svccfg -s system/keymap:default"\
          "setprop keymap/layout = '$layout'"

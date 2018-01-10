@@ -13,7 +13,7 @@
 
 #
 # Copyright 2017 OmniTI Computer Consulting, Inc.  All rights reserved.
-# Copyright 2017 OmniOS Community Edition (OmniOSce) Association.
+# Copyright 2018 OmniOS Community Edition (OmniOSce) Association.
 #
 
 fail() {
@@ -174,7 +174,7 @@ DRIVERS="driver/audio driver/crypto/dca driver/crypto/tpm driver/firewire
 PARTS="release/name release/notices service/picl install/beadm SUNWcs SUNWcsd
     library/libidn shell/pipe-viewer text/less editor/vim web/curl
     developer/linker file/gnu-coreutils system/xopen/xcu4
-    openssh openssh-server diagnostic/diskinfo"
+    openssh openssh-server diagnostic/diskinfo network/netcat"
 
 PKGS="$PARTS $SYSTEM $DRIVERS"
 
@@ -395,7 +395,7 @@ step() {
     rm -f $MKFILEDIR/miniroot
     chmod 644 $WORKDIR/miniroot.gz
     echo " === Finished ==="
-    ls -l $WORKDIR/miniroot.gz
+    $GZIP_CMD -l $WORKDIR/miniroot.gz
     ;;
 
     esac
