@@ -121,7 +121,7 @@ stage "Adding extra files to miniroot"
 cp -p \
     takeover-console \
     ipcalc passutil mount_media nossh.xml \
-    dialog dialog.rc dialog.sh dialog-tzselect \
+    dialog dialog.rc dialog.sh utils.sh dialog-tzselect \
     kbd.list \
     $MNT/kayak/.
 

@@ -17,6 +17,7 @@
 #
 
 . /kayak/dialog.sh
+. /kayak/utils.sh
 
 keyboard_layout=${1:-US-English}
 
@@ -51,7 +52,7 @@ while :; do
 	dialog \
 		--title "Select disks for installation" \
 		--colors \
-		--checklist "\nSelect disks using arrow keys and space bar.\nSelecting multiple disks will result in an N-way mirror being created.\n\Zn" \
+		--checklist "\nSelect disks using arrow keys and space bar.\nIf you select multiple disks, you will be able to choose a RAID level on the next screen.\n\Zn" \
 		0 0 0 \
 		"${args[@]}" 2> $tmpf
 
@@ -84,6 +85,33 @@ reality_check() {
 	return 0
 }
 
+# Pool RAID level
+ztype=
+typeset -i ndisks="`echo $DISKLIST | wc -w`"
+if [ "$ndisks" -gt 1 ]; then
+	ztype=mirror
+
+	typeset -a args=()
+
+	args+=(stripe "Striped (no redundancy)" off)
+	args+=(mirror "${ndisks}-way mirror" on)
+	[ "$ndisks" -ge 3 ] && args+=(raidz "raidz  (single-parity)" off)
+	[ "$ndisks" -ge 4 ] && args+=(raidz2 "raidz2 (dual-parity)" off)
+	[ "$ndisks" -ge 5 ] && args+=(raidz3 "raidz3 (triple-parity)" off)
+
+	dialog \
+	    --title "RAID level" \
+	    --colors \
+	    --default-item $ztype \
+	    --radiolist "\nSelect the desired pool configuration\n\Zn" \
+	    12 50 0 \
+	    "${args[@]}" 2> $tmpf
+	[ $? -ne 0 ] && exit 0
+	ztype="`cat $tmpf`"
+	rm -f $tmpf
+fi
+[ "$ztype" = "stripe" ] && ztype=
+
 RPOOL=rpool
 while :; do
 	dialog \
@@ -110,8 +138,6 @@ while :; do
 	d_msg "Invalid root pool name"
 done
 
-ztype=
-[[ $DISKLIST = *\ * ]] && ztype=mirror
 d_info "Creating $RPOOL..."
 if zpool create -f $RPOOL $ztype $DISKLIST; then
 	if zpool list $RPOOL >& /dev/null; then
@@ -128,30 +154,11 @@ fi
 ###########################################################################
 # Prompt for hostname
 
-HOSTNAME=omniosce
-while :; do
-	dialog \
-		--title "Enter the system hostname" \
-		--inputbox '' 7 40 "$HOSTNAME" 2> $tmpf
-	[ $? -ne 0 ] && exit 0
-	HOSTNAME="`cat $tmpf`"
-	rm -f $tmpf
-	[ -z "$HOSTNAME" ] && continue
-	if echo $HOSTNAME | egrep -s '^[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9]$'
-	then
-		break
-	else
-		d_msg "Invalid hostname"
-	fi
-done
+prompt_hostname omniosce
+prompt_timezone
 
 . /kayak/install_help.sh
 . /kayak/disk_help.sh
-
-# Select a timezone.
-/kayak/dialog-tzselect /tmp/tz.$$
-TZ=`tail -1 /tmp/tz.$$`
-rm -f /tmp/tz.$$
 
 ZFS_IMAGE=/.cdrom/image/*.zfs.bz2
 echo "Installing from ZFS image $ZFS_IMAGE"
