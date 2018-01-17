@@ -51,7 +51,7 @@ while :; do
 	dialog \
 		--title "Select disks for installation" \
 		--colors \
-		--checklist "\nSelect disks using arrow keys and space bar.\nSelecting multiple disks will result in an N-way mirror being created.\n\Zn" \
+		--checklist "\nSelect disks using arrow keys and space bar.\nIf you select multiple disks, you will be able to choose a RAID level on the next screen.\n\Zn" \
 		0 0 0 \
 		"${args[@]}" 2> $tmpf
 
@@ -83,6 +83,33 @@ reality_check() {
 	rm -f /tmp/test.$$
 	return 0
 }
+
+# Pool RAID level
+ztype=
+typeset -i ndisks="`echo $DISKLIST | wc -w`"
+if [ "$ndisks" -gt 1 ]; then
+	ztype=mirror
+
+	typeset -a args=()
+
+	args+=(stripe "Striped (no redundancy)" off)
+	args+=(mirror "${ndisks}-way mirror" on)
+	[ "$ndisks" -ge 3 ] && args+=(raidz "raidz  (single-parity)" off)
+	[ "$ndisks" -ge 4 ] && args+=(raidz2 "raidz2 (dual-parity)" off)
+	[ "$ndisks" -ge 5 ] && args+=(raidz3 "raidz3 (triple-parity)" off)
+
+	dialog \
+	    --title "RAID level" \
+	    --colors \
+	    --default-item $ztype \
+	    --radiolist "\nSelect the desired pool configuration\n\Zn" \
+	    12 50 0 \
+	    "${args[@]}" 2> $tmpf
+	[ $? -ne 0 ] && exit 0
+	ztype="`cat $tmpf`"
+	rm -f $tmpf
+fi
+[ "$ztype" = "stripe" ] && ztype=
 
 RPOOL=rpool
 while :; do
