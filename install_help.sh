@@ -122,7 +122,8 @@ BE_Receive_Image() {
             | zfs receive -u $_rpool/ROOT/$_bename) 2>&1 \
             | dialog --gauge 'Installing ZFS image' 7 70
     else
-        $_grab $_media | $pv | $_decomp | zfs receive -u $_rpool/ROOT/$_bename
+        $_grab $_media | $pv -w 78 | $_decomp | \
+            zfs receive -u $_rpool/ROOT/$_bename
     fi
     zfs set canmount=noauto $_rpool/ROOT/$_bename
     zfs set mountpoint=legacy $_rpool/ROOT/$_bename

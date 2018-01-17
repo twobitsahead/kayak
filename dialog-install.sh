@@ -17,6 +17,7 @@
 #
 
 . /kayak/dialog.sh
+. /kayak/utils.sh
 
 keyboard_layout=${1:-US-English}
 
@@ -137,8 +138,6 @@ while :; do
 	d_msg "Invalid root pool name"
 done
 
-ztype=
-[[ $DISKLIST = *\ * ]] && ztype=mirror
 d_info "Creating $RPOOL..."
 if zpool create -f $RPOOL $ztype $DISKLIST; then
 	if zpool list $RPOOL >& /dev/null; then
@@ -155,30 +154,11 @@ fi
 ###########################################################################
 # Prompt for hostname
 
-HOSTNAME=omniosce
-while :; do
-	dialog \
-		--title "Enter the system hostname" \
-		--inputbox '' 7 40 "$HOSTNAME" 2> $tmpf
-	[ $? -ne 0 ] && exit 0
-	HOSTNAME="`cat $tmpf`"
-	rm -f $tmpf
-	[ -z "$HOSTNAME" ] && continue
-	if echo $HOSTNAME | egrep -s '^[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9]$'
-	then
-		break
-	else
-		d_msg "Invalid hostname"
-	fi
-done
+prompt_hostname omniosce
+prompt_timezone
 
 . /kayak/install_help.sh
 . /kayak/disk_help.sh
-
-# Select a timezone.
-/kayak/dialog-tzselect /tmp/tz.$$
-TZ=`tail -1 /tmp/tz.$$`
-rm -f /tmp/tz.$$
 
 ZFS_IMAGE=/.cdrom/image/*.zfs.bz2
 echo "Installing from ZFS image $ZFS_IMAGE"

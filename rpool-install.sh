@@ -19,8 +19,10 @@
 RPOOL=${1:-rpool}
 ZFS_IMAGE=/.cdrom/image/*.zfs.bz2
 keyboard_layout=${2:-US-English}
+tmpf=`mktemp`
 
 [ -n "$USE_DIALOG" ] && . /kayak/dialog.sh
+. /kayak/utils.sh
 
 zpool list $RPOOL >& /dev/null
 if [[ $? != 0 ]]; then
@@ -35,34 +37,8 @@ echo "Installing from ZFS image $ZFS_IMAGE"
 . /kayak/disk_help.sh
 . /kayak/install_help.sh
 
-reality_check() {
-    # Make sure $1 (hostname) is a legit one.
-    echo $1 | egrep '^[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9]$' > /dev/null
-    if [[ $? != 0 ]]; then
-        echo "[$1] is not a legitimate hostname."
-        return -1
-    fi
-    return 0
-}
-
-# Select a host name
-NEWHOST="omniosce"
-until [[ $NEWHOST == "" ]]; do
-    HOSTNAME=$NEWHOST
-    echo -n "Please enter a hostname or press RETURN if you want [$HOSTNAME]: "
-    read NEWHOST
-    if [[ $NEWHOST != "" ]]; then
-	reality_check $NEWHOST
-	if [[ $? != 0 ]]; then
-	    NEWHOST=$HOSTNAME
-	fi
-    fi
-done
-
-# Select a timezone.
-tzselect |& tee /tmp/tz.$$
-TZ=$(tail -1 /tmp/tz.$$)
-rm -f /tmp/tz.$$
+prompt_hostname omniosce
+prompt_timezone
 
 # Because of kayak's small miniroot, just use C as the language for now.
 LANG=C
