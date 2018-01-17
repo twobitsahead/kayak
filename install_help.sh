@@ -251,8 +251,11 @@ MakeBootable(){
       # Generate kayak-disk-list from zpool status.
       # NOTE: If this is something on non-s0 slices, the installboot below
       # will fail most likely, which is possibly a desired result.
-      zpool list -v $_rpool | egrep -v "NAME|$_rpool|mirror" | \
-	      awk '{print $1}' | sed -E 's/s0$//g' > /tmp/kayak-disk-list
+      zpool list -Hv $_rpool | nawk '
+        NR > 1 && $1 ~ /c[0-9]/ {
+            sub("s0$", "", $1)
+            print $1
+        }' > /tmp/kayak-disk-list
   fi
 
   # NOTE: This installboot loop assumes we're doing GPT whole-disk rpools.
@@ -368,7 +371,7 @@ RunInstall(){
   . $ICFILE
   Postboot 'exit $SMF_EXIT_OK'
   ApplyChanges || bomb "Could not apply all configuration changes"
-  MakeBootable || bomb "Could not make new BE bootable"
+  MakeBootable $RPOOL || bomb "Could not make new BE bootable"
   log "Install complete"
   return 0
 }

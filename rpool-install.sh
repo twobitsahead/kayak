@@ -13,11 +13,14 @@
 
 #
 # Copyright 2017 OmniTI Computer Consulting, Inc. All rights reserved.
+# Copyright 2018 OmniOS Community Edition (OmniOSce) Association.
 #
 
 RPOOL=${1:-rpool}
 ZFS_IMAGE=/.cdrom/image/*.zfs.bz2
 keyboard_layout=${2:-US-English}
+
+[ -n "$USE_DIALOG" ] && . /kayak/dialog.sh
 
 zpool list $RPOOL >& /dev/null
 if [[ $? != 0 ]]; then
