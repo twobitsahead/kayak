@@ -77,3 +77,5 @@
 0 /usr/xpg4/bin/egrep
 0 /usr/lib/security/crypt_sha256.so.1
 0 /usr/bin/nc
+0 /usr/sbin/smbios
+0 /usr/bin/cpuid

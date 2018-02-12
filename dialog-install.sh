@@ -23,8 +23,11 @@ keyboard_layout=${1:-US-English}
 
 tmpf=`mktemp`
 
+##########################################################################
+# Disk selection
+
 # In a KVM, the disks don't show up on the first invocation of diskinfo.
-# More investigation required so, for now, run it twice.
+# More investigation required but, for now, run it twice.
 diskinfo >/dev/null
 
 diskinfo -H | tr "\t" "^" > $tmpf.disks
@@ -85,7 +88,9 @@ reality_check() {
 	return 0
 }
 
+##########################################################################
 # Pool RAID level
+
 ztype=
 typeset -i ndisks="`echo $DISKLIST | wc -w`"
 if [ "$ndisks" -gt 1 ]; then
@@ -111,6 +116,9 @@ if [ "$ndisks" -gt 1 ]; then
 	rm -f $tmpf
 fi
 [ "$ztype" = "stripe" ] && ztype=
+
+##########################################################################
+# Root pool name
 
 RPOOL=rpool
 while :; do
@@ -138,6 +146,9 @@ while :; do
 	d_msg "Invalid root pool name"
 done
 
+##########################################################################
+# Create root pool
+
 d_info "Creating $RPOOL..."
 if zpool create -f $RPOOL $ztype $DISKLIST; then
 	if zpool list $RPOOL >& /dev/null; then
@@ -152,7 +163,7 @@ else
 fi
 
 ###########################################################################
-# Prompt for hostname
+# Prompt for additional information
 
 prompt_hostname omniosce
 prompt_timezone
