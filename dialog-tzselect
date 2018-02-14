@@ -67,7 +67,7 @@ get_continent()
 		--no-lines \
 		--nocancel \
 		--menu "\n$INFO_SELECT_CONT\n\Zn" \
-		19 0 11 \
+		20 0 12 \
 		Africa Africa \
 		America Americas \
 		Antarctica Antarctica \
@@ -78,6 +78,7 @@ get_continent()
 		Europe Europe \
 		Pacific "Pacific Ocean" \
 		Indian "Indian Ocean" \
+		UTC UTC \
 		none "$INFO_POSIX" \
 		2> $tmpf
 	stat=$?
@@ -320,16 +321,23 @@ while :; do
 
 	get_continent || continue
 
-	if [ "$continent" = "none" ]; then
+	case $continent in
+	    none)
 		get_posix_tz || continue
-	else
+		;;
+	     UTC)
+		TZ=UTC
+		TZ_for_date=UTC
+		;;
+	    *)
 		get_country || continue
 		get_region || continue
 		if ! build_tz; then
 			d_msg $($PRINTF "$ERR_NO_SETUP\n" $0$)
 			continue
 		fi
-	fi
+		;;
+	esac
 
 	check_tz || continue
 	break
