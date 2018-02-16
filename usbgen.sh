@@ -367,6 +367,12 @@ print "Copying ISO contents to USB image..."
 (cd "${iso_path}"; find . -print | cpio -pmudV "${usb_path}")
 
 #
+# Create hidden file to stop OSX indexing this image (for example when
+# installing via dd)
+#
+touch $usb_path/.metadata_never_index
+
+#
 # install bootblocks
 #
 installboot -mf "${usb_path}/boot/pmbr" "${usb_path}/boot/gptzfsboot" \
