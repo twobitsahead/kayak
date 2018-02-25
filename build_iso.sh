@@ -30,10 +30,8 @@ if [ -z "$BUILDSEND_MP" ]; then
 	BUILDSEND_MP=/rpool/kayak_image
 fi
 
-if [ -z "$VERSION" ]; then
-	VERSION=`head -1 $BUILDSEND_MP/root/etc/release | awk '{print $3}' \
-	    | sed 's/[a-z]*$//g'`
-fi
+FVERSION="`head -1 $BUILDSEND_MP/root/etc/release | awk '{print $3}'`"
+[ -z "$VERSION" ] && VERSION="`echo $FVERSION | sed 's/[a-z]*$//g'`"
 echo "Using version $VERSION..."
 
 stage()
@@ -176,11 +174,31 @@ from_one_to_other usr/gnu/share/terminfo
 from_one_to_other usr/sbin ping
 from_one_to_other usr/bin netstat
 
-# Remind people this is the installer.
+######################################################################
+# Configure the loader for the installer
+
+# Splash screen - add release version to top of screen
+
+sed < $ISO_ROOT/boot/forth/brand-omnios.4th \
+    > $ISO_ROOT/boot/forth/brand-omniosi.4th "
+	/\" *\\/.*brand\+/s/ \"/  @[32m$FVERSION@[m&/
+"
+
 cat <<EOF > $ISO_ROOT/boot/loader.conf.local
 loader_menu_title="Welcome to the OmniOSce installer"
+loader_brand="omniosi"
 autoboot_delay=10
 EOF
+
+# Add option to boot from hard disk
+cat << EOM > $ISO_ROOT/boot/menu.rc.local
+set mainmenu_caption[6]="Boot from [H]ard Disk"
+set mainmenu_command[6]="chain disk1:"
+set mainmenu_keycode[6]=104
+set mainansi_caption[6]="Boot from ^[1mH^[mard Disk"
+EOM
+
+######################################################################
 
 #
 # Okay, we've populated the new miniroot. Close it up and install it

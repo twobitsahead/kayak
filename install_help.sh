@@ -96,7 +96,7 @@ ForceDHCP(){
 BE_Create_Root() {
     local _rpool="${1:?rpool}"
 
-    zfs set compression=on $_rpool
+    [ -z "$NO_COMPRESSION" ] && zfs set compression=on $_rpool
     zfs create $_rpool/ROOT
     # The miniroot does not have any libshare SMF services so the following
     # commands print an error.
