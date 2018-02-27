@@ -70,20 +70,31 @@ while :; do
 	break
 done
 
-reality_check() {
+# Check if any selected disks are part of an existing zpool. This can happen
+# if the installer is re-run.
+flag=0
+for disk in $DISKLIST; do
+	if zpool status | fgrep " $disk"; then
+		d_msg "$disk is part of an active ZFS pool."
+		flag=1
+	fi
+done
+[ $flag -eq 1 ] && exit 0
+
+test_rpool() {
 	mkfile 64m /tmp/test.$$
 	if [ $? != 0 ]; then
 		[ -f /tmp/test.$$ ] && rm -f /tmp/test.$$
-		echo "WARNING: Insufficient space in /tmp for installation..."
+		d_msg "WARNING: Insufficient space in /tmp for installation..."
 		return 1
 	fi
-	zpool create $1 /tmp/test.$$
+	zpool create "$1" /tmp/test.$$
 	if [ $? != 0 ]; then
-		echo "Can't test zpool create $1"
+		d_msg "Can't test zpool create $1"
 		rm -f /tmp/test.$$
 		return 1
 	fi
-	zpool destroy $1
+	zpool destroy "$1" > /dev/null 2>&1
 	rm -f /tmp/test.$$
 	return 0
 }
@@ -118,47 +129,184 @@ fi
 [ "$ztype" = "stripe" ] && ztype=
 
 ##########################################################################
-# Root pool name
+# Root pool name function
+
+get_rpool_name()
+{
+	NRPOOL="$RPOOL"
+	while :; do
+		dialog \
+			--title "Enter the root pool name" \
+			--colors \
+			--inputbox '\nThis is the name of the ZFS pool that will be created using the selected disks and used for the OmniOS installation.\n\nThe default name is \Z7rpool\Zn and should usually be left unchanged.\n\Zn' \
+			16 40 "$NRPOOL" 2> $tmpf
+		[ $? -ne 0 ] && return
+		NRPOOL="`cat $tmpf`"
+		rm -f $tmpf
+		[ -z "$NRPOOL" ] && continue
+		[[ "$NRPOOL" =~ ^[a-z][-_a-z0-9]*$ ]] && break
+		d_msg "Invalid pool name, $NRPOOL"
+	done
+	RPOOL="$NRPOOL"
+}
+
+##########################################################################
+# Root pool properties
+
+cont_label='>>> Continue <<<'
+cont_text=''
+cont_help="`d_centre 'Continue with the installation.'`"
 
 RPOOL=rpool
+rpool_label='Root pool name'
+rpool_help="`d_centre 'Customise the name of the root pool if required.'`"
+
+PSCHEMES=(GPT MBR GPT+Active GPT+Slot1)
+PSCHEME=GPT
+pscheme_label='Partitioning Scheme'
+pscheme_help="`d_centre 'Select partitioning scheme, GPT is recommended.'`"
+
+COMPRESSION=YES
+compression_label='Compression'
+compression_help="`d_centre 'Choose whether to enable LZ4 compression on the pool (recommended).'`"
+
+FORCE4K=NO
+force4k_label='Force 4K Sectors'
+force4k_help="`d_centre 'Configure pool for 4K native sectors (ashift=12).'`"
+
+cycle()
+{
+	declare -a arr=("${!1}")
+	local val="$2"
+
+	for i in "${!arr[@]}"; do
+		[ "${arr[$i]}" = "$val" ] && break
+	done
+	((i = i + 1))
+	[ $i -ge ${#arr[@]} ] && i=0
+	echo ${arr[$i]}
+}
+
+YESNO=(YES NO)
+function toggle { cycle YESNO[@] "$@"; }
+
+defaultitem="$cont_label"
 while :; do
 	dialog \
-		--title "Enter the root pool name" \
-		--colors \
-		--inputbox '\nThis is the name of the ZFS pool that will be created using the selected disks and used for the OmniOS installation.\n\nThe default name is \Z7rpool\Zn and should usually be left unchanged.\n\Zn' \
-		16 40 "$RPOOL" 2> $tmpf
-	[ $? -ne 0 ] && exit 0
-	RPOOL="`cat $tmpf`"
-	rm -f $tmpf
-	[ -z "$RPOOL" ] && continue
-	if zpool list -H -o name | egrep -s "^$RPOOL\$"; then
-		dialog --defaultno --yesno \
-		    "\nPool already exists, overwrite?" 7 50
-		[ $? = 0 ] || continue
-		dialog --defaultno --yesno \
-		    "\nConfirm destruction of existing pool?" 7 50
-		[ $? = 0 ] || continue
-		d_info "Destroying pool..."
-		zpool destroy $RPOOL >/dev/null 2>&1
-	fi
-	d_info "Checking system..."
-	reality_check $RPOOL && break
-	d_msg "Invalid root pool name"
+	  --title "ZFS Root Pool Configuration" \
+	  --colors \
+	  --item-help \
+	  --no-ok --no-cancel \
+	  --default-item "$defaultitem" \
+	  --menu "\nIf desired, customise aspects of the ZFS Root Pool below; the recommended values have been filled in automatically. Select \Z7Continue\Zn when ready to proceed.\n\Zn" \
+	  0 0 0 \
+	  "$cont_label"		"$cont_text"	"$cont_help" \
+	  "$rpool_label"	"$RPOOL"	"$rpool_help" \
+	  "$pscheme_label"	"$PSCHEME" 	"$pscheme_help" \
+	  "$compression_label"	"$COMPRESSION"	"$compression_help" \
+	  "$force4k_label"	"$FORCE4K"	"$force4k_help" \
+	  2> $tmpf
+	stat=$?
+
+	[ $stat -ne 0 ] && exit 0
+
+	opt="`cat $tmpf`"
+	defaultitem="$opt"
+	case $opt in
+	    "$cont_label")
+		if zpool list -H -o name | egrep -s "^$RPOOL\$"; then
+			dialog --defaultno --yesno \
+			    "\nPool already exists, overwrite?" 7 50
+			[ $? = 0 ] || continue
+			dialog --defaultno --yesno \
+			    "\nConfirm destruction of existing pool?" 7 50
+			[ $? = 0 ] || continue
+			d_info "Destroying pool..."
+			zpool destroy "$RPOOL" >/dev/null 2>&1
+		fi
+		d_info "Checking system..."
+		test_rpool "$RPOOL" && break
+		d_msg "Invalid root pool name"
+		defaultitem="$rpool_label"
+		continue
+		;;
+	    "$rpool_label")       get_rpool_name ;;
+	    "$pscheme_label")     PSCHEME="`cycle PSCHEMES[@] "$PSCHEME"`" ;;
+	    "$compression_label") COMPRESSION="`toggle "$COMPRESSION"`" ;;
+	    "$force4k_label")     FORCE4K="`toggle "$FORCE4K"`" ;;
+	esac
 done
 
 ##########################################################################
 # Create root pool
 
 d_info "Creating $RPOOL..."
-if zpool create -f $RPOOL $ztype $DISKLIST; then
-	if zpool list $RPOOL >& /dev/null; then
-		d_info "Successfully created $RPOOL..."
-	else
-		d_msg "Failed to create root pool"
-		exit 0
-	fi
-else
+
+sed -i '/sd-config-list/d' /kernel/drv/sd.conf
+if [ "$FORCE4K" = "YES" ]; then
+	function join_by { local IFS="$1"; shift; echo "$*"; }
+	kdisks=()
+	for disk in $DISKLIST; do
+		inq="`diskinfo -Hp \
+		    | nawk -v d=$disk -F"\t" '$2 == d { print $3,$4}'`"
+		[ -n "$inq" ] || continue
+		kdisks+=(" $inq " "physical-block-size:4096")
+	done
+	echo "sd-config-list = \"`join_by ',' "${kdisks[@]}"`\";" \
+	    | sed 's/,/","/g' >> /kernel/drv/sd.conf
+	update_drv -f sd
+fi
+
+NO_COMPRESSION=
+[ "$COMPRESSION" = "YES" ] || NO_COMPRESSION=1
+export NO_COMPRESSION
+
+_DISKLIST="$DISKLIST"
+if [ "$PSCHEME" = "MBR" ]; then
+	_DISKLIST=
+	for disk in $DISKLIST; do
+		# Single Solaris2 partition
+		if ! fdisk -B ${disk}p0; then
+			d_msg "Failed to partition $disk"
+			exit 0
+		fi
+		_DISKLIST+="${disk}s0 "
+	done
+fi
+
+if ! zpool create -f "$RPOOL" $ztype $_DISKLIST || \
+   ! zpool list $RPOOL >& /dev/null; then
 	d_msg "Failed to create root pool"
+	exit 0
+fi
+
+pool_guid="`zpool list -H -o guid $RPOOL`"
+
+# These options work around BIOS bugs on some systems.
+
+case $PSCHEME in
+    GPT+Active)
+	zpool export $RPOOL >/dev/null 2>&1
+	for disk in $DISKLIST; do
+		# Set first entry in pMBR active
+		fdisk -E 0:1 ${disk}p0
+	done
+	zpool import $pool_guid
+	;;
+    GPT+Slot1)
+	zpool export $RPOOL >/dev/null 2>&1
+	for disk in $DISKLIST; do
+		# Move first pMBR entry to slot 1
+		fdisk -E 1:0 ${disk}p0
+	done
+	zpool import $pool_guid
+	;;
+esac
+
+if zpool list $RPOOL >& /dev/null; then
+	d_info "Successfully created $RPOOL..."
+else
+	d_msg "Problem creating pool..."
 	exit 0
 fi
 
@@ -168,14 +316,14 @@ fi
 prompt_hostname omniosce
 prompt_timezone
 
-. /kayak/install_help.sh
-. /kayak/disk_help.sh
-
 ZFS_IMAGE=/.cdrom/image/*.zfs.bz2
 echo "Installing from ZFS image $ZFS_IMAGE"
 
 # Because of kayak's small miniroot, just use C as the language for now.
 LANG=C
+
+. /kayak/install_help.sh
+. /kayak/disk_help.sh
 
 BuildBE $RPOOL $ZFS_IMAGE
 ApplyChanges $HOSTNAME $TZ $LANG $keyboard_layout

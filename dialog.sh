@@ -41,5 +41,13 @@ if [ -x /kayak/dialog ]; then
 		((width += 5))
 		dialog --msgbox "$@" $lines $width
 	}
+
+	d_centre()
+	{
+		line="$1"
+		cols="${2:-79}"
+
+		printf "%*s" $(((cols + ${#line})/2)) "$line"
+	}
 fi
 
