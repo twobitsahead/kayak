@@ -161,10 +161,19 @@ RPOOL=rpool
 rpool_label='Root pool name'
 rpool_help="`d_centre 'Customise the name of the root pool if required.'`"
 
+# At some point, we should add UEFI as the first (and default) option.
+#  'Use GPT scheme with UEFI boot partition, recommended.'
 PSCHEMES=(GPT MBR GPT+Active GPT+Slot1)
-PSCHEME=GPT
+PSCHEMES_HELP=(
+  'Use GPT scheme, recommended.'
+  'Use traditional MBR scheme, supports disks up to 2TB.'
+  'Use GPT scheme but mark partition as active to work around BIOS bugs.'
+  'Use GPT scheme but place pMBR in slot 1 to work around BIOS bugs.'
+)
+PSCHEME="${PSCHEMES[0]}"
+PSCHEME_HELP="${PSCHEMES_HELP[0]}"
 pscheme_label='Partitioning Scheme'
-pscheme_help="`d_centre 'Select partitioning scheme, GPT is recommended.'`"
+pscheme_help="`d_centre "$PSCHEME_HELP"`"
 
 COMPRESSION=YES
 compression_label='Compression'
@@ -231,7 +240,11 @@ while :; do
 		continue
 		;;
 	    "$rpool_label")       get_rpool_name ;;
-	    "$pscheme_label")     PSCHEME="`cycle PSCHEMES[@] "$PSCHEME"`" ;;
+	    "$pscheme_label")
+		PSCHEME="`cycle PSCHEMES[@] "$PSCHEME"`"
+		PSCHEME_HELP="`cycle PSCHEMES_HELP[@] "$PSCHEME_HELP"`"
+		pscheme_help="`d_centre "$PSCHEME_HELP"`"
+		;;
 	    "$compression_label") COMPRESSION="`toggle "$COMPRESSION"`" ;;
 	    "$force4k_label")     FORCE4K="`toggle "$FORCE4K"`" ;;
 	esac
@@ -262,19 +275,25 @@ NO_COMPRESSION=
 export NO_COMPRESSION
 
 _DISKLIST="$DISKLIST"
-if [ "$PSCHEME" = "MBR" ]; then
-	_DISKLIST=
-	for disk in $DISKLIST; do
-		# Single Solaris2 partition
-		if ! fdisk -B ${disk}p0; then
-			d_msg "Failed to partition $disk"
-			exit 0
-		fi
-		_DISKLIST+="${disk}s0 "
-	done
-fi
+_FLAGS=f
+case "$PSCHEME" in
+	UEFI)
+		_FLAGS+=B
+		;;
+	MBR)
+		_DISKLIST=
+		for disk in $DISKLIST; do
+			# Single Solaris2 partition
+			if ! fdisk -B ${disk}p0; then
+				d_msg "Failed to partition $disk"
+				exit 0
+			fi
+			_DISKLIST+="${disk}s0 "
+		done
+		;;
+esac
 
-if ! zpool create -f "$RPOOL" $ztype $_DISKLIST || \
+if ! zpool create -$_FLAGS "$RPOOL" $ztype $_DISKLIST || \
    ! zpool list $RPOOL >& /dev/null; then
 	d_msg "Failed to create root pool"
 	exit 0
