@@ -92,21 +92,20 @@ BuildRpoolOnly() {
   if [[ -z "$disks" ]]; then
     bomb "No matching disks found to build root pool $RPOOL"
   fi
-  rm -f /tmp/kayak-disk-list
   for i in $disks
   do
     if [[ -n "$ztgt" ]]; then
       ztype="mirror"
     fi
     ztgt="$ztgt ${i}"
-    # Keep track of disks for later...
-    echo ${i} >> /tmp/kayak-disk-list
   done
   log "zpool destroy $RPOOL (just in case we've been run twice)"
   zpool destroy $RPOOL 2> /dev/null || true
   log "Creating root pool with: zpool create -f $RPOOL $ztype $ztgt"
-  # Just let "zpool create" do its thing. We want GPT disks now.
-  zpool create -f $RPOOL $ztype $ztgt || bomb "Failed to create root pool $RPOOL"
+  # Just let "zpool create" do its thing.
+  # We want GPT disks with a UEFI system partition now.
+  zpool create -fB $RPOOL $ztype $ztgt \
+    || bomb "Failed to create root pool $RPOOL"
 }
 BuildRpool() {
   BuildRpoolOnly $*

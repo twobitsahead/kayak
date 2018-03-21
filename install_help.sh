@@ -246,25 +246,11 @@ MakeBootable(){
   zpool set bootfs=$_rpool/ROOT/$_bename $_rpool
   # Must do beadm activate first on the off chance we're bootstrapping from
   # GRUB.
+  slog "Activating BE"
   beadm activate omnios || return 1
-
-  if [ -n "$1" ]; then
-      # Generate kayak-disk-list from zpool status.
-      # NOTE: If this is something on non-s0 slices, the installboot below
-      # will fail most likely, which is possibly a desired result.
-      zpool list -Hv $_rpool | nawk '
-        NR > 1 && $1 ~ /c[0-9]/ {
-            sub("s0$", "", $1)
-            print $1
-        }' > /tmp/kayak-disk-list
-  fi
-
-  # NOTE: This installboot loop assumes we're doing GPT whole-disk rpools.
-  for i in `cat /tmp/kayak-disk-list`; do
-      echo "Installing loader bootblocks on /dev/rdsk/${i}s0"
-      installboot -mfF /boot/pmbr /boot/gptzfsboot /dev/rdsk/${i}s0 || return 1
-  done
-
+  slog "Installing bootloader"
+  bootadm install-bootloader -f -P $_rpool || return 1
+  slog "Updating boot archive"
   bootadm update-archive -R $ALTROOT || return 1
   return 0
 }

@@ -161,11 +161,10 @@ RPOOL=rpool
 rpool_label='Root pool name'
 rpool_help="`d_centre 'Customise the name of the root pool if required.'`"
 
-# At some point, we should add UEFI as the first (and default) option.
-#  'Use GPT scheme with UEFI boot partition, recommended.'
-PSCHEMES=(GPT MBR GPT+Active GPT+Slot1)
+PSCHEMES=(UEFI GPT MBR GPT+Active GPT+Slot1)
 PSCHEMES_HELP=(
-  'Use GPT scheme, recommended.'
+  'Use GPT scheme with UEFI boot partition, recommended.'
+  'Use GPT scheme, without UEFI boot partition.'
   'Use traditional MBR scheme, supports disks up to 2TB.'
   'Use GPT scheme but mark partition as active to work around BIOS bugs.'
   'Use GPT scheme but place pMBR in slot 1 to work around BIOS bugs.'
@@ -279,6 +278,11 @@ _FLAGS=f
 case "$PSCHEME" in
 	UEFI)
 		_FLAGS+=B
+		# The zpool slice will now be slice 1 but slice 0 may have a
+		# pool label from a previous installation. Clear it out.
+		for disk in $DISKLIST; do
+			zpool labelclear -f ${disk}s0
+		done
 		;;
 	MBR)
 		_DISKLIST=
@@ -336,7 +340,7 @@ prompt_hostname omniosce
 prompt_timezone
 
 ZFS_IMAGE=/.cdrom/image/*.zfs.bz2
-echo "Installing from ZFS image $ZFS_IMAGE"
+d_info "Installing from ZFS image $ZFS_IMAGE"
 
 # Because of kayak's small miniroot, just use C as the language for now.
 LANG=C
