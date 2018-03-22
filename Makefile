@@ -31,12 +31,12 @@ DESTDIR=$(BUILDSEND_MP)
 
 all:
 
-INSTALLS=anon.dtrace.conf anon.system build_image.sh build_zfs_send.sh \
+INSTALLS=anon.dtrace.conf anon.system build_miniroot.sh build_zfs_send.sh \
 	data/access.log data/boot data/etc data/filelist.ramdisk data/kernel \
 	data/known_extras data/mdb data/platform disk_help.sh install_help.sh \
 	install_image.sh src/takeover-console.c Makefile net_help.sh README.md \
 	build_iso.sh digest find-and-install.sh kayak-menu.sh config-menu.sh \
-	usbgen.sh ipcalc dialog src/passutil.c \
+	build_usb.sh ipcalc dialog src/passutil.c \
 	loader.conf.local rpool-install.sh \
 	sample/000000000000.sample sample/menu.lst.000000000000
 
@@ -58,7 +58,7 @@ anon.dtrace.conf:
 	cat /kernel/drv/dtrace.conf $@.tmp > $@
 	rm $@.tmp
 
-MINIROOT_DEPS=build_image.sh anon.dtrace.conf anon.system \
+MINIROOT_DEPS=build_miniroot.sh anon.dtrace.conf anon.system \
 	install_image.sh disk_help.sh install_help.sh net_help.sh
 
 $(BUILDSEND_MP)/kayak_$(VERSION).zfs.bz2:	build_zfs_send.sh
@@ -95,17 +95,14 @@ $(DESTDIR)/tftpboot/kayak/miniroot.gz:	$(BUILDSEND_MP)/miniroot.gz
 $(DESTDIR)/tftpboot/kayak/miniroot.gz.hash:	$(BUILDSEND_MP)/miniroot.gz
 	digest -a sha1 $< > $@
 
-build_image.sh:
-	VERSION=$(VERSION) ./build_image.sh
-
-build_zfs_send.sh:
-	VERSION=$(VERSION) ./build_zfs_image.sh
+build_miniroot.sh:
+	VERSION=$(VERSION) ./build_miniroot.sh
 
 $(BUILDSEND_MP)/miniroot.gz:	$(MINIROOT_DEPS)
 	if test -n "`zfs list -H -t snapshot $(BUILDSEND)/root@fixup 2>/dev/null`"; then \
-	  VERSION=$(VERSION) DEBUG=$(DEBUG) ./build_image.sh $(BUILDSEND) fixup ; \
+	  VERSION=$(VERSION) DEBUG=$(DEBUG) ./build_miniroot.sh $(BUILDSEND) fixup ; \
 	else \
-	  VERSION=$(VERSION) DEBUG=$(DEBUG) ./build_image.sh $(BUILDSEND) begin ; \
+	  VERSION=$(VERSION) DEBUG=$(DEBUG) ./build_miniroot.sh $(BUILDSEND) begin ; \
 	fi
 
 $(DESTDIR)/var/kayak/kayak/$(VERSION).zfs.bz2:	$(BUILDSEND_MP)/kayak_$(VERSION).zfs.bz2
@@ -171,7 +168,8 @@ install-iso:	bins kbd.list install-tftp install-web
 	BUILDSEND_MP=$(BUILDSEND_MP) VERSION=$(VERSION) ./build_iso.sh
 
 install-usb:	install-iso
-	./usbgen.sh $(BUILDSEND_MP)/$(VERSION).iso $(BUILDSEND_MP)/$(VERSION).usb-dd /tmp
+	./build_usb.sh $(BUILDSEND_MP)/$(VERSION).iso \
+	    $(BUILDSEND_MP)/$(VERSION).usb-dd
 
 clean:
 	rm -f takeover-console passutil mount_media ipcalc dialog zpool_patch \

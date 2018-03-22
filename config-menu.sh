@@ -380,8 +380,9 @@ dcfg_ip()
 
 	# Split IP into IP and prefix
 	typeset _net_ip_ip=${net_ip%/*}
-	#typeset _net_ip_prefix=${net_ip#*/}
-	typeset _net_ip_prefix="`$IPCALC -m $_net_ip | cut -d= -f2`"
+	typeset _net_ip_prefix=
+	[ -n "$_net_ip" ] && \
+	    _net_ip_prefix="`$IPCALC -m $_net_ip | cut -d= -f2`"
 
 	typeset _lab_ip="      IP Address :"
 	typeset _lab_prefix="  Netmask/Prefix :"

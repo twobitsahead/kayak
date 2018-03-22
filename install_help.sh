@@ -49,14 +49,22 @@ log() {
   echo "[$TS] $*" 1>&4
   echo "[$TS] $*"
 }
+slog() {
+    if [ -n "$USE_DIALOG" ]; then
+        echo "[$TS] $*" 1>&4
+        d_info "$@"
+    else
+        log "$@"
+    fi
+}
 bomb() {
   log
   log ======================================================
   log "$*"
   log ======================================================
   if [[ -n "$INSTALL_LOG" ]]; then
-  log "For more information, check $INSTALL_LOG"
-  log ======================================================
+      log "For more information, check $INSTALL_LOG"
+      log ======================================================
   fi
   exit 1
 }
@@ -113,7 +121,7 @@ BE_Receive_Image() {
     local _bename="${4:?bename}"
     local _media="${5:?media}"
 
-    log "Receiving image: $MEDIA"
+    slog "Preparing to install ZFS image"
     pv="pv -B 128m"
     [ "$_grab" = cat ] && pv+=" -s `ls -lh $_media | awk '{print $5}'`"
 
@@ -135,7 +143,7 @@ BE_Mount() {
     local _root=${3:?root}
     local _method${4:-beadm}
 
-    log "Mounting BE $_bename on $_root"
+    slog "Mounting BE $_bename on $_root"
 
     if [ "$_method" = beadm ]; then
         beadm mount $_bename $_root
@@ -150,7 +158,7 @@ BE_Umount() {
     local _root=${2:?root}
     local _method${3:-beadm}
 
-    log "Unmounting BE $_bename"
+    slog "Unmounting BE $_bename"
     if [ "$_method" = beadm ]; then
         beadm umount $_bename
     else
@@ -166,7 +174,7 @@ BE_SetUUID() {
     local uuid=`LD_LIBRARY_PATH=$_root/lib:$_root/usr/lib \
         $_root/usr/bin/uuidgen`
 
-    log "Setting BE $_bename UUID: $uuid"
+    slog "Setting BE $_bename UUID: $uuid"
     zfs set org.opensolaris.libbe:uuid=$uuid $_rpool/ROOT/$_bename
     zfs set org.opensolaris.libbe:policy=static $_rpool/ROOT/$_bename
 }
@@ -174,7 +182,7 @@ BE_SetUUID() {
 BE_SeedSMF() {
     local _root=${1:?root}
 
-    log "Seeding SMF database"
+    slog "Seeding SMF database"
     cp $_root/lib/svc/seed/global.db $_root/etc/svc/repository.db
     chmod 0600 $_root/etc/svc/repository.db
     chown root:sys $_root/etc/svc/repository.db
@@ -242,29 +250,15 @@ FetchConfig(){
 MakeBootable(){
   local _rpool=${1:-rpool}
   local _bename=${2:-omnios}
-  log "Making boot environment bootable"
+  slog "Making boot environment bootable"
   zpool set bootfs=$_rpool/ROOT/$_bename $_rpool
   # Must do beadm activate first on the off chance we're bootstrapping from
   # GRUB.
+  slog "Activating BE"
   beadm activate omnios || return 1
-
-  if [ -n "$1" ]; then
-      # Generate kayak-disk-list from zpool status.
-      # NOTE: If this is something on non-s0 slices, the installboot below
-      # will fail most likely, which is possibly a desired result.
-      zpool list -Hv $_rpool | nawk '
-        NR > 1 && $1 ~ /c[0-9]/ {
-            sub("s0$", "", $1)
-            print $1
-        }' > /tmp/kayak-disk-list
-  fi
-
-  # NOTE: This installboot loop assumes we're doing GPT whole-disk rpools.
-  for i in `cat /tmp/kayak-disk-list`; do
-      echo "Installing loader bootblocks on /dev/rdsk/${i}s0"
-      installboot -mfF /boot/pmbr /boot/gptzfsboot /dev/rdsk/${i}s0 || return 1
-  done
-
+  slog "Installing bootloader"
+  bootadm install-bootloader -f -P $_rpool || return 1
+  slog "Updating boot archive"
   bootadm update-archive -R $ALTROOT || return 1
   return 0
 }

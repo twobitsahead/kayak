@@ -44,18 +44,35 @@ stage()
 # Allow temporary directory override
 : ${TMPDIR:=/tmp}
 
+# Files prepared by other parts of the kayak build process
+
 KAYAK_MINIROOT=$BUILDSEND_MP/miniroot.gz
 ZFS_IMG=$BUILDSEND_MP/kayak_${VERSION}.zfs.bz2
 
 [ ! -f $KAYAK_MINIROOT -o ! -f $ZFS_IMG ] && echo "Missing files." && exit 1
 
-ISO_ROOT=$TMPDIR/iso_root
-BA_ROOT=$TMPDIR/boot_archive
+# Mount-points
 
-KAYAK_ROOT=$TMPDIR/miniroot.$$
-KR_FILE=$TMPDIR/kr.$$
-MNT=/mnt
+MINIROOT_ROOT=$TMPDIR/miniroot.$$
+BA_ROOT=$TMPDIR/boot_archive.$$
+UEFI_ROOT=$TMPDIR/uefi.$$
+ISO_ROOT=$TMPDIR/iso_root.$$
+
+# Image files
+
+MINIROOT_FILE=$TMPDIR/miniroot_$$.img
+BA_FILE=$TMPDIR/boot_archive_$$.img
+
+# Parameters
+
 BA_SIZE=225M
+
+# Uncomment the following line to build a UEFI ISO.
+# We aren't building UEFI yet.
+#UEFI_SIZE=4M
+
+# Output file
+
 DST_ISO=$BUILDSEND_MP/${VERSION}.iso
 
 #############################################################################
@@ -66,38 +83,41 @@ DST_ISO=$BUILDSEND_MP/${VERSION}.iso
 
 set -o errexit
 
-mkdir $KAYAK_ROOT
-mkdir $ISO_ROOT
-
-# Create a UFS lofi file and mount the UFS filesystem in $MNT. This will
-# form the boot_archive for the ISO.
+# First, uncompress the miniroot to a temporary file and mount it on
+# $MINIROOT_ROOT
 
 stage "Mounting source miniroot"
-# Uncompress and mount the miniroot
-gunzip -c $KAYAK_MINIROOT > $KR_FILE
-LOFI_RPATH=`lofiadm -a $KR_FILE`
-mount $LOFI_RPATH $KAYAK_ROOT
+gzip -dc $KAYAK_MINIROOT > $MINIROOT_FILE
+LOFI_MINIROOT=`lofiadm -a $MINIROOT_FILE`
+mkdir $MINIROOT_ROOT
+mount $LOFI_MINIROOT $MINIROOT_ROOT
 
-stage "Creating UFS image for new miniroot"
-mkfile $BA_SIZE $BA_ROOT
-LOFI_PATH=`lofiadm -a $BA_ROOT`
-echo 'y' | newfs $LOFI_PATH
-mount $LOFI_PATH $MNT
+# Now create a UFS boot-archive image and mount it on $BA_ROOT
 
-# Copy the files from the miniroot to the new miniroot...
-sz=`du -sh $KAYAK_ROOT | awk '{print $1}'`
-stage "Adding files to new miniroot"
-tar -cf - -C $KAYAK_ROOT . | pv -s $sz | tar -xf - -C $MNT
+stage "Creating UFS image for boot archive"
+mkfile $BA_SIZE $BA_FILE
+LOFI_BA=`lofiadm -a $BA_FILE`
+yes | newfs $LOFI_BA
+mkdir $BA_ROOT
+mount $LOFI_BA $BA_ROOT
+
+# Copy the files from the miniroot to the boot archive
+sz=`du -sh $MINIROOT_ROOT | awk '{print $1}'`
+stage "Adding files to boot archive"
+tar -cf - -C $MINIROOT_ROOT . | pv -s $sz | tar -xf - -C $BA_ROOT
+
 # ...and to the ISO root
 stage "Adding files to ISO root"
-tar -cf - -C $KAYAK_ROOT . | pv -s $sz | tar -xf - -C $ISO_ROOT
+mkdir $ISO_ROOT
+tar -cf - -C $MINIROOT_ROOT . | pv -s $sz | tar -xf - -C $ISO_ROOT
 
-# Clean-up
+# No longer need the source miniroot so unmount it and clean up the
+# temporary file.
 stage "Unmounting source miniroot"
-umount $KAYAK_ROOT
-rmdir $KAYAK_ROOT
-lofiadm -d $LOFI_RPATH
-rm $KR_FILE
+umount $MINIROOT_ROOT
+rmdir $MINIROOT_ROOT
+lofiadm -d $LOFI_MINIROOT
+rm $MINIROOT_FILE
 
 # Place the full ZFS image into the ISO root so it does not form part of the
 # boot archive (otherwise the boot seems to hang for several minutes while
@@ -110,7 +130,7 @@ pv $ZFS_IMG > $ISO_ROOT/image/`basename $ZFS_IMG`
 # find the image - see src/mount_media.c
 echo $VERSION > $ISO_ROOT/.volsetid
 
-# Put additional files into the boot-archive on $MNT, which is
+# Put additional files into the boot-archive on $BA_ROOT, which is
 # what will be / (via ramdisk) once the ISO is booted.
 
 stage "Adding extra files to miniroot"
@@ -121,33 +141,33 @@ cp -p \
     ipcalc passutil mount_media nossh.xml \
     dialog dialog.rc dialog.sh utils.sh dialog-tzselect \
     kbd.list \
-    $MNT/kayak/.
+    $BA_ROOT/kayak/.
 
 if [ -n "$REFRESH_KAYAK" ]; then
 	# For testing, make sure files in miniroot are current
-	for f in $MNT/kayak/*; do
+	for f in $BA_ROOT/kayak/*; do
 		[ -f "$f" ] || continue
 		echo "REFRESH $f"
-		cp `basename $f` $MNT/kayak
+		cp `basename $f` $BA_ROOT/kayak
 	done
 fi
 
-cat <<EOF > $MNT/root/.bashrc
+cat <<EOF > $BA_ROOT/root/.bashrc
 export PATH=/usr/bin:/usr/sbin:/sbin
 export HOME=/root
 EOF
 
 # Have initialboot invoke an interactive installer.
-cat <<EOF > $MNT/.initialboot
+cat <<EOF > $BA_ROOT/.initialboot
 /kayak/takeover-console /kayak/kayak-menu.sh
 exit 0
 EOF
 # Increase the timeout
-SVCCFG_REPOSITORY=$MNT/etc/svc/repository.db \
+SVCCFG_REPOSITORY=$BA_ROOT/etc/svc/repository.db \
     svccfg -s system/initial-boot setprop "start/timeout_seconds=86400"
 
 # Refresh the devices on the miniroot.
-devfsadm -r $MNT
+devfsadm -r $BA_ROOT
 
 #
 # The ISO's miniroot is going to be larger than the PXE miniroot. To that
@@ -155,18 +175,20 @@ devfsadm -r $MNT
 # the miniroot. Use PREBUILT_ILLUMOS if available, or the current system
 # if not.
 #
+
+PROTO=
+[ -n "$PREBUILT_ILLUMOS" -a -d $PREBUILT_ILLUMOS/proto/root_i386-nd ] \
+    && PROTO=$PREBUILT_ILLUMOS/proto/root_i386-nd
+
 from_one_to_other() {
     dir=$1
 
-    FROMDIR=/
-    [ -n "$PREBUILT_ILLUMOS" -a -d $PREBUILT_ILLUMOS/proto/root_i386/$dir ] \
-        && FROMDIR=$PREBUILT_ILLUMOS/proto/root_i386
+    [ -n "$PROTO" -a -d $PROTO/$dir ] && src=$PROTO || src=/
 
     shift
-    tar -cf - -C $FROMDIR/$dir ${@:-.} | tar -xf - -C $MNT/$dir
+    tar -cf - -C $src/$dir ${@:-.} | tar -xf - -C $BA_ROOT/$dir
 }
 
-# Add from_one_to_other for any directory {file|subdir file|subdir ...} you need
 from_one_to_other usr/share/lib/zoneinfo
 from_one_to_other usr/share/lib/keytables
 from_one_to_other usr/share/lib/terminfo
@@ -175,7 +197,7 @@ from_one_to_other usr/sbin ping
 from_one_to_other usr/bin netstat
 
 ######################################################################
-# Configure the loader for the installer
+# Configure the loader for installer
 
 # Splash screen - add release version to top of screen
 
@@ -204,34 +226,80 @@ EOM
 # Okay, we've populated the new miniroot. Close it up and install it
 # on $ISO_ROOT as the boot archive.
 #
-stage "Miniroot size"
-df -h $MNT
+stage "Boot archive miniroot size"
+df -h $BA_ROOT
 stage "Unmounting boot archive image"
-umount $MNT
-lofiadm -d $LOFI_PATH
+umount $BA_ROOT
+rmdir $BA_ROOT
+lofiadm -d $LOFI_BA
+
 stage "Installing boot archive"
-pv $BA_ROOT | gzip -9c > $ISO_ROOT/platform/i86pc/amd64/boot_archive.gz
+pv $BA_FILE | gzip -9c > $ISO_ROOT/platform/i86pc/amd64/boot_archive.gz
 ls -lh $ISO_ROOT/platform/i86pc/amd64/boot_archive.gz | awk '{print $5}'
-digest -a sha1 $BA_ROOT \
+digest -a sha1 $BA_FILE \
     > $ISO_ROOT/platform/i86pc/amd64/boot_archive.hash
-rm -f $BA_ROOT
+rm -f $BA_FILE
 stage "Removing unecessary files from ISO root"
 rm -rf $ISO_ROOT/{usr,bin,sbin,lib,kernel}
 stage "ISO root size: `du -sh $ISO_ROOT/.`"
 
 # And finally, burn the ISO.
-mkisofs -N -l -R -U -d -D \
-	-o $DST_ISO \
-	-b boot/cdboot \
-	-c .catalog \
-	-no-emul-boot \
-	-boot-load-size 4 \
-	-boot-info-table \
-	-allow-multidot \
-	-no-iso-translate \
-	-cache-inodes \
-	-V "OmniOSce $VERSION" \
-	$ISO_ROOT
+
+if [ -n "$UEFI_SIZE" ]; then
+	if [ -n "$PROTO" -a -f $PROTO/boot/loader.efi ]; then
+		echo "Using loader.efi from proto"
+		EFI=$PROTO/boot/loader.efi
+	elif [ -f /boot/loader.efi ]; then
+		echo "Using loader.efi from running system"
+		EFI=/boot/loader.efi
+	else
+		echo "Cannot find loader.efi"
+		rm -rf $ISO_ROOT
+		exit 1
+	fi
+	# Create a UEFI bootblock
+	stage "Building UEFI bootblock"
+	UEFI_FILE=$ISO_ROOT/boot/efiboot.img
+	mkfile $UEFI_SIZE $UEFI_FILE
+	LOFI_UEFI=`lofiadm -a $UEFI_FILE`
+	yes | mkfs -F pcfs \
+	    -o b=System,nofdisk,size=8800 ${LOFI_UEFI//lofi/rlofi}
+	mkdir $UEFI_ROOT
+	mount -F pcfs $LOFI_UEFI $UEFI_ROOT
+	mkdir -p $UEFI_ROOT/efi/boot
+	cp $EFI $UEFI_ROOT/efi/boot/bootx64.efi
+	df -h $UEFI_ROOT
+	umount $UEFI_ROOT
+	rmdir $UEFI_ROOT
+	lofiadm -d $LOFI_UEFI
+
+	mkisofs -N -l -R -U -d -D \
+		-V "OmniOSce $VERSION" \
+		-o $DST_ISO \
+		-c .catalog \
+		-allow-multidot \
+		-no-iso-translate \
+		-cache-inodes \
+		\
+		-eltorito-boot boot/cdboot -no-emul-boot -boot-info-table \
+		-eltorito-alt-boot \
+		-eltorito-boot boot/`basename $UEFI_FILE` -no-emul-boot \
+		\
+		$ISO_ROOT
+else
+	mkisofs -N -l -R -U -d -D \
+		-V "OmniOSce $VERSION" \
+		-o $DST_ISO \
+		-c .catalog \
+		-allow-multidot \
+		-no-iso-translate \
+		-cache-inodes \
+		\
+		-b boot/cdboot -no-emul-boot -boot-load-size 4 \
+		-boot-info-table \
+		\
+		$ISO_ROOT
+fi
 
 rm -rf $ISO_ROOT
 stage "$DST_ISO is ready"

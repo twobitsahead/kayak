@@ -1346,6 +1346,7 @@
 20807452 /usr/sbin/mkfs
 20807452 /usr/sbin/clri
 20807509 /usr/lib/fs/ufs/mkfs
+20807509 /usr/lib/fs/pcfs/mkfs
 20807639 /kernel/sys/amd64/kaio
 20808309 /usr/lib/fs/mntfs/mount
 20808483 /usr/bin/cpio
