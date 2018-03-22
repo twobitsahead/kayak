@@ -1,0 +1,210 @@
+#!/usr/bin/ksh
+
+# {{{ CDDL HEADER
+#
+# This file and its contents are supplied under the terms of the
+# Common Development and Distribution License ("CDDL"), version 1.0.
+# You may only use this file in accordance with the terms of version
+# 1.0 of the CDDL.
+#
+# A full copy of the text of the CDDL should have accompanied this
+# source. A copy of the CDDL is also available via the Internet at
+# http://www.illumos.org/license/CDDL.
+# }}}
+
+# Copyright 2018 OmniOS Community Edition (OmniOSce) Association.
+
+export LC_ALL=C
+
+if [ `id -u` != "0" ]; then
+	echo "You must be root to run this script."
+	exit 1
+fi
+
+ISO_FILE=${1:?iso}
+USB_FILE=${2:?usb}
+
+[ ! -f "$ISO_FILE" ] && echo "Cannot find $ISO_FILE" && exit 1
+
+# Uncomment the following line to build a UEFI image.
+# We aren't building UEFI yet.
+#UEFI_SIZE=34M
+
+# Allow temporary directory override
+: ${TMPDIR:=/tmp}
+
+UEFI_ROOT=$TMPDIR/uefi_root.$$
+USB_ROOT=$TMPDIR/usb_root.$$
+ISO_ROOT=$TMPDIR/iso_root.$$
+
+stage()
+{
+	echo "***"
+	echo "*** $*"
+	echo "***"
+}
+
+set -o errexit
+
+######################################################################
+# Find UEFI boot file
+
+if [ -n "$UEFI_SIZE" ]; then
+	if [ -n "$PREBUILT_ILLUMOS" -a \
+	     -f $PREBUILT_ILLUMOS/proto/root_i386-nd/boot/boot1.efi ]; then
+		echo "Using boot1.efi from proto"
+		EFI_LOADER=$PREBUILT_ILLUMOS/proto/root_i386-nd/boot/boot1.efi
+	elif [ -f /boot/boot1.efi ]; then
+		echo "Using boot1.efi from running system"
+		EFI_LOADER=/boot/boot1.efi
+	else
+		echo "Cannot find boot1.efi"
+		exit 1
+	fi
+fi
+
+######################################################################
+# Compute the size for the new USB image.
+#
+# Use the ISO file size + 20% to account for smaller block size on UFS
+# and the log. Round to nearest KiB plus 512.
+
+ISO_SIZE=`stat -c %s $ISO_FILE`
+(( USB_SIZE = int((ISO_SIZE * 1.2) / 1024.) * 1024 + 512 ))
+
+# In MBR mode:
+#	plus 4MB for MBR+SMI label
+# In UEFI mode:
+#	plus 4MB for label
+#	plus 34MB for system partition
+#	plus 1MB for boot partition
+
+if [ -n "$UEFI_SIZE" ]; then
+	((USB_SIZE += 41943040))
+else
+	((USB_SIZE += 4194304))
+fi
+
+echo "USB Size = $USB_SIZE (ISO_SIZE = $ISO_SIZE)"
+
+######################################################################
+# Create the new empty USB image and partition it
+#
+
+stage "Creating USB image file"
+
+mkfile -n $USB_SIZE $USB_FILE
+LOFI_USB=`lofiadm -la $USB_FILE`
+RLOFI_USB=${LOFI_USB/dsk/rdsk}
+# LOFI_USB fill be of the form /dev/dsk/c1t1d0p0
+
+if [ -n "$UEFI_SIZE" ]; then
+	# Let zpool do the partitioning work for us
+	zpool create -B -o bootsize=$UEFI_SIZE usbtmp-$$ ${LOFI_USB/p0/}
+	zpool destroy usbtmp-$$
+
+	# At this point, the disk has three EFI partitions:
+	#	V_SYSTEM	ESP @ $UEFI_SIZE
+	#	V_USR		For ZFS data
+	#	V_RESERVED	Reserved
+
+	# 1 MiB assuming 512-byte sectors
+	boot_size=2048
+
+	# Shrink slice 1 to $boot_size sectors and change the partition type
+	# to 1 (V_BOOT).
+	new_boot=`prtvtoc -h $RLOFI_USB | nawk -v size=$boot_size '
+		$1 == 1 { printf("1:1:00:%d:%d\n", $4, size) }
+	'`
+
+	# Allocate the remaining free space to slice 2 and set the
+	# partition type to 2 (V_ROOT)
+	new_root=`prtvtoc -h $RLOFI_USB | nawk -v size=$boot_size '
+		$1 == 1 { printf("2:2:00:%d:%d\n", $4 + size, $5 - size) }
+	'`
+
+	fmthard -d $new_boot $RLOFI_USB
+	fmthard -d $new_root $RLOFI_USB
+
+	stage "Building UEFI bootblock"
+
+	yes | mkfs -F pcfs -o b=System ${RLOFI_USB/p0/s0}
+	mkdir $UEFI_ROOT
+	mount -F pcfs ${LOFI_USB/p0/s0} $UEFI_ROOT
+	mkdir -p $UEFI_ROOT/efi/boot
+	cp $EFI_LOADER $UEFI_ROOT/efi/boot/bootx64.efi
+	umount $UEFI_ROOT
+	rmdir $UEFI_ROOT
+
+	ufs=2
+else
+	# Create Solaris2 partition filling the entire disk
+	fdisk -B $RLOFI_USB
+	fdisk -W - $RLOFI_USB | tail -5 | head -2
+	echo
+
+	# Create slice 0 covering all of the non-reserved space
+	OIFS="$IFS"; IFS=" ="
+	set -- `prtvtoc -f $RLOFI_USB`
+	IFS="$OIFS"
+	# FREE_START=2048 FREE_SIZE=196608 FREE_COUNT=1 FREE_PART=...
+	start=$2; size=$4
+	fmthard -d 0:2:01:$start:$size $RLOFI_USB
+
+	ufs=0
+fi
+
+prtvtoc -s $RLOFI_USB
+
+######################################################################
+# Format and mount the UFS area
+
+stage "Formatting UFS slice $ufs"
+
+UFS_SLICE=${RLOFI_USB/p0/s$ufs}
+yes | newfs $UFS_SLICE
+mkdir $USB_ROOT
+mount -o nologging ${UFS_SLICE/rdsk/dsk} $USB_ROOT
+
+######################################################################
+#  Mount the source ISO, copy files to USB, unmount again
+
+stage "Mounting source ISO"
+LOFI_ISO=`lofiadm -a $ISO_FILE`
+mkdir $ISO_ROOT
+mount -F hsfs -o ro $LOFI_ISO $ISO_ROOT
+
+stage "Copying ISO contents to USB image..."
+( cd $ISO_ROOT; find . -print | cpio -pmudV $USB_ROOT )
+
+stage "Unmounting source ISO"
+umount $ISO_ROOT
+rmdir $ISO_ROOT
+lofiadm -d $LOFI_ISO
+
+# Create hidden file to stop OSX indexing this image (for example when
+# installing via dd)
+touch $USB_ROOT/.metadata_never_index
+
+df -h $USB_ROOT
+
+######################################################################
+# Install bootblocks
+#
+
+stage "Installing boot blocks"
+installboot -mf $USB_ROOT/boot/pmbr $USB_ROOT/boot/gptzfsboot $UFS_SLICE
+
+######################################################################
+# Unmount and clean up
+
+stage "Cleaning up"
+
+umount $USB_ROOT
+rmdir $USB_ROOT
+lofiadm -d $LOFI_USB
+
+chmod 444 $USB_FILE
+
+exit 0
+

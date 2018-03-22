@@ -36,7 +36,7 @@ INSTALLS=anon.dtrace.conf anon.system build_image.sh build_zfs_send.sh \
 	data/known_extras data/mdb data/platform disk_help.sh install_help.sh \
 	install_image.sh src/takeover-console.c Makefile net_help.sh README.md \
 	build_iso.sh digest find-and-install.sh kayak-menu.sh config-menu.sh \
-	usbgen.sh ipcalc dialog src/passutil.c \
+	build_usb.sh ipcalc dialog src/passutil.c \
 	loader.conf.local rpool-install.sh \
 	sample/000000000000.sample sample/menu.lst.000000000000
 
@@ -171,7 +171,8 @@ install-iso:	bins kbd.list install-tftp install-web
 	BUILDSEND_MP=$(BUILDSEND_MP) VERSION=$(VERSION) ./build_iso.sh
 
 install-usb:	install-iso
-	./usbgen.sh $(BUILDSEND_MP)/$(VERSION).iso $(BUILDSEND_MP)/$(VERSION).usb-dd /tmp
+	./build_usb.sh $(BUILDSEND_MP)/$(VERSION).iso \
+	    $(BUILDSEND_MP)/$(VERSION).usb-dd
 
 clean:
 	rm -f takeover-console passutil mount_media ipcalc dialog zpool_patch \
