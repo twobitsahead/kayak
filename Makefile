@@ -31,7 +31,7 @@ DESTDIR=$(BUILDSEND_MP)
 
 all:
 
-INSTALLS=anon.dtrace.conf anon.system build_image.sh build_zfs_send.sh \
+INSTALLS=anon.dtrace.conf anon.system build_miniroot.sh build_zfs_send.sh \
 	data/access.log data/boot data/etc data/filelist.ramdisk data/kernel \
 	data/known_extras data/mdb data/platform disk_help.sh install_help.sh \
 	install_image.sh src/takeover-console.c Makefile net_help.sh README.md \
@@ -58,7 +58,7 @@ anon.dtrace.conf:
 	cat /kernel/drv/dtrace.conf $@.tmp > $@
 	rm $@.tmp
 
-MINIROOT_DEPS=build_image.sh anon.dtrace.conf anon.system \
+MINIROOT_DEPS=build_miniroot.sh anon.dtrace.conf anon.system \
 	install_image.sh disk_help.sh install_help.sh net_help.sh
 
 $(BUILDSEND_MP)/kayak_$(VERSION).zfs.bz2:	build_zfs_send.sh
@@ -95,17 +95,14 @@ $(DESTDIR)/tftpboot/kayak/miniroot.gz:	$(BUILDSEND_MP)/miniroot.gz
 $(DESTDIR)/tftpboot/kayak/miniroot.gz.hash:	$(BUILDSEND_MP)/miniroot.gz
 	digest -a sha1 $< > $@
 
-build_image.sh:
-	VERSION=$(VERSION) ./build_image.sh
-
-build_zfs_send.sh:
-	VERSION=$(VERSION) ./build_zfs_image.sh
+build_miniroot.sh:
+	VERSION=$(VERSION) ./build_miniroot.sh
 
 $(BUILDSEND_MP)/miniroot.gz:	$(MINIROOT_DEPS)
 	if test -n "`zfs list -H -t snapshot $(BUILDSEND)/root@fixup 2>/dev/null`"; then \
-	  VERSION=$(VERSION) DEBUG=$(DEBUG) ./build_image.sh $(BUILDSEND) fixup ; \
+	  VERSION=$(VERSION) DEBUG=$(DEBUG) ./build_miniroot.sh $(BUILDSEND) fixup ; \
 	else \
-	  VERSION=$(VERSION) DEBUG=$(DEBUG) ./build_image.sh $(BUILDSEND) begin ; \
+	  VERSION=$(VERSION) DEBUG=$(DEBUG) ./build_miniroot.sh $(BUILDSEND) begin ; \
 	fi
 
 $(DESTDIR)/var/kayak/kayak/$(VERSION).zfs.bz2:	$(BUILDSEND_MP)/kayak_$(VERSION).zfs.bz2
