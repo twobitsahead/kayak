@@ -12,14 +12,14 @@
 
 # Copyright 2018 OmniOS Community Edition (OmniOSce) Association.
 
-if [ -x /kayak/dialog ]; then
+if [ -x /kayak/bin/dialog ]; then
 	export USE_DIALOG=1
-	export DIALOGRC=/kayak/dialog.rc
+	export DIALOGRC=/kayak/etc/dialog.rc
 	export DIALOGRELEASE="`head -1 /etc/release`"
 
 	dialog()
 	{
-		/kayak/dialog \
+		/kayak/bin/dialog \
 			--backtitle "$DIALOGRELEASE" \
 			"$@"
 	}

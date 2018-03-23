@@ -1,11 +1,6 @@
 kayak_root/
-takeover-console
-ipcalc
-dialog
-passutil
-mount_media
-zpool_patch
-kbd.list
+bin/*
+etc/kbd.list
 run
 mkiso
 pv-grub*

@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/usr/bin/ksh
 
 # {{{ CDDL HEADER
 # This file and its contents are supplied under the terms of the
@@ -20,7 +20,7 @@
 # Build an ISO installer using the Kayak tools.
 #
 
-if [ `id -u` != "0" ]; then
+if [ "`id -u`" != "0" ]; then
 	echo "You must be root to run this script."
 	exit 1
 fi
@@ -136,19 +136,17 @@ echo $VERSION > $ISO_ROOT/.volsetid
 stage "Adding extra files to miniroot"
 
 # Extra files
-cp -p \
-    takeover-console \
-    ipcalc passutil mount_media nossh.xml \
-    dialog dialog.rc dialog.sh utils.sh dialog-tzselect \
-    kbd.list \
-    $BA_ROOT/kayak/.
+for dir in bin; do
+	[ -d $BA_ROOT/kayak/$dir ] || mkdir -p $BA_ROOT/kayak/$dir
+	cp -p $dir/* $BA_ROOT/kayak/$dir/
+done
 
 if [ -n "$REFRESH_KAYAK" ]; then
 	# For testing, make sure files in miniroot are current
-	for f in $BA_ROOT/kayak/*; do
+	find $BA_ROOT/kayak -type f | while read f; do
 		[ -f "$f" ] || continue
 		echo "REFRESH $f"
-		cp `basename $f` $BA_ROOT/kayak
+		cp `echo $f | sed 's^.*/kayak/^^'` $f
 	done
 fi
 
@@ -159,7 +157,7 @@ EOF
 
 # Have initialboot invoke an interactive installer.
 cat <<EOF > $BA_ROOT/.initialboot
-/kayak/takeover-console /kayak/kayak-menu.sh
+/kayak/bin/takeover-console /kayak/installer/kayak-menu
 exit 0
 EOF
 # Increase the timeout

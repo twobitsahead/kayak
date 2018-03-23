@@ -28,8 +28,8 @@ dir=`/usr/gnu/bin/mktemp -d`
 		CFLAGS=-D_KERNEL
 )
 
-cp $dir/$PROG-$VER/$PROG .
-strip $PROG
+cp $dir/$PROG-$VER/$PROG ./bin/$PROG
+strip ./bin/$PROG
 
 rm -rf $dir
 

@@ -16,8 +16,8 @@
 # Copyright 2018 OmniOS Community Edition (OmniOSce) Association.
 #
 
-. /kayak/dialog.sh
-. /kayak/utils.sh
+. /kayak/lib/dialog.sh
+. /kayak/lib/utils.sh
 
 keyboard_layout=${1:-US-English}
 
@@ -345,14 +345,15 @@ d_info "Installing from ZFS image $ZFS_IMAGE"
 # Because of kayak's small miniroot, just use C as the language for now.
 LANG=C
 
-. /kayak/install_help.sh
-. /kayak/disk_help.sh
+. /kayak/lib/install_help.sh
+. /kayak/lib/disk_help.sh
 
 BuildBE $RPOOL $ZFS_IMAGE
 ApplyChanges $HOSTNAME $TZ $LANG $keyboard_layout
 MakeBootable $RPOOL
 # Disable SSH by default for interactive installations
-[ -f /kayak/nossh.xml ] && cp /kayak/nossh.xml $ALTROOT/etc/svc/profile/site/
+[ -f /kayak/etc/nossh.xml ] && \
+    cp /kayak/etc/nossh.xml $ALTROOT/etc/svc/profile/site/
 
 if beadm list -H omnios 2>/dev/null; then
 	dialog \

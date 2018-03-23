@@ -1,4 +1,3 @@
-#!/usr/bin/bash
 #
 # CDDL HEADER START
 #
@@ -25,8 +24,17 @@
 # Use is subject to license terms.
 #
 
-. /kayak/install_help.sh
-ConsoleLog /tmp/kayak.log
-ForceDHCP
-RunInstall || bomb "RunInstall failed."
-[[ -n "$NO_REBOOT" ]] || Reboot
+# An anonymous dtrace script to build a list of files which are accessed.
+# It is used along with a big miniroot (see BIGROOT in build/build_miniroot)
+# to determine the files which cannot be culled from the miniroot.
+# These days we tend to just add new files by hand as required.
+
+int seen[string];
+
+fsinfo:genunix::
+/args[0]->fi_mount=="/" && seen[args[0]->fi_pathname]==0/
+{
+	printf("%d %s\n", timestamp/1000000, args[0]->fi_pathname);
+	seen[args[0]->fi_pathname] = 1;
+}
+
