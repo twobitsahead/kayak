@@ -119,11 +119,12 @@ until [[ $NEWRPOOL == "" ]]; do
     fi
 done
 
-. /kayak/install_help.sh
-. /kayak/disk_help.sh
+. /kayak/lib/install_help.sh
+. /kayak/lib/disk_help.sh
 BuildRpoolOnly $DISKLIST
 
 rm -f $SCRATCH
 
 # Running actual install.
-/kayak/rpool-install.sh $RPOOL $keyboard_layout
+/kayak/installer/rpool-install $RPOOL $keyboard_layout
+

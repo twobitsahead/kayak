@@ -18,8 +18,8 @@
 
 ALTROOT=/mnt
 INITIALBOOT=$ALTROOT/.initialboot
-IPCALC=/kayak/ipcalc
-PASSUTIL=/kayak/passutil
+IPCALC=/kayak/bin/ipcalc
+PASSUTIL=/kayak/bin/passutil
 
 debug=0
 if [ "$1" = '-t' ]; then
@@ -29,7 +29,7 @@ else
 	trap "" TSTP INT TERM ABRT QUIT
 fi
 
-[ "$1" = "-dialog" ] && . /kayak/dialog.sh
+[ "$1" = "-dialog" ] && . /kayak/lib/dialog.sh
 
 dmsg()
 {
@@ -1102,7 +1102,7 @@ cfg_sshd()
 	else
 		[ -d  $ALTROOT/etc/svc/profile/site ] \
 		    || mkdir -p  $ALTROOT/etc/svc/profile/site
-		cp /kayak/nossh.xml $ALTROOT/etc/svc/profile/site/nossh.xml
+		cp /kayak/etc/nossh.xml $ALTROOT/etc/svc/profile/site/nossh.xml
 	fi
 }
 

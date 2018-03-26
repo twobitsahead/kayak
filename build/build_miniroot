@@ -32,6 +32,7 @@ BUILDNUM=${VERSION//[a-z]/}
 if [ ${SRCDIR:0:1} != "/" ]; then
     SRCDIR=`pwd`/$SRCDIR
 fi
+SRCDIR+=/..
 if [ -z "$1" ]; then
     echo "$0 <zfs pool> [checkpoint]"
     exit 1
@@ -241,13 +242,13 @@ step() {
     CHKPT=""
     case "$1" in
 
-    "begin")
+  "begin")
     zfs destroy -r $BASE/root 2> /dev/null
     zfs create -o compression=off $BASE/root || fail "zfs create failed"
     chkpt pkg
     ;;
 
-    "pkg")
+  "pkg")
 
     echo "Creating image of $PUBLISHER from $PKGURL"
     $PKG image-create -F -p $PUBLISHER=$PKGURL $ROOTDIR \
@@ -268,7 +269,7 @@ step() {
     chkpt fixup
     ;;
 
-    "fixup")
+  "fixup")
 
     echo "Fixing up install root"
     (
@@ -324,7 +325,7 @@ step() {
     chkpt cull
     ;;
 
-    "cull")
+  "cull")
     if [ -z "$BIGROOT" ]; then
         load_keep_list data/*
         while read file; do
@@ -345,7 +346,7 @@ step() {
     chkpt mkfs
     ;;
 
-    "mkfs")
+  "mkfs")
     size=`/usr/bin/du -ks ${ROOTDIR} | /usr/bin/nawk '{print $1+10240}'`
     echo " --- making image of size $size"
     /usr/sbin/mkfile ${size}k $MKFILEDIR/miniroot || fail "mkfile"
@@ -356,41 +357,44 @@ step() {
     chkpt mount
     ;;
 
-    "mount")
+  "mount")
     mkdir -p $WORKDIR/mnt
     /usr/sbin/mount -o nologging $lofidev $WORKDIR/mnt || fail "mount"
     chkpt copy
     ;;
 
-    "copy")
+  "copy")
     pushd $ROOTDIR >/dev/null
     /usr/bin/find . | /usr/bin/cpio -pdum $WORKDIR/mnt 2>&1 >/dev/null \
         || fail "populate root"
     /usr/sbin/devfsadm -r $WORKDIR/mnt > /dev/null
     popd >/dev/null
     mkdir $WORKDIR/mnt/kayak
-    cp $SRCDIR/*.sh $WORKDIR/mnt/kayak/
-    chmod a+x $WORKDIR/mnt/kayak/*.sh
+    for dir in etc lib installer; do
+        mkdir -p $WORKDIR/mnt/kayak/$dir
+        cp $SRCDIR/$dir/* $WORKDIR/mnt/kayak/$dir/
+        chmod a+x $WORKDIR/mnt/kayak/$dir/*
+    done
 
     # So "bootadm update-archive" can work.
-    cp $SRCDIR/digest $WORKDIR/mnt/usr/bin/digest
+    cp $SRCDIR/installer/digest $WORKDIR/mnt/usr/bin/digest
     chmod 0755 $WORKDIR/mnt/usr/bin/digest
 
     make_initial_boot $WORKDIR/mnt/.initialboot
     if [ -n "$DEBUG" ]; then
-        cp $SRCDIR/anon.system $WORKDIR/mnt/etc/system
-        cp $SRCDIR/anon.dtrace.conf $WORKDIR/mnt/kernel/drv/dtrace.conf
+        cp $SRCDIR/etc/anon.system $WORKDIR/mnt/etc/system
+        cp $SRCDIR/etc/anon.dtrace.conf $WORKDIR/mnt/kernel/drv/dtrace.conf
     fi
     chkpt umount
     ;;
 
-    "umount")
+  "umount")
     /usr/sbin/umount $WORKDIR/mnt || fail "umount"
     /usr/sbin/lofiadm -d $MKFILEDIR/miniroot || fail "lofiadm delete"
     chkpt compress
     ;;
 
-    "compress")
+  "compress")
     $GZIP_CMD -c -f $MKFILEDIR/miniroot > $WORKDIR/miniroot.gz
     rm -f $MKFILEDIR/miniroot
     chmod 644 $WORKDIR/miniroot.gz
@@ -404,7 +408,7 @@ step() {
 make_initial_boot() {
 FILE=$1
 cat > $FILE <<EOF
-    /kayak/install_image.sh
+    /kayak/installer/install-image
     exit \$?
 EOF
 }

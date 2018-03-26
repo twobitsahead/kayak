@@ -9,7 +9,7 @@
 
 # Contributed by Paul Eggert
 
-. /kayak/dialog.sh
+. /kayak/lib/dialog.sh
 
 output="${1:?Output}"
 

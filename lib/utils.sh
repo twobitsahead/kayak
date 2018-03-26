@@ -56,7 +56,7 @@ t_prompt_timezone() {
 
 d_prompt_timezone() {
 	# Select a timezone.
-	/kayak/dialog-tzselect /tmp/tz.$$
+	/kayak/installer/dialog-tzselect /tmp/tz.$$
 	TZ="`tail -1 /tmp/tz.$$`"
 	rm -f /tmp/tz.$$
 }

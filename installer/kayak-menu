@@ -38,13 +38,13 @@ export TERM=sun-color
 
 export VERSION=`head -1 /etc/release | awk '{print $3}' | sed 's/[a-z]*$//g'`
 
-. /kayak/dialog.sh
+. /kayak/lib/dialog.sh
 
 if [ $debug -eq 0 ]; then
 	echo
 	echo "Scanning for media..."
 	mkdir /.cdrom
-	/kayak/mount_media $VERSION
+	/kayak/bin/mount_media $VERSION
 fi
 
 # If dialogue is supported, offer the user a choice.
@@ -93,7 +93,7 @@ if [ -n "$USE_DIALOG" ]; then
 		--default-item US-English \
 		--menu "Use the arrow keys to move up and down the list" \
 		19 0 16 \
-		`cat /kayak/kbd.list | sed 's/.*/& &/'` \
+		`cat /kayak/etc/kbd.list | sed 's/.*/& &/'` \
 		2> $tmpf
 	stat=$?
 	if [ $stat -eq 0 ]; then
@@ -127,12 +127,12 @@ d_detecting()
 # Preinstall menu
 menu_items=( \
     (menu_str="Find disks, create rpool, and install OmniOSce"		\
-	cmds=("/kayak/find-and-install.sh $klang")			\
-	dcmds=("d_detecting x", "/kayak/dialog-install.sh $klang")\
+	cmds=("/kayak/instaler/find-and-install $klang")		\
+	dcmds=("d_detecting x", "/kayak/installer/dialog-install $klang")\
 	default="true"							\
 	do_subprocess="true")						\
     (menu_str="Install OmniOSce straight on to a preconfigured rpool"	\
-	cmds=("/kayak/rpool-install.sh rpool $klang")			\
+	cmds=("/kayak/installer/rpool-install rpool $klang")		\
 	do_subprocess="true")						\
     (menu_str="Shell (for manual rpool creation)"			\
 	cmds=("/usr/bin/bash")						\
@@ -153,8 +153,8 @@ menu_items=( \
 # Postinstall menu
 pi_menu_items=( \
     (menu_str="Configure the installed OmniOS system"			\
-	cmds=("/kayak/config-menu.sh")					\
-	dcmds=("/kayak/config-menu.sh -dialog")				\
+	cmds=("/kayak/installer/config-menu")				\
+	dcmds=("/kayak/installer/config-menu -dialog")			\
 	do_subprocess="true")						\
     (menu_str="Shell (for post-install ops on /mnt)"			\
 	cmds=("/usr/bin/bash")						\

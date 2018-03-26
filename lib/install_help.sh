@@ -69,8 +69,8 @@ bomb() {
   exit 1
 }
 
-. /kayak/net_help.sh
-. /kayak/disk_help.sh
+. /kayak/lib/net_help.sh
+. /kayak/lib/disk_help.sh
 
 ICFILE=/tmp/_install_config
 getvar(){

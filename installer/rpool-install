@@ -21,8 +21,8 @@ ZFS_IMAGE=/.cdrom/image/*.zfs.bz2
 keyboard_layout=${2:-US-English}
 tmpf=`mktemp`
 
-[ -n "$USE_DIALOG" ] && . /kayak/dialog.sh
-. /kayak/utils.sh
+[ -n "$USE_DIALOG" ] && . /kayak/lib/dialog.sh
+. /kayak/lib/utils.sh
 
 zpool list $RPOOL >& /dev/null
 if [[ $? != 0 ]]; then
@@ -34,8 +34,8 @@ fi
 
 echo "Installing from ZFS image $ZFS_IMAGE"
 
-. /kayak/disk_help.sh
-. /kayak/install_help.sh
+. /kayak/lib/disk_help.sh
+. /kayak/lib/install_help.sh
 
 prompt_hostname omniosce
 prompt_timezone
@@ -47,7 +47,8 @@ BuildBE $RPOOL $ZFS_IMAGE
 ApplyChanges $HOSTNAME $TZ $LANG $keyboard_layout
 MakeBootable $RPOOL
 # Disable SSH by default for interactive installations
-[ -f /kayak/nossh.xml ] && cp /kayak/nossh.xml $ALTROOT/etc/svc/profile/site/
+[ -f /kayak/etc/nossh.xml ] && \
+    cp /kayak/etc/nossh.xml $ALTROOT/etc/svc/profile/site/
 zpool list -v $RPOOL
 echo ""
 beadm list
