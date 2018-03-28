@@ -142,7 +142,7 @@ bin/mount_media:	src/mount_media.c
 	gcc -o $@ $< -ldevinfo
 
 bin/zpool_patch:	src/zpool_patch.c
-	gcc -Isrc/include -o $@ $< -lnvpair -lzfs
+	gcc -m64 -g -Isrc/include -o $@ $< -lnvpair
 
 bin/ipcalc:	build/build_ipcalc
 	./build/build_ipcalc
@@ -158,7 +158,8 @@ etc/kbd.list: /usr/share/lib/keytables/type_6/kbd_layouts
 bins: $(BINS)
 
 clean:
-	rm -f $(BINS)
+	-rm -f $(BINS)
+	-rm -rf VMDK-stream-converter-0.2
 
 ######################################################################
 # Install targets (see README.md)
