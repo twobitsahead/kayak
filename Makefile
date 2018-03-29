@@ -14,20 +14,15 @@
 # Copyright 2018 OmniOS Community Edition (OmniOSce) Association.
 #
 
-VERSION?=$(shell awk '$$1 == "OmniOS" { print $$3 }' /etc/release)
 ifeq ($(shell zonename),global)
 BUILDSEND=rpool/kayak_image
 else
-BUILDSEND="$(shell zfs list -H -o name /)/kayak_image"
+BUILDSEND::="$(shell zfs list -H -o name /)/kayak_image"
 endif
+BUILDSEND_MP=/kayak_image
 
-ZFSCREATE:=$(shell \
-	zfs list -H -o name $(BUILDSEND) 2>/dev/null || \
-	    zfs create -o mountpoint=/kayak_image $(BUILDSEND) \
-)
-
-BUILDSEND_MP=$(shell zfs get -o value -H mountpoint $(BUILDSEND))
-DESTDIR=$(BUILDSEND_MP)
+VERSION?=$(shell awk '$$1 == "OmniOS" { print $$3 }' /etc/release)
+DESTDIR::=$(BUILDSEND_MP)
 
 all:
 
@@ -123,6 +118,10 @@ etc/anon.dtrace.conf:
 	cat /kernel/drv/dtrace.conf $@.tmp > $@
 	rm $@.tmp
 
+zfscreate:
+	zfs list -H -o name $(BUILDSEND) 2>/dev/null || \
+	    zfs create -o mountpoint=$(BUILDSEND_MP) $(BUILDSEND)
+
 ######################################################################
 # Binaries to build from source
 
@@ -160,9 +159,9 @@ clean:
 ######################################################################
 # Install targets (see README.md)
 
-install-tftp:	tftp-dirs $(TFTP_FILES)
+install-tftp:	zfscreate tftp-dirs $(TFTP_FILES)
 
-install-web:	server-dirs $(WEB_FILES)
+install-web:	zfscreate server-dirs $(WEB_FILES)
 
 install-iso:	bins install-tftp install-web
 	BUILDSEND_MP=$(BUILDSEND_MP) VERSION=$(VERSION) ./build/build_iso
@@ -170,6 +169,8 @@ install-iso:	bins install-tftp install-web
 install-usb:	install-iso
 	./build/build_usb $(BUILDSEND_MP)/$(VERSION).iso \
 	    $(BUILDSEND_MP)/$(VERSION).usb-dd
+
+# Used by omnios-build/kayak/ to create the kayak package
 
 install-package:	bins tftp-dirs server-dirs
 	for dir in $(PKGDIRS); do \
@@ -188,4 +189,6 @@ install-package:	bins tftp-dirs server-dirs
 	cp smf/svc-kayak $(DESTDIR)/var/svc/method/svc-kayak
 	chmod a+x $(DESTDIR)/var/svc/method/svc-kayak
 	cp smf/kayak.xml $(DESTDIR)/var/svc/manifest/network/kayak.xml
+
+.PHONY: all clean zfscreate
 
