@@ -307,6 +307,7 @@ pool_guid="`zpool list -H -o guid $RPOOL`"
 
 # These options work around BIOS bugs on some systems.
 
+fixdb=
 case $PSCHEME in
     GPT+Active)
 	zpool export $RPOOL >/dev/null 2>&1
@@ -315,6 +316,7 @@ case $PSCHEME in
 		fdisk -E 0:1 ${disk}p0
 	done
 	zpool import $pool_guid
+	fixdb="pmbr_active=1"
 	;;
     GPT+Slot1)
 	zpool export $RPOOL >/dev/null 2>&1
@@ -323,6 +325,7 @@ case $PSCHEME in
 		fdisk -E 1:0 ${disk}p0
 	done
 	zpool import $pool_guid
+	fixdb="pmbr_slot=1"
 	;;
 esac
 
@@ -354,6 +357,18 @@ MakeBootable $RPOOL
 # Disable SSH by default for interactive installations
 [ -f /kayak/etc/nossh.xml ] && \
     cp /kayak/etc/nossh.xml $ALTROOT/etc/svc/profile/site/
+
+efifixdb=$ALTROOT/usr/share/hwdata/efi.fixes
+if [ -n "$fixdb" -a -f $efifixdb ]; then
+	# Update EFI fix database for this system based on the specific fix
+	# selected before installation.
+	manu="`smbios -t SMB_TYPE_SYSTEM \
+	    | awk '$1 == "Manufacturer:" { print $2}'`"
+	(
+		echo "# Added by kayak during installation"
+		echo "sys.manufacturer=\"$manu\" $fixdb"
+	) >> $efifixdb
+fi
 
 if beadm list -H omnios 2>/dev/null; then
 	dialog \
