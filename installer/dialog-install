@@ -26,13 +26,18 @@ tmpf=`mktemp`
 ##########################################################################
 # Disk selection
 
-# In a KVM, the disks don't show up on the first invocation of diskinfo.
+# Under KVM, the disks don't show up on the first invocation of diskinfo.
 # More investigation required but, for now, run it twice.
 diskinfo >/dev/null
 
 diskinfo -H | tr "\t" "^" > $tmpf.disks
 if [ ! -s $tmpf.disks ]; then
-	d_msg "No disks found!"
+	d_msg "No disks found."
+	exit 0
+fi
+
+if [ ! -f /.cdrom/.volsetid ]; then
+	d_msg "Installation media not found."
 	exit 0
 fi
 
@@ -348,9 +353,17 @@ LANG=C
 . /kayak/lib/install_help.sh
 . /kayak/lib/disk_help.sh
 
+panic()
+{
+	echo
+	echo "An error has occurred, press return to continue:\\c"
+	read a
+	exit 0
+}
+
 BuildBE $RPOOL $ZFS_IMAGE
-ApplyChanges $HOSTNAME $TZ $LANG $keyboard_layout
-MakeBootable $RPOOL
+ApplyChanges $HOSTNAME $TZ $LANG $keyboard_layout || panic
+MakeBootable $RPOOL || panic
 # Disable SSH by default for interactive installations
 [ -f /kayak/etc/nossh.xml ] && \
     cp /kayak/etc/nossh.xml $ALTROOT/etc/svc/profile/site/
@@ -367,6 +380,6 @@ Once back at the main menu, you can configure the initial system settings,\\n\
 reboot, or enter the shell to modify your new BE before its first boot.\\n\\Zn\
 " 0 0
 else
-	d_msg "Installation has failed.\\nCheck $INSTALL_LOG for more information."
+	d_msg "Boot environment does not appear to be present, something went wrong.\\nCheck 'beadm list' output under shell."
 fi
 

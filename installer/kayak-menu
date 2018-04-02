@@ -47,6 +47,14 @@ if [ $debug -eq 0 ]; then
 	/kayak/bin/mount_media $VERSION
 fi
 
+if [ ! -f /.cdrom/.volsetid ]; then
+	echo
+	echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+	echo "!!! Could not mount installation media !!!"
+	echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+	echo
+fi
+
 # If dialogue is supported, offer the user a choice.
 if [ -n "$USE_DIALOG" ]; then
 	i=10
