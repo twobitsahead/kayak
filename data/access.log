@@ -227,6 +227,7 @@
 20502433 /usr/share/lib/zoneinfo
 20502434 /usr/share/lib/zoneinfo/UTC
 20502434 /usr/share/hwdata/pci.ids
+20502434 /usr/share/hwdata/efi.fixes
 20502435 /usr/lib/locale
 20502436 /var/svc
 20502436 /var/svc/log
