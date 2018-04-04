@@ -31,13 +31,22 @@ tmpf=`mktemp`
 diskinfo >/dev/null
 
 diskinfo -H | tr "\t" "^" > $tmpf.disks
-if [ ! -s $tmpf.disks ]; then
-	d_msg "No disks found."
+if [ ! -f /.cdrom/.volsetid ]; then
+	d_msg "Installation media not found."
 	exit 0
 fi
 
-if [ ! -f /.cdrom/.volsetid ]; then
-	d_msg "Installation media not found."
+# Find the disk device associated with the installation media so that it can
+# be excluded from the list of installation targets.
+dev="`df -k /.cdrom | nawk '/devices/ { gsub(/:.*/, ""); print }'`"
+if [ -n "$dev" ]; then
+	idisk="`ls -l /dev/dsk/*p0 | grep "$dev" | awk '{print $9}'`"
+	idisk="`basename ${idisk/p0/}`"
+	[ -n "$idisk" ] && sed -i "/\\^$idisk\\^/d" $tmpf.disks
+fi
+
+if [ ! -s $tmpf.disks ]; then
+	d_msg "No disks found."
 	exit 0
 fi
 
