@@ -122,6 +122,10 @@ zfscreate:
 	zfs list -H -o name $(BUILDSEND) 2>/dev/null || \
 	    zfs create -o mountpoint=$(BUILDSEND_MP) $(BUILDSEND)
 
+zfsdestroy:
+	zfs list -H -o name $(BUILDSEND) >/dev/null 2>&1 && \
+	    zfs destroy -r $(BUILDSEND)
+
 ######################################################################
 # Binaries to build from source
 
@@ -190,5 +194,5 @@ install-package:	bins tftp-dirs server-dirs
 	chmod a+x $(DESTDIR)/var/svc/method/svc-kayak
 	cp smf/kayak.xml $(DESTDIR)/var/svc/manifest/network/kayak.xml
 
-.PHONY: all clean zfscreate
+.PHONY: all clean zfscreate zfsdestroy
 
