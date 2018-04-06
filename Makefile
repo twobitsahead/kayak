@@ -167,7 +167,11 @@ install-tftp:	zfscreate tftp-dirs $(TFTP_FILES)
 
 install-web:	zfscreate server-dirs $(WEB_FILES)
 
-install-iso:	bins install-tftp install-web
+check-mkisofs:
+	-@test -x `which mkisofs` || echo "No 'mkisofs' command found."
+	@test -x `which mkisofs`
+
+install-iso:	check-mkisofs bins install-tftp install-web
 	BUILDSEND_MP=$(BUILDSEND_MP) VERSION=$(VERSION) ./build/build_iso
 
 install-usb:	install-iso
