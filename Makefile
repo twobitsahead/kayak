@@ -123,7 +123,7 @@ zfscreate:
 	    zfs create -o mountpoint=$(BUILDSEND_MP) $(BUILDSEND)
 
 zfsdestroy:
-	zfs list -H -o name $(BUILDSEND) >/dev/null 2>&1 && \
+	-zfs list -H -o name $(BUILDSEND) >/dev/null 2>&1 && \
 	    zfs destroy -r $(BUILDSEND)
 
 ######################################################################
