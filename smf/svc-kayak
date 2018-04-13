@@ -22,6 +22,7 @@
 #
 #
 # Copyright 2012 OmniTI Computer Consulting, Inc.  All rights reserved.
+# Copyright 2018 OmniOS Community Edition (OmniOSce) Association.
 # Use is subject to license terms.
 #
 
@@ -42,7 +43,7 @@ class Root:
         cherrypy.response.headers['Content-Type'] = 'text/html'
         head = """<html>
                 <head>
-                    <title>Minimal Kayak Install Server</title>
+                    <title>Kayak Installation Server</title>
                     <link rel="stylesheet" href="css/land.css" type="text/css">
                 </head>
                 <html>
@@ -52,14 +53,14 @@ class Root:
                         <div id="logo_medium"></div>    
                     </div>
                 <div id="col_b">
-                <h1>Minimal Kayak Install Server</h1>
+                <h1>Kayak Installation Server</h1>
                 <div class="images"><h2>Available Images</h2><ul>"""
         for dirname, dirnames, filenames in os.walk(os.path.join(options.basedir, 'kayak')):
             for filename in filenames:
                 imagename = re.search("^(.+)\.zfs\.bz2", filename)
                 if imagename != None:
 	            head = head + '<li><a href="kayak/' + filename + '">' + imagename.group(1) + '</a></li>';
-        head = head + '</ul></div><div class="configs"><h2>Available Configs</h2><ul>'
+        head = head + '</ul></div><div class="configs"><h2>Available Configurations</h2><ul>'
         configs = []
         for dirname, dirnames, filenames in os.walk(os.path.join(options.basedir, 'kayak')):
             for filename in filenames:
@@ -68,7 +69,7 @@ class Root:
                     configs.append(filename)
         for filename in configs:
 	    head = head + '<li><a href="kayak/' + filename + '">' + filename + '</a></li>';
-        head = head + '</ul></div><div class="logs"><h2>Install Logs</h2><ul>'
+        head = head + '</ul></div><div class="logs"><h2>Installation Logs</h2><ul>'
         logs = []
         for dirname, dirnames, filenames in os.walk(os.path.join(options.basedir, 'log')):
             for filename in filenames:
