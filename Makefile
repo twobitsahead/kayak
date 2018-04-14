@@ -27,7 +27,7 @@ DESTDIR::=$(BUILDSEND_MP)
 all:
 
 PKGDIRS=build src/include src bin etc data lib installer sample
-IMG_FILES=corner.png tail_bg_v1.png OmniOS_logo_medium.png tail_bg_v2.png
+IMG_FILES=corner.png tail_bg_v1.png OmniOSce_logo_medium.png tail_bg_v2.png
 PKGFILES=Makefile README.md
 
 TFTP_FILES=\
