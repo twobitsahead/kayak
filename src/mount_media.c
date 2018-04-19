@@ -47,7 +47,7 @@
 #include <sys/stat.h>
 
 #define	HSFS_OPTS	"ro"
-#define	UFS_OPTS	"nologging,noatime"
+#define	UFS_OPTS	"ro,nologging,noatime"
 
 static boolean_t mounted = B_FALSE;
 
