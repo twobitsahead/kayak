@@ -152,7 +152,7 @@ Xen_Customise() {
     
     # Set up to use DNS
     log "...enabling DNS resolution"
-    EnableDNS
+    SetDNS 1.1.1.1 80.80.80.80
 
     # Install ec2-credential and ec2-api-tools packages.
     # rsync needed for vagrant

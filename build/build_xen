@@ -22,23 +22,27 @@
 #
 # Copyright 2013 by Andrzej Szeszo. All rights reserved.
 # Copyright 2013 OmniTI Computer Consulting, Inc.  All rights reserved.
-# Copyright 2017 OmniOS Community Edition (OmniOSce) Association.
+# Copyright 2018 OmniOS Community Edition (OmniOSce) Association.
 # Use is subject to license terms.
 #
 
 [ "`id -u`" != 0 ] && echo Run this script as root && exit 1
 
-. install_help.sh 2>/dev/null
-. disk_help.sh
-. net_help.sh
-. xen_help.sh
+SRCDIR=`dirname $0`
+[ ${SRCDIR:0:1} = "/" ] || SRCDIR=`pwd`/$SRCDIR
+
+. $SRCDIR/../lib/install_help.sh 2>/dev/null
+. $SRCDIR/../lib/disk_help.sh
+. $SRCDIR/../lib/net_help.sh
+. $SRCDIR/../lib/xen_help.sh
 
 VMODE=hvm
 USEGRUB=0
 
-VERSION=`head -1 /etc/release | awk '{print $3}' | sed 's/[a-z]//g'`
-ZFSSEND=/kayak_image/kayak_r$VERSION.zfs.bz2
-PVGRUB=pv-grub.gz.d3950d8
+lVERSION="`head -1 /etc/release | awk '{print $3}' | sed 's/[a-z]//g'`"
+: ${VERSION:=$lVERSION}
+: ${ZFSSEND:=/kayak_image/kayak_r$VERSION.zfs.bz2}
+: ${PVGRUB:=pv-grub.gz.d3950d8}
 
 RPOOL=syspool
 BENAME=omnios
@@ -72,7 +76,8 @@ fi
 
 # Begin
 
-zpool destroy $RPOOL 2>/dev/null || true
+zpool destroy -f $RPOOL 2>/dev/null || true
+zpool labelclear -f ${DISK}s0 >/dev/null 2>&1
 
 if [ $VMODE = pv ]; then
     SetupPVPart
@@ -83,8 +88,8 @@ else
         SetupHVMPart
         zpool create -f $RPOOL ${DISK}s0
     else
-        # Use whole-disk EFI
-        zpool create -f $RPOOL ${DISK}
+        # Use whole-disk EFI but without an EFI System Partition (ESP)
+        zpool create -fd $RPOOL ${DISK}
     fi
 fi
 
@@ -102,7 +107,12 @@ else
 fi
 
 ApplyChanges
+# In case we are preparing a pre-release, temporarily add staging
+pkg -R $ALTROOT set-publisher \
+    -g https://pkg.omniosce.org/r$lVERSION/staging omnios
 Xen_Customise
+pkg -R $ALTROOT set-publisher \
+    -G https://pkg.omniosce.org/r$lVERSION/staging omnios
 
 SetTimezone UTC
 Postboot '/sbin/ipadm create-if xnf0'
@@ -110,21 +120,27 @@ Postboot '/sbin/ipadm create-addr -T dhcp xnf0/v4'
 Postboot 'for i in $(seq 0 9); do curl -f http://169.254.169.254/ >/dev/null 2>&1 && break; sleep 1; done'
 Postboot 'HOSTNAME=$(curl http://169.254.169.254/latest/meta-data/hostname)'
 Postboot '[ -z "$HOSTNAME" ] || (hostname $HOSTNAME && echo $HOSTNAME >/etc/nodename)'
+Postboot '/usr/sbin/svcadm restart network/service'
+Postboot 'zpool upgrade -a'
 Postboot 'exit $SMF_EXIT_OK'
+
+# Force new IPS UUID on first pkg invocation.
+sed -i '/^last_uuid/d' $ALTROOT/var/pkg/pkg5.image
 
 BE_Umount $BENAME $ALTROOT raw
 
 zpool export $RPOOL
 
-# Once zpool_patch is able to properly update the vdev labels, the following
-# code can be used to automate volume creation. For now, the pool needs
-# to be imported under Xen.
+(
+    cd $SRCDIR/..
+    gmake bin/zpool_patch
+    ./bin/zpool_patch /dev/rdsk/${DISK}s0
+)
+
+zdb -l /dev/rdsk/${DISK}s0 | sed '/features_for_read/q'
+zpool import
+
 exit 0
-
-gmake zpool_patch
-./zpool_patch /dev/rdsk/${DISK}s0
-
-zdb -e -CC $RPOOL | sed -n '/^Configuration for import/,/^$/p'
 
 echo "Creating raw disk image"
 dd if=/dev/rdsk/${DISK}p0 of=xen-$VERSION.raw bs=2048
@@ -138,8 +154,10 @@ if [ ! -d $dir ]; then
     gtar zxf /tmp/$file
 fi
 
+echo "Creating VMDK"
 ./$dir/VMDKstream.py xen-$VERSION.raw xen-$VERSION.vmdk
-rm -f xen-$VERSION.raw
+rm -rf xen-$VERSION.raw $dir
+ls -lh xen-$VERSION.vmdk
 
 # Vim hints
 # vim:ts=4:sw=4:et:fdm=marker
