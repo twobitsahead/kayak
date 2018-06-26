@@ -17,6 +17,7 @@
 #
 
 ALTROOT=/mnt
+RPOOL=`zpool list -H | nawk 'NR == 1 { print $1 }'`
 INITIALBOOT=$ALTROOT/.initialboot
 IPCALC=/kayak/bin/ipcalc
 PASSUTIL=/kayak/bin/passutil
@@ -798,14 +799,18 @@ save_user()
 	remove_config USER
 	[ -z "$user_uid" ] && return
 	(
+		# If creating a user from the installer, create a
+		# BE-independent filesystem for the home directory and do
+		# not use autofs.
+		[ -d $ALTROOT/etc/svc/profile/site ] \
+		    || mkdir -p $ALTROOT/etc/svc/profile/site
+		cp /kayak/etc/noautofs.xml $ALTROOT/etc/svc/profile/site/
 		echo '### BEGIN_USER'
-		echo "mkdir -p /export/home"
-		echo "/usr/sbin/useradd -mZ -d /export/home/$user_uid $user_uid"
-		echo "/usr/sbin/usermod -d /home/$user_uid $user_uid"
+		echo "/sbin/zfs create -o mountpoint=/home $RPOOL/home"
+		echo "chmod 0555 /home"		# as per SUNWcs
+		echo "/usr/sbin/useradd -mz -d /home/$user_uid $user_uid"
 		[ -n "$user_shell" ] \
 		    && echo "/usr/sbin/usermod -s $user_shell $user_uid"
-		echo "echo '$user_uid localhost:/export/home/&'"\
-		    ">> /etc/auto_home"
 		hash=`$PASSUTIL -H "$user_pass"`
 		echo "sed -i 's|^$user_uid:[^:]*|$user_uid:$hash|' /etc/shadow"
 		[ -n "$user_pfexec" ] && \
@@ -830,6 +835,8 @@ remove_user()
 {
 	user_uid=
 	remove_config USER
+	[ -f $ALTROOT/etc/svc/profile/site/noautofs.xml ] \
+	    && rm -f $ALTROOT/etc/svc/profile/site/noautofs.xml
 }
 
 dcfg_user()
@@ -1155,8 +1162,8 @@ cfg_sshd()
 	if [ -f $ALTROOT/etc/svc/profile/site/nossh.xml ]; then
 		rm -f $ALTROOT/etc/svc/profile/site/nossh.xml
 	else
-		[ -d  $ALTROOT/etc/svc/profile/site ] \
-		    || mkdir -p  $ALTROOT/etc/svc/profile/site
+		[ -d $ALTROOT/etc/svc/profile/site ] \
+		    || mkdir -p $ALTROOT/etc/svc/profile/site
 		cp /kayak/etc/nossh.xml $ALTROOT/etc/svc/profile/site/nossh.xml
 	fi
 }
