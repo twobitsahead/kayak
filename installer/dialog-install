@@ -357,7 +357,7 @@ prompt_hostname omniosce
 prompt_timezone
 
 ZFS_IMAGE=/.cdrom/image/*.zfs.bz2
-d_info "Installing from ZFS image $ZFS_IMAGE"
+d_info "Preparing to install..."
 
 # Because of kayak's small miniroot, just use C as the language for now.
 LANG=C
