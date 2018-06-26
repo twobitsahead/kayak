@@ -164,8 +164,10 @@ clean:
 ######################################################################
 # Install targets (see README.md)
 
+miniroot:	install-tftp
 install-tftp:	zfscreate tftp-dirs $(TFTP_FILES)
 
+zfs:		install-web
 install-web:	zfscreate server-dirs $(WEB_FILES)
 
 check-mkisofs:
