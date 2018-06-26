@@ -20,6 +20,7 @@ ALTROOT=/mnt
 INITIALBOOT=$ALTROOT/.initialboot
 IPCALC=/kayak/bin/ipcalc
 PASSUTIL=/kayak/bin/passutil
+NODENAME="`cat $ALTROOT/etc/nodename`"
 
 debug=0
 if [ "$1" = '-t' ]; then
@@ -181,11 +182,43 @@ remove_config()
 ##############################################################################
 # Networking
 
+reset_hosts()
+{
+	sed -i '/^[^#]/d' $ALTROOT/etc/inet/hosts
+	cat <<- EOM >> $ALTROOT/etc/inet/hosts
+::1		localhost $NODENAME.local $NODENAME
+127.0.0.1	localhost loghost $NODENAME.local $NODENAME
+	EOM
+}
+
+set_hosts()
+{
+	typeset ip=${net_ip%/*}
+	typeset domain="$net_domain"
+	[ -z "$domain" ] && domain=local
+
+	sed -i '/^[^#]/d' $ALTROOT/etc/inet/hosts
+	if [ "$net_ifmode" = "static" ]; then
+		cat <<- EOM >> $ALTROOT/etc/inet/hosts
+::1		localhost
+127.0.0.1	localhost loghost
+$ip	$NODENAME.$domain $NODENAME
+		EOM
+	else
+		cat <<- EOM >> $ALTROOT/etc/inet/hosts
+::1		localhost $NODENAME.$domain $NODENAME
+127.0.0.1	localhost loghost $NODENAME.$domain $NODENAME
+		EOM
+	fi
+}
+
 save_networking()
 {
 	remove_config NETWORK
+	reset_hosts
 	[ -n "$net_if" ] || return
 	[ "$net_ifmode" = "static" -a -z "$net_ip" ] && return
+	set_hosts
 	(
 		echo '### BEGIN_NETWORK'
 		echo "/sbin/ipadm create-if $net_if"

@@ -268,10 +268,11 @@ SetHostname()
   log "Setting hostname: ${1}"
   /bin/hostname "$1"
   echo "$1" > $ALTROOT/etc/nodename
-  head -n 26 $ALTROOT/etc/hosts > /tmp/hosts
-  echo "::1\t\t$1" >> /tmp/hosts
-  echo "127.0.0.1\t$1" >> /tmp/hosts
-  cat /tmp/hosts > $ALTROOT/etc/hosts
+  sed -i '/^[^#]/d' $ALTROOT/etc/inet/hosts
+  cat << EOM >> $ALTROOT/etc/inet/hosts
+::1		localhost $1.local $1
+127.0.0.1	localhost loghost $1.local $1
+EOM
 }
 
 AutoHostname() {
