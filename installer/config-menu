@@ -781,12 +781,16 @@ load_user()
 	user_pfexec=
 	user_sudo=
 	user_sudo_nopw=
+	user_shell=
 	if [ -f $INITIALBOOT ]; then
 		user_uid=`grep useradd $INITIALBOOT | awk '{print $NF}'`
 		user_sudo=`grep groupadd $INITIALBOOT | cut -d\  -f2`
+		user_shell=`grep 'usermod -s' $INITIALBOOT | cut -d\  -f3`
 		egrep -s 'Primary Admin' $INITIALBOOT && user_pfexec=y
 		egrep -s 'NOPASSWD:' $INITIALBOOT && user_sudo_nopw=y
 	fi
+
+	[ -z "$user_shell" ] && user_shell=/bin/ksh
 }
 
 save_user()
@@ -798,6 +802,8 @@ save_user()
 		echo "mkdir -p /export/home"
 		echo "/usr/sbin/useradd -mZ -d /export/home/$user_uid $user_uid"
 		echo "/usr/sbin/usermod -d /home/$user_uid $user_uid"
+		[ -n "$user_shell" ] \
+		    && echo "/usr/sbin/usermod -s $user_shell $user_uid"
 		echo "echo '$user_uid localhost:/export/home/&'"\
 		    ">> /etc/auto_home"
 		hash=`$PASSUTIL -H "$user_pass"`
@@ -847,7 +853,7 @@ dcfg_user()
 			12 50 0 \
 			"        Username :"  1 1  "$user_uid"  1 22 20 0 0 \
 			"$plab"               2 1  ""           2 22 20 0 1 \
-			" Retype Password :"  3 1  ""           3 22 20 0 1 \
+			"Re-type Password :"  3 1  ""           3 22 20 0 1 \
 		    2> $tmpf
 		stat=$?
 		if [ $stat -eq 3 ]; then
@@ -883,6 +889,22 @@ dcfg_user()
 	done
 
 	if [ -n "$user_uid" ]; then
+		dialog \
+		    --title "Select shell" \
+		    --colors \
+		    --default-item $user_shell \
+		    --hline "If unsure, leave this at the default" \
+		    --radiolist "\nSelect the command line shell for the user\n\Zn" \
+			10 50 0 \
+			ksh "Ksh93 (Korn Shell)" on \
+			bash "Bash (Bourne-again Shell)" off \
+			csh "Csh (C Shell)" off \
+			2> $tmpf
+		stat=$?
+		[ $stat -ne 0 ] && return
+		user_shell="/bin/`cat $tmpf`"
+		rm -f $tmpf
+
 		dialog \
 		    --title "Creating user" \
 		    --colors \
