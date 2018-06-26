@@ -381,6 +381,7 @@
 20506175 /lib/libmd.so.1
 20506177 /lib/libmp.so.2
 20506178 /lib/libsec.so.1
+20506178 /lib/amd64/libsec.so.1
 20506180 /usr/lib/libidmap.so.1
 20506180 /usr/lib/amd64/libidmap.so.1
 20506180 /usr/lib/libipmi.so.1
