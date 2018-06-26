@@ -322,6 +322,13 @@ step() {
         s/is_C=0/is_C=1/
     ' ${ROOTDIR}/usr/bin/tzselect
 
+    echo " --- updating root environment"
+    cat << EOM > $ROOTDIR/root/.bashrc
+export PATH=/usr/bin:/usr/sbin:/sbin
+export HOME=/root
+export PS1='kayak-$VERSION# '
+EOM
+
     chkpt cull
     ;;
 

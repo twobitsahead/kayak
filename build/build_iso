@@ -150,11 +150,6 @@ if [ -n "$REFRESH_KAYAK" ]; then
 	done
 fi
 
-cat <<EOF > $BA_ROOT/root/.bashrc
-export PATH=/usr/bin:/usr/sbin:/sbin
-export HOME=/root
-EOF
-
 # Have initialboot invoke an interactive installer.
 cat <<EOF > $BA_ROOT/.initialboot
 /kayak/bin/takeover-console /kayak/installer/kayak-menu

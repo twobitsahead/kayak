@@ -1385,6 +1385,7 @@
 20862298 /var/mail
 20862298 /var/mail/:saved
 20862301 /root/.profile
+20862301 /root/.bashrc
 20862331 /usr/share/lib/terminfo
 20862331 /usr/share/lib/terminfo/d
 20862331 /usr/share/lib/terminfo/d/dumb
