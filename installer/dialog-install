@@ -295,7 +295,7 @@ case "$PSCHEME" in
 		# The zpool slice will now be slice 1 but slice 0 may have a
 		# pool label from a previous installation. Clear it out.
 		for disk in $DISKLIST; do
-			zpool labelclear -f ${disk}s0
+			zpool labelclear -f ${disk}s0 >/dev/null 2>&1
 		done
 		;;
 	MBR)
@@ -326,7 +326,7 @@ case $PSCHEME in
     GPT+Active)
 	zpool export $RPOOL >/dev/null 2>&1
 	for disk in $DISKLIST; do
-		# Set first entry in pMBR active
+		# Set first entry in PMBR active
 		fdisk -E 0:1 ${disk}p0
 	done
 	zpool import $pool_guid
@@ -335,7 +335,7 @@ case $PSCHEME in
     GPT+Slot1)
 	zpool export $RPOOL >/dev/null 2>&1
 	for disk in $DISKLIST; do
-		# Move first pMBR entry to slot 1
+		# Move first PMBR entry to slot 1
 		fdisk -E 1:0 ${disk}p0
 	done
 	zpool import $pool_guid
@@ -357,7 +357,7 @@ prompt_hostname omniosce
 prompt_timezone
 
 ZFS_IMAGE=/.cdrom/image/*.zfs.bz2
-d_info "Installing from ZFS image $ZFS_IMAGE"
+d_info "Preparing to install..."
 
 # Because of kayak's small miniroot, just use C as the language for now.
 LANG=C

@@ -57,6 +57,7 @@
 0 /usr/bin/pfiles
 0 /usr/bin/vi
 0 /usr/bin/vim
+0 /usr/bin/edit
 0 /usr/lib/libncurses.so.*
 0 /usr/lib/amd64/libncurses.so.*
 0 /usr/lib/lddstub
@@ -79,3 +80,4 @@
 0 /usr/bin/nc
 0 /usr/sbin/smbios
 0 /usr/bin/cpuid
+0 /usr/sbin/chroot

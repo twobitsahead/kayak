@@ -27,7 +27,7 @@
 # OpenSolaris CDDL statement.
 
 # Block all signals which could terminate the menu or return to a parent
-# process
+# process, except if started with the '-t' option for testing.
 debug=0
 [ "$1" != '-t' ] && trap "" TSTP INT TERM ABRT QUIT || debug=1
 
@@ -275,7 +275,7 @@ while :; do
 	[ -n "${item.msg_str}" ] && printf "%s\n" "${item.msg_str}"
 
 	# Launch commands as a subprocess.
-	# However, launch the functions within the context 
+	# However, launch the functions within the context
 	# of the current process.
 	if [ "${item.do_subprocess}" = "true" ]; then
 		(

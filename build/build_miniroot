@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#
+# {{{ CDDL HEADER
 # This file and its contents are supplied under the terms of the
 # Common Development and Distribution License ("CDDL"), version 1.0.
 # You may only use this file in accordance with the terms of version
@@ -9,7 +9,7 @@
 # A full copy of the text of the CDDL should have accompanied this
 # source.  A copy of the CDDL is also available via the Internet at
 # http://www.illumos.org/license/CDDL.
-#
+# }}}
 
 #
 # Copyright 2017 OmniTI Computer Consulting, Inc.  All rights reserved.
@@ -193,17 +193,16 @@ if [ "$ID" != "0" ]; then
 fi
 
 chkpt() {
-    SNAP=`zfs list -H -t snapshot $BASE/root@${1} 2> /dev/null`
+    SNAP=`zfs list -H -t snapshot $BASE/root@$1 2> /dev/null`
     if [ "$DIDWORK" -ne "0" ]; then
         if [ -n "$SNAP" ]; then
-            zfs destroy $BASE/root@${1} || \
-                fail "zfs destroy ${1} failed"
+            zfs destroy $BASE/root@$1 || fail "zfs destroy $1 failed"
         fi
-        zfs snapshot $BASE/root@${1} || fail "zfs snapshot failed"
+        zfs snapshot $BASE/root@$1 || fail "zfs snapshot failed"
     fi
     if [ "$1" != "begin" ]; then
-        echo " === Proceeding to phase $1 (zfs @${1}) ==="
-        zfs rollback -r $BASE/root@${1} || fail "zfs rollback failed"
+        echo " === Proceeding to phase $1 (zfs @$1) ==="
+        zfs rollback -r $BASE/root@$1 || fail "zfs rollback failed"
     else
         echo " === Proceeding to phase $1 ==="
     fi
@@ -216,9 +215,7 @@ if [ -n "$1" ]; then
     CHKPT=$1
     chkpt $CHKPT
 fi
-if [ -z "$CHKPT" ]; then
-    CHKPT="begin"
-fi
+[ -z "$CHKPT" ] && CHKPT="begin"
 
 declare -A keep_list
 declare -a match_list
@@ -239,7 +236,7 @@ load_keep_list() {
 }
 
 step() {
-    CHKPT=""
+    CHKPT=
     case "$1" in
 
   "begin")
@@ -251,8 +248,8 @@ step() {
   "pkg")
 
     echo "Creating image of $PUBLISHER from $PKGURL"
-    $PKG image-create -F -p $PUBLISHER=$PKGURL $ROOTDIR \
-        || fail "image-create"
+    $PKG image-create -F -p $PUBLISHER=$PKGURL $ROOTDIR || fail "image-create"
+    # No need to install documentation or development files in the miniroot
     $PKG -R $ROOTDIR change-facet doc.man=false
     $PKG -R $ROOTDIR change-facet devel=false
     # If a version was requested, respect it
@@ -273,25 +270,27 @@ step() {
 
     echo "Fixing up install root"
     (
-        cp $ROOTDIR/etc/vfstab $WORKDIR/vfstab && \
-            awk '{if($3!="/"){print;}}' $WORKDIR/vfstab \
-            > $ROOTDIR/etc/vfstab && \
-        echo "/devices/ramdisk:a - / ufs - no nologging" \
-            >> $ROOTDIR/etc/vfstab
+        nawk < $ROOTDIR/etc/vfstab > $WORKDIR/vfstab '
+            $3 != "/" { print }
+            END { print "/devices/ramdisk:a - / ufs - no nologging" }
+        ' && cp $WORKDIR/vfstab $ROOTDIR/etc/vfstab
     ) || fail "vfstab / updated"
     rm $WORKDIR/vfstab
+
+    echo " --- seeding SMF database"
     cp $ROOTDIR/lib/svc/seed/global.db $ROOTDIR/etc/svc/repository.db
 
+    echo " --- allowing empty passwords"
     sed -i 's,PASSREQ=YES,PASSREQ=NO,' $ROOTDIR/etc/default/login
 
+    echo " --- pruning manifests"
     ${SVCCFG} import ${ROOTDIR}/lib/svc/manifest/milestone/sysconfig.xml
     for xml in $UNNEEDED_MANIFESTS; do
-        rm -f ${ROOTDIR}/lib/svc/manifest/$xml && \
-            echo " --- discarding $xml"
+        rm -f ${ROOTDIR}/lib/svc/manifest/$xml && echo "   - discarding $xml"
     done
     echo " --- initial manifest import"
-    # See if we can transform manifest-import to use the 'native' svccfg.
-    sed 's/\/usr\/sbin\/svccfg/\$SVCCFG/g' \
+    # Transform manifest-import to use the 'native' svccfg.
+    sed 's^/usr/sbin/svccfg^$SVCCFG^g' \
         < ${ROOTDIR}/lib/svc/method/manifest-import \
         > /tmp/manifest-import.$$
     chmod 0755 /tmp/manifest-import.$$
@@ -300,13 +299,11 @@ step() {
         -d ${ROOTDIR}/lib/svc/manifest
     /bin/rm -f /tmp/manifest-import.$$
 
+    echo " --- neutering boot-archive"
     ${SVCCFG} -s 'system/boot-archive' setprop 'start/exec=:true'
-    ${SVCCFG} -s 'system/manifest-import' setprop 'start/exec=:true'
-    # system/intrd is discarded above
-    #${SVCCFG} -s "system/intrd:default" setprop "general/enabled=false"
-    ${SVCCFG} -s "system/initial-boot" setprop "start/timeout_seconds=3600"
 
     echo " --- neutering the manifest import"
+    ${SVCCFG} -s 'system/manifest-import' setprop 'start/exec=:true'
     echo "#!/bin/ksh" > ${ROOTDIR}/lib/svc/method/manifest-import
     echo "exit 0" >> ${ROOTDIR}/lib/svc/method/manifest-import
     chmod 555 ${ROOTDIR}/lib/svc/method/manifest-import
@@ -321,6 +318,16 @@ step() {
         /^LOCALE=/s^=.*^=/bin/who^
         s/is_C=0/is_C=1/
     ' ${ROOTDIR}/usr/bin/tzselect
+
+    echo " --- increasing initial-boot timeout"
+    ${SVCCFG} -s "system/initial-boot" setprop "start/timeout_seconds=86400"
+
+    echo " --- updating root environment"
+    cat << EOM > $ROOTDIR/root/.bashrc
+export PATH=/usr/bin:/usr/sbin:/sbin
+export HOME=/root
+export PS1='kayak-$VERSION# '
+EOM
 
     chkpt cull
     ;;
@@ -338,7 +345,7 @@ step() {
             done
             rm -f "$ROOTDIR/$file"
         done < <(cd $ROOTDIR && find ./ | cut -c3-)
-        for path in $RMRF ; do
+        for path in $RMRF; do
             rm -rf ${ROOTDIR}$path && echo " --- discarding $path"
         done
     fi
@@ -418,4 +425,4 @@ while [ -n "$CHKPT" ]; do
 done
 
 # Vim hints
-# vim:ts=4:sw=4:et:
+# vim:ts=4:sw=4:et:fdm=marker
