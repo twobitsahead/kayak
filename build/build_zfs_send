@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#
+# {{{ CDDL HEADER
 # This file and its contents are supplied under the terms of the
 # Common Development and Distribution License ("CDDL"), version 1.0.
 # You may only use this file in accordance with the terms of version
@@ -9,10 +9,10 @@
 # A full copy of the text of the CDDL should have accompanied this
 # source. A copy of the CDDL is also available via the Internet at
 # http://www.illumos.org/license/CDDL.
-#
+# }}}
 
 # Copyright 2017 OmniTI Computer Consulting, Inc. All rights reserved.
-# Copyright 2017 OmniOS Community Edition (OmniOSce) Association.
+# Copyright 2018 OmniOS Community Edition (OmniOSce) Association.
 #
 
 fail() {
@@ -26,7 +26,7 @@ note() {
     echo "***"
 }
 
-# NOTE --> The URL needs to be updated with every release.    
+# NOTE --> The URL needs to be updated with every release.
 # Change "bloody" to whatever release the current branch is.
 PUBLISHER=omnios
 OMNIOS_URL=https://pkg.omniosce.org/bloody/core
@@ -58,6 +58,7 @@ MPR=`zfs get -H mountpoint $ZROOT | awk '{print $3}'`
 [ -z "$OUT" ] && OUT=$MPR/kayak_$name.zfs.bz2
 
 if zfs list $ZROOT/$name@entire > /dev/null 2>&1; then
+    note "Rolling back to last @entire"
     zfs rollback -r $ZROOT/$name@entire
     MP=`zfs get -H mountpoint $ZROOT/$name | awk '{print $3}'`
 else
@@ -110,6 +111,58 @@ if [[ $OMNIOS_URL != */bloody/* ]]; then
         --set-property signature-policy=require-signatures omnios
 fi
 
+# Pre-seed the SMF database.
+
+note "Seeding SMF database."
+
+[ -x "$PREBUILT_ILLUMOS/usr/src/cmd/svc/svccfg/svccfg-native" ] \
+    && SVCCFG="${PREBUILT_ILLUMOS}/usr/src/cmd/svc/svccfg/svccfg-native" \
+    || SVCCFG=/usr/sbin/svccfg
+SVCCFG_DTD=$MP/usr/share/lib/xml/dtd/service_bundle.dtd.1
+SVCCFG_REPOSITORY=/tmp/kayak.svc.$$
+SVCCFG_CHECKHASH=1
+export SVCCFG_DTD SVCCFG_REPOSITORY SVCCFG_CHECKHASH
+
+cp $MP/lib/svc/seed/global.db $SVCCFG_REPOSITORY
+chmod 0600 $SVCCFG_REPOSITORY
+chown root:sys $SVCCFG_REPOSITORY
+$SVCCFG import -p /dev/stdout $MP/lib/svc/manifest
+
+tf=`mktemp`
+$SVCCFG -s smf/manifest listprop | grep /md5sum | while read line; do
+    set -- `echo $line`
+    pg="`echo $1 | sed 's^/md5sum^^'`"
+    [ "$2" = opaque ] || continue
+    sum="$3"
+    path=`echo $pg | sed '
+        s^.*_lib_svc_^_lib_svc_^
+        s^_xml$^.xml^
+        s^_^/^g
+    '`
+    newpg=`echo $path | sed '
+        s/\.xml$/_xml/
+        s^/^_^g
+        s/^_*//g
+    '`
+
+    cat << EOM >> $tf
+delprop $pg
+addpg $newpg framework
+setprop $newpg/manifestfile = astring: $path
+setprop $newpg/md5sum = opaque: $sum
+
+EOM
+done
+
+$SVCCFG -s smf/manifest -f $tf
+rm -f $tf
+
+cp -p $SVCCFG_REPOSITORY $MP/etc/svc/repository.db
+rm -f $SVCCFG_REPOSITORY
+unset SVCCFG_DTD SVCCFG_REPOSITORY SVCCFG_CHECKHASH
+
+############################################################################
+
 note "Creating compressed stream"
 zfs snapshot $ZROOT/$name@kayak || fail "snap"
 zfs send $ZROOT/$name@kayak | pv | $BZIP2 -9 > $OUT || fail "send/compress"
@@ -119,4 +172,4 @@ if [ "$CLEANUP" -eq "1" ]; then
 fi
 
 # Vim hints
-# vim:ts=4:sw=4:et:
+# vim:ts=4:sw=4:et:fdm=marker

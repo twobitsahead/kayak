@@ -179,15 +179,6 @@ BE_SetUUID() {
     zfs set org.opensolaris.libbe:policy=static $_rpool/ROOT/$_bename
 }
 
-BE_SeedSMF() {
-    local _root=${1:?root}
-
-    slog "Seeding SMF database"
-    cp $_root/lib/svc/seed/global.db $_root/etc/svc/repository.db
-    chmod 0600 $_root/etc/svc/repository.db
-    chown root:sys $_root/etc/svc/repository.db
-}
-
 BE_LinkMsglog() {
     local _root=${1:?root}
 
@@ -218,7 +209,6 @@ BuildBE() {
     BE_Receive_Image "$GRAB" "$DECOMP" $RPOOL omnios $MEDIA
     BE_Mount $RPOOL omnios /mnt
     BE_SetUUID $RPOOL omnios /mnt
-    BE_SeedSMF /mnt
     BE_LinkMsglog /mnt
     MakeSwapDump
     zfs destroy $RPOOL/ROOT/omnios@kayak
