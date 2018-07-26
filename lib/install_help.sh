@@ -189,7 +189,10 @@ BE_LinkMsglog() {
 
 BuildBE() {
     RPOOL=${1:-rpool}
-    if [ -z "$2" ]; then
+    local MEDIA="$2"
+    local _bename=${3:-omnios}
+
+    if [ -z "$MEDIA" ]; then
         BOOTSRVA=`/sbin/dhcpinfo BootSrvA`
         MEDIA=`getvar install_media`
         MEDIA=`echo $MEDIA | sed -e "s%//\:%//$BOOTSRVA\:%g;"`
@@ -197,21 +200,17 @@ BuildBE() {
         DECOMP="bzip2 -dc"
         GRAB="curl -s"
     else
-        # ASSUME $2 is a file path.  TODO: Parse the URL...
-        MEDIA=$2
-        # TODO: make switch statement based on $MEDIA's extension.
-        # e.g. "bz2" ==> "bzip -dc", "7z" ==> 
         DECOMP="bzip2 -dc"
         GRAB=cat
     fi
 
     BE_Create_Root $RPOOL
-    BE_Receive_Image "$GRAB" "$DECOMP" $RPOOL omnios $MEDIA
-    BE_Mount $RPOOL omnios /mnt
-    BE_SetUUID $RPOOL omnios /mnt
+    BE_Receive_Image "$GRAB" "$DECOMP" $RPOOL $_bename $MEDIA
+    BE_Mount $RPOOL $_bename /mnt
+    BE_SetUUID $RPOOL $_bename /mnt
     BE_LinkMsglog /mnt
     MakeSwapDump
-    zfs destroy $RPOOL/ROOT/omnios@kayak
+    zfs destroy $RPOOL/ROOT/$_bename@kayak
 }
 
 FetchConfig(){
@@ -245,7 +244,7 @@ MakeBootable(){
   # Must do beadm activate first on the off chance we're bootstrapping from
   # GRUB.
   slog "Activating BE"
-  beadm activate omnios || return 1
+  beadm activate $_bename 2>/dev/null|| return 1
   slog "Installing bootloader"
   bootadm install-bootloader -f -P $_rpool || return 1
   slog "Updating boot archive"

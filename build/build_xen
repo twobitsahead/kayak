@@ -45,7 +45,7 @@ lVERSION="`head -1 /etc/release | awk '{print $3}' | sed 's/[a-z]//g'`"
 : ${PVGRUB:=pv-grub.gz.d3950d8}
 
 RPOOL=syspool
-BENAME=omnios
+BENAME=omnios-r$VERSION
 ALTROOT=/mnt
 UNIX=/platform/i86xpv/kernel/amd64/unix
 

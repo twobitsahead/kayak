@@ -373,9 +373,13 @@ panic()
 	exit 0
 }
 
-BuildBE $RPOOL $ZFS_IMAGE
+bename=omnios
+ver=`head -1 /etc/release | awk '{print $3}'`
+[ -n "$ver" ] && bename+="-$ver"
+
+BuildBE $RPOOL $ZFS_IMAGE $bename
 ApplyChanges $HOSTNAME $TZ $LANG $keyboard_layout || panic
-MakeBootable $RPOOL || panic
+MakeBootable $RPOOL $bename || panic
 # Disable SSH by default for interactive installations
 [ -f /kayak/etc/nossh.xml ] && \
     cp /kayak/etc/nossh.xml $ALTROOT/etc/svc/profile/site/
@@ -392,7 +396,7 @@ if [ -n "$fixdb" -a -f $efifixdb ]; then
 	) >> $efifixdb
 fi
 
-if beadm list -H omnios 2>/dev/null; then
+if beadm list -H $bename 2>/dev/null; then
 	dialog \
 		--colors \
 		--title "Installation Complete" \
