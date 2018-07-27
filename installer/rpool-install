@@ -43,15 +43,19 @@ prompt_timezone
 # Because of kayak's small miniroot, just use C as the language for now.
 LANG=C
 
-BuildBE $RPOOL $ZFS_IMAGE
+bename=omnios
+ver=`head -1 /etc/release | awk '{print $3}'`
+[ -n "$ver" ] && bename+="-$ver"
+
+BuildBE $RPOOL $ZFS_IMAGE $bename
 ApplyChanges $HOSTNAME $TZ $LANG $keyboard_layout
-MakeBootable $RPOOL
+MakeBootable $RPOOL $bename
 # Disable SSH by default for interactive installations
 [ -f /kayak/etc/nossh.xml ] && \
     cp /kayak/etc/nossh.xml $ALTROOT/etc/svc/profile/site/
 zpool list -v $RPOOL
 echo ""
-beadm list
+beadm list $bename
 cat << EOM
 
 $RPOOL now has a working and mounted boot environment, per above.
