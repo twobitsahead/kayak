@@ -135,7 +135,7 @@ d_detecting()
 # Preinstall menu
 menu_items=( \
     (menu_str="Find disks, create rpool, and install OmniOSce"		\
-	cmds=("/kayak/instaler/find-and-install $klang")		\
+	cmds=("/kayak/installer/find-and-install $klang")		\
 	dcmds=("d_detecting x", "/kayak/installer/dialog-install $klang")\
 	default="true"							\
 	do_subprocess="true")						\
