@@ -37,6 +37,7 @@
 0 /boot/pmbr
 0 /boot/pxeboot
 0 /boot/zfsloader
+0 /boot/loader
 0 /boot/splashimage.xpm
 0 /boot/acpi
 0 /boot/acpi/tables
