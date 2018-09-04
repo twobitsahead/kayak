@@ -213,6 +213,7 @@
 20502371 /lib/svc/bin/svc.startd
 20502383 /lib/fm
 20502383 /lib/libumem.so.1
+20502383 /lib/amd64/libumem.so.1
 20502391 /lib/libuutil.so.1
 20502396 /lib/libscf.so.1
 20502412 /lib/libkstat.so.1

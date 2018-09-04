@@ -132,9 +132,9 @@ SYSTEM="system/boot/real-mode system/boot/wanboot/internal
     system/library/storage/scsi-plugins
     system/library system/network
     system/prerequisite/gnu system/storage/luxadm
-    system/storage/fibre-channel/port-utility"
+    system/storage/fibre-channel/port-utility developer/debug/mdb"
 
-DEBUG_PKGS="developer/debug/mdb system/dtrace developer/dtrace"
+DEBUG_PKGS="system/dtrace developer/dtrace"
 
 DRIVERS="driver/audio driver/crypto/dca driver/crypto/tpm driver/firewire
     driver/graphics/agpgart driver/graphics/atiatom driver/graphics/drm
