@@ -192,9 +192,16 @@ COMPRESSION=YES
 compression_label='Compression'
 compression_help="`d_centre 'Choose whether to enable LZ4 compression on the pool (recommended).'`"
 
-FORCE4K=NO
-force4k_label='Force 4K Sectors'
-force4k_help="`d_centre 'Configure pool for 4K native sectors (ashift=12).'`"
+SFORCES=(No 4K 8K)
+SFORCES_HELP=(
+    'Use largest block size advertised by disks.'
+    'Force at least 4K sector size.'
+    'Force at least 8K sector size.'
+)
+SFORCE="${SFORCES[0]}"
+SFORCE_HELP="${SFORCES_HELP[0]}"
+sforce_label='Force sector size'
+sforce_help="`d_centre "$SFORCE_HELP"`"
 
 cycle()
 {
@@ -226,7 +233,7 @@ while :; do
 	  "$rpool_label"	"$RPOOL"	"$rpool_help" \
 	  "$pscheme_label"	"$PSCHEME" 	"$pscheme_help" \
 	  "$compression_label"	"$COMPRESSION"	"$compression_help" \
-	  "$force4k_label"	"$FORCE4K"	"$force4k_help" \
+	  "$sforce_label"	"$SFORCE"	"$sforce_help" \
 	  2> $tmpf
 	stat=$?
 
@@ -259,7 +266,11 @@ while :; do
 		pscheme_help="`d_centre "$PSCHEME_HELP"`"
 		;;
 	    "$compression_label") COMPRESSION="`toggle "$COMPRESSION"`" ;;
-	    "$force4k_label")     FORCE4K="`toggle "$FORCE4K"`" ;;
+	    "$sforce_label")
+		SFORCE="`cycle SFORCES[@] "$SFORCE"`"
+		SFORCE_HELP="`cycle SFORCES_HELP[@] "$SFORCE_HELP"`"
+		sforce_help="`d_centre "$SFORCE_HELP"`"
+		;;
 	esac
 done
 
@@ -268,19 +279,14 @@ done
 
 d_info "Creating $RPOOL..."
 
-sed -i '/sd-config-list/d' /kernel/drv/sd.conf
-if [ "$FORCE4K" = "YES" ]; then
-	function join_by { local IFS="$1"; shift; echo "$*"; }
-	kdisks=()
-	for disk in $DISKLIST; do
-		inq="`diskinfo -Hp \
-		    | nawk -v d=$disk -F"\t" '$2 == d { print $3,$4}'`"
-		[ -n "$inq" ] || continue
-		kdisks+=(" $inq " "physical-block-size:4096")
-	done
-	echo "sd-config-list = \"`join_by ',' "${kdisks[@]}"`\";" \
-	    | sed 's/,/","/g' >> /kernel/drv/sd.conf
-	update_drv -f sd
+case $SFORCE in
+	4K)	min_ashift=c ;;
+	8K)	min_ashift=d ;;
+	*)	min_ashift=0 ;;
+esac
+
+if [ $min_ashift != 0 ]; then
+	mdb -kwe "zfs_ashift_min/z$min_ashift" >/dev/null 2>&1
 fi
 
 NO_COMPRESSION=
