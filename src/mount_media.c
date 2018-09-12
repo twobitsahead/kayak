@@ -50,6 +50,7 @@
 #define	UFS_OPTS	"ro,nologging,noatime"
 
 static boolean_t mounted = B_FALSE;
+static boolean_t verbose = B_FALSE;
 
 static int
 check_volsetid(const char *volid)
@@ -64,9 +65,13 @@ check_volsetid(const char *volid)
 			/* Strip newline if present */
 			if ((cp = strchr(buf, '\n')) != NULL)
 				*cp = '\0';
+			if (verbose)
+				printf("        [%s]\n", buf);
 			ret = strcmp(volid, buf);
 		}
 		(void) fclose(fp);
+	} else if (verbose) {
+		printf("/.cdrom/.volsetid: %s\n", strerror(errno));
 	}
 	return (ret);
 }
@@ -79,18 +84,28 @@ mount_image(const char *path, const char *volid)
 
 	/* First try mounting it as hsfs; if that fails, try ufs */
 	strcpy(opts, HSFS_OPTS);
+	if (verbose)
+		printf("%s: mount HSFS\n", path);
 	if (mount(path, "/.cdrom", MS_RDONLY | MS_OPTIONSTR, "hsfs",
 	    NULL, 0, opts, sizeof (opts)) != 0) {
 		strcpy(opts, UFS_OPTS);
+		if (verbose)
+			printf("%s: mount UFS\n", path);
 		if (mount(path, "/.cdrom", MS_OPTIONSTR, "ufs", NULL, 0,
 		    opts, sizeof (opts)) != 0)
 			return (ret);
 	}
 
+	if (verbose)
+		printf("Mounted %s\n", path);
+
 	/* Mounted, see if it's the image we're looking for, unmount if not */
 	ret = check_volsetid(volid);
-	if (ret != 0)
+	if (ret != 0) {
+		if (verbose)
+			printf("%s: wrong ID, unmounting\n", path);
 		(void) umount("/.cdrom");
+	}
 	return (ret);
 }
 
@@ -162,8 +177,13 @@ int main(int argc, char **argv)
 {
 	di_node_t root_node;
 
+	if (argc > 1 && !strcmp(argv[1], "-v")) {
+		verbose = B_TRUE;
+		argc--, argv++;
+	}
+
 	if (argc == 1) {
-		fprintf(stderr, "Usage: %s <volsetid>\n", argv[0]);
+		fprintf(stderr, "Usage: mount_media [-v] <volsetid>\n");
 		return (1);
 	}
 
