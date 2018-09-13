@@ -39,10 +39,11 @@ SRCDIR=`dirname $0`
 VMODE=hvm
 USEGRUB=0
 
-lVERSION="`head -1 /etc/release | awk '{print $3}' | sed 's/[a-z]//g'`"
-: ${VERSION:=$lVERSION}
+[ -z "$VERSION" ] && VERSION="`head -1 /etc/release | awk '{print $3}'`"
 : ${ZFSSEND:=/kayak_image/kayak_r$VERSION.zfs.bz2}
 : ${PVGRUB:=pv-grub.gz.d3950d8}
+
+lVERSION="`echo $VERSION | sed 's/[a-z]//g'`"
 
 RPOOL=syspool
 BENAME=omnios-r$VERSION
