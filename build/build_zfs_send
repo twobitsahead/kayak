@@ -67,7 +67,7 @@ else
     note "Creating IPS image"
     pkg image-create -F -p $PUBLISHER=$PKGURL $MP || fail "image-create"
     entire_version=${name//[a-z]/}
-    entire_fmri="entire@11-0.$entire_version"
+    entire_fmri="entire@11-$entire_version"
     note "Installing $entire_fmri"
     pkg -R $MP install $entire_fmri || fail "install entire"
     # Install the optional packages from entire too
