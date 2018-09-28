@@ -255,8 +255,8 @@ step() {
     $PKG -R $ROOTDIR change-facet devel=false
     # If a version was requested, respect it
     if [ -n "$BUILDNUM" ]; then
-        $PKG -R $ROOTDIR install illumos-gate@11-0.$BUILDNUM \
-            omnios-userland@11-0.$BUILDNUM \
+        $PKG -R $ROOTDIR install illumos-gate@11-$BUILDNUM \
+            omnios-userland@11-$BUILDNUM \
             || fail "version constraint prep"
     fi
     $PKG -R $ROOTDIR install $PKGS || fail "install"
