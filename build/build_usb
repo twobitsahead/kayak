@@ -162,7 +162,7 @@ prtvtoc -s $RLOFI_USB
 stage "Formatting UFS slice $ufs"
 
 UFS_SLICE=${RLOFI_USB/p0/s$ufs}
-yes | newfs $UFS_SLICE
+yes | newfs -m 0 $UFS_SLICE
 mkdir $USB_ROOT
 mount -o nologging ${UFS_SLICE/rdsk/dsk} $USB_ROOT
 
