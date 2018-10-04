@@ -97,7 +97,7 @@ mount $LOFI_MINIROOT $MINIROOT_ROOT
 stage "Creating UFS image for boot archive"
 mkfile $BA_SIZE $BA_FILE
 LOFI_BA=`lofiadm -a $BA_FILE`
-yes | newfs $LOFI_BA
+yes | newfs -m 0 $LOFI_BA
 mkdir $BA_ROOT
 mount $LOFI_BA $BA_ROOT
 
