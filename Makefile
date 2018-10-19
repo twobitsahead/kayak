@@ -52,22 +52,22 @@ $(DESTDIR)/tftpboot/boot/grub/menu.lst:	sample/menu.lst.000000000000
 
 # Files from proto
 
-$(DESTDIR)/tftpboot/pxegrub:	$(BUILDSEND_MP)/root/boot/grub/pxegrub
+$(DESTDIR)/tftpboot/pxegrub:	$(BUILDSEND_MP)/miniroot/boot/grub/pxegrub
 	cp -p $< $@
 
-$(DESTDIR)/tftpboot/pxeboot:	$(BUILDSEND_MP)/root/boot/pxeboot
+$(DESTDIR)/tftpboot/pxeboot:	$(BUILDSEND_MP)/miniroot/boot/pxeboot
 	cp -p $< $@
 
-$(DESTDIR)/tftpboot/boot/loader.rc:	$(BUILDSEND_MP)/root/boot/loader.rc
+$(DESTDIR)/tftpboot/boot/loader.rc:	$(BUILDSEND_MP)/miniroot/boot/loader.rc
 	cp -p $< $@
 
-$(DESTDIR)/tftpboot/boot/forth:	$(BUILDSEND_MP)/root/boot/forth
+$(DESTDIR)/tftpboot/boot/forth:	$(BUILDSEND_MP)/miniroot/boot/forth
 	cp -rp $< $@
 
-$(DESTDIR)/tftpboot/boot/defaults:	$(BUILDSEND_MP)/root/boot/defaults
+$(DESTDIR)/tftpboot/boot/defaults:	$(BUILDSEND_MP)/miniroot/boot/defaults
 	cp -rp $< $@
 
-$(DESTDIR)/tftpboot/boot/platform/i86pc/kernel/amd64/unix:	$(BUILDSEND_MP)/root/platform/i86pc/kernel/amd64/unix
+$(DESTDIR)/tftpboot/boot/platform/i86pc/kernel/amd64/unix:	$(BUILDSEND_MP)/miniroot/platform/i86pc/kernel/amd64/unix
 	cp -p $< $@
 
 $(DESTDIR)/var/kayak/kayak/$(VERSION).zfs.bz2:	$(BUILDSEND_MP)/kayak_$(VERSION).zfs.bz2
@@ -87,7 +87,7 @@ $(BUILDSEND_MP)/kayak_$(VERSION).zfs.bz2:	build/build_zfs_send
 	./$< -d $(BUILDSEND) $(VERSION)
 
 $(BUILDSEND_MP)/miniroot.gz:	build/build_miniroot
-	if test -n "`zfs list -H -t snapshot $(BUILDSEND)/root@fixup 2>/dev/null`"; then \
+	if test -n "`zfs list -H -t snapshot $(BUILDSEND)/miniroot@fixup 2>/dev/null`"; then \
 	  VERSION=$(VERSION) DEBUG=$(DEBUG) ./$< $(BUILDSEND) fixup ; \
 	else \
 	  VERSION=$(VERSION) DEBUG=$(DEBUG) ./$< $(BUILDSEND) begin ; \

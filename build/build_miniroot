@@ -42,10 +42,11 @@ else
     BASEDIR=`zfs get -o value -H mountpoint $BASE`
 fi
 MKFILEDIR=/tmp
+DATASET=miniroot
 WORKDIR=$BASEDIR
-ROOTDIR=$WORKDIR/root
+ROOTDIR=$WORKDIR/$DATASET
 if [ ! -d "$ROOTDIR" ]; then
-    zfs create -o compression=off $BASE/root || fail "zfs create failed"
+    zfs create -o compression=off $BASE/$DATASET || fail "zfs create failed"
 fi
 SVCCFG_DTD=${ROOTDIR}/usr/share/lib/xml/dtd/service_bundle.dtd.1
 SVCCFG_REPOSITORY=${ROOTDIR}/etc/svc/repository.db
@@ -194,16 +195,16 @@ if [ "$ID" != "0" ]; then
 fi
 
 chkpt() {
-    SNAP=`zfs list -H -t snapshot $BASE/root@$1 2> /dev/null`
+    SNAP=`zfs list -H -t snapshot $BASE/$DATASET@$1 2> /dev/null`
     if [ "$DIDWORK" -ne "0" ]; then
         if [ -n "$SNAP" ]; then
-            zfs destroy $BASE/root@$1 || fail "zfs destroy $1 failed"
+            zfs destroy $BASE/$DATASET@$1 || fail "zfs destroy $1 failed"
         fi
-        zfs snapshot $BASE/root@$1 || fail "zfs snapshot failed"
+        zfs snapshot $BASE/$DATASET@$1 || fail "zfs snapshot failed"
     fi
     if [ "$1" != "begin" ]; then
         echo " === Proceeding to phase $1 (zfs @$1) ==="
-        zfs rollback -r $BASE/root@$1 || fail "zfs rollback failed"
+        zfs rollback -r $BASE/$DATASET@$1 || fail "zfs rollback failed"
     else
         echo " === Proceeding to phase $1 ==="
     fi
@@ -241,8 +242,8 @@ step() {
     case "$1" in
 
   "begin")
-    zfs destroy -r $BASE/root 2> /dev/null
-    zfs create -o compression=off $BASE/root || fail "zfs create failed"
+    zfs destroy -r $BASE/$DATASET 2> /dev/null
+    zfs create -o compression=off $BASE/$DATASET || fail "zfs create failed"
     chkpt pkg
     ;;
 
@@ -356,7 +357,7 @@ EOM
 
   "mkfs")
     size=`/usr/bin/du -ks ${ROOTDIR} | /usr/bin/nawk '{print $1+10240}'`
-    echo " --- making image of size $size"
+    echo " --- making image of size ${size}k"
     /usr/sbin/mkfile ${size}k $MKFILEDIR/miniroot || fail "mkfile"
     lofidev=`/usr/sbin/lofiadm -a $MKFILEDIR/miniroot`
     rlofidev=`echo $lofidev |sed s/lofi/rlofi/`
