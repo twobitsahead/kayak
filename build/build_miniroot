@@ -53,7 +53,7 @@ if [ -f "$PREBUILT_ILLUMOS/usr/src/cmd/svc/svccfg/svccfg-native" ]; then
     SVCCFG=${PREBUILT_ILLUMOS}/usr/src/cmd/svc/svccfg/svccfg-native
 else
     echo "WARNING -- Not using 'native' svccfg, may hang on build."
-    echo "       We recommend a pre-built illumos's svccfg-native."
+    echo "       We recommend a pre-built illumos' svccfg-native."
     echo "       Set PREBUILT_ILLUMOS in your environment to point"
     echo "       to a built illumos-omnios repository."
     SVCCFG=/usr/sbin/svccfg
@@ -270,6 +270,11 @@ step() {
   "fixup")
 
     echo "Fixing up install root"
+
+    echo " --- updating"
+    $PKG -R $ROOTDIR update
+
+    echo " --- updating /etv/vfstab"
     (
         nawk < $ROOTDIR/etc/vfstab > $WORKDIR/vfstab '
             $3 != "/" { print }
@@ -351,6 +356,18 @@ EOM
         done
     fi
 
+    chkpt strip
+    ;;
+
+  "strip")
+    if [ -z "$NOSTRIP" ]; then
+        while read bin; do
+            file $ROOTDIR/$bin | egrep -s 'ELF.*stripped' || continue
+            echo " --- stripping $bin"
+            strip $ROOTDIR/$bin
+        done < <(cd $ROOTDIR && find ./ -type f | cut -c3-)
+    fi
+
     chkpt mkfs
     ;;
 
@@ -403,7 +420,7 @@ EOM
     ;;
 
   "compress")
-    $GZIP_CMD -c -f $MKFILEDIR/miniroot > $WORKDIR/miniroot.gz
+    $GZIP_CMD -9c -f $MKFILEDIR/miniroot > $WORKDIR/miniroot.gz
     rm -f $MKFILEDIR/miniroot
     chmod 644 $WORKDIR/miniroot.gz
     echo " === Finished ==="
