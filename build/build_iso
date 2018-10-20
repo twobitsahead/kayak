@@ -47,7 +47,7 @@ stage()
 # Files prepared by other parts of the kayak build process
 
 KAYAK_MINIROOT=$BUILDSEND_MP/miniroot.gz
-ZFS_IMG=$BUILDSEND_MP/kayak_${VERSION}.zfs.bz2
+ZFS_IMG=$BUILDSEND_MP/kayak_${VERSION}.zfs.xz
 
 [ ! -f $KAYAK_MINIROOT -o ! -f $ZFS_IMG ] && echo "Missing files." && exit 1
 

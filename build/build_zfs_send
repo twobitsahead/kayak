@@ -31,7 +31,6 @@ note() {
 PUBLISHER=omnios
 OMNIOS_URL=https://pkg.omniosce.org/bloody/core
 : ${PKGURL:=$OMNIOS_URL}
-: ${BZIP2:=bzip2}
 ZROOT=rpool
 OUT=
 CLEANUP=0
@@ -55,7 +54,7 @@ if [ -z "$name" ]; then
 fi
 
 MPR=`zfs get -H mountpoint $ZROOT | awk '{print $3}'`
-[ -z "$OUT" ] && OUT=$MPR/kayak_$name.zfs.bz2
+[ -z "$OUT" ] && OUT=$MPR/kayak_$name.zfs.xz
 
 if zfs list $ZROOT/$name@entire > /dev/null 2>&1; then
     note "Rolling back to last @entire"
@@ -165,7 +164,7 @@ unset SVCCFG_DTD SVCCFG_REPOSITORY SVCCFG_CHECKHASH
 
 note "Creating compressed stream"
 zfs snapshot $ZROOT/$name@kayak || fail "snap"
-zfs send $ZROOT/$name@kayak | pv | $BZIP2 -9 > $OUT || fail "send/compress"
+zfs send $ZROOT/$name@kayak | pv | xz -9c > $OUT || fail "send/compress"
 if [ "$CLEANUP" -eq "1" ]; then
     zfs destroy $ZROOT/$name@kayak || fail "could not remove snapshot"
     zfs destroy $ZROOT/$name || fail "could not remove zfs filesystem"

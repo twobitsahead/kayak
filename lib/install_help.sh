@@ -197,12 +197,16 @@ BuildBE() {
         MEDIA=`getvar install_media`
         MEDIA=`echo $MEDIA | sed -e "s%//\:%//$BOOTSRVA\:%g;"`
         MEDIA=`echo $MEDIA | sed -e "s%///%//$BOOTSRVA/%g;"`
-        DECOMP="bzip2 -dc"
         GRAB="curl -s"
     else
-        DECOMP="bzip2 -dc"
         GRAB=cat
     fi
+    DECOMP="bzip2 -dc"      # Old default
+    case $MEDIA in
+        *.xz)       DECOMP="xz -dc" ;;
+        *.bz2)      DECOMP="bzip2 -dc" ;;
+        *.gz)       DECOMP="gzip -dc" ;;
+    esac
 
     BE_Create_Root $RPOOL
     BE_Receive_Image "$GRAB" "$DECOMP" $RPOOL $_bename $MEDIA
