@@ -60,7 +60,7 @@ class Root:
         for dirname, dirnames, filenames in os.walk(
           os.path.join(options.basedir, 'kayak')):
             for filename in filenames:
-                imagename = re.search("^(.+)\.zfs\.bz2", filename)
+                imagename = re.search("^(.+)\.zfs\.(?:xz|bz2|gz)", filename)
                 if imagename == None: continue
                 html += ('<li><a href="kayak/' + filename + '">' +
                     imagename.group(1) + '</a></li>\n')

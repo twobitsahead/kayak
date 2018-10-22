@@ -42,7 +42,7 @@ TFTP_FILES=\
 	$(DESTDIR)/tftpboot/pxeboot \
 	$(DESTDIR)/tftpboot/pxegrub
 
-WEB_FILES=$(DESTDIR)/var/kayak/kayak/$(VERSION).zfs.bz2
+WEB_FILES=$(DESTDIR)/var/kayak/kayak/$(VERSION).zfs.xz
 
 $(DESTDIR)/tftpboot/boot/loader.conf.local:	etc/loader.conf.local
 	sed -e 's/@VERSION@/$(VERSION)/' $< > $@
@@ -70,7 +70,7 @@ $(DESTDIR)/tftpboot/boot/defaults:	$(BUILDSEND_MP)/miniroot/boot/defaults
 $(DESTDIR)/tftpboot/boot/platform/i86pc/kernel/amd64/unix:	$(BUILDSEND_MP)/miniroot/platform/i86pc/kernel/amd64/unix
 	cp -p $< $@
 
-$(DESTDIR)/var/kayak/kayak/$(VERSION).zfs.bz2:	$(BUILDSEND_MP)/kayak_$(VERSION).zfs.bz2
+$(DESTDIR)/var/kayak/kayak/$(VERSION).zfs.xz:	$(BUILDSEND_MP)/kayak_$(VERSION).zfs.xz
 	cp -p $< $@
 
 $(DESTDIR)/tftpboot/kayak/miniroot.gz:	$(BUILDSEND_MP)/miniroot.gz
@@ -82,7 +82,7 @@ $(DESTDIR)/tftpboot/kayak/miniroot.gz.hash:	$(BUILDSEND_MP)/miniroot.gz
 ######################################################################
 # More involved targets - creation of miniroot.gz & zfs image
 
-$(BUILDSEND_MP)/kayak_$(VERSION).zfs.bz2:	build/build_zfs_send
+$(BUILDSEND_MP)/kayak_$(VERSION).zfs.xz:	build/build_zfs_send
 	@test -d "$(BUILDSEND_MP)" || (echo "$(BUILDSEND) missing" && false)
 	./$< -d $(BUILDSEND) $(VERSION)
 

@@ -39,8 +39,9 @@ SRCDIR=`dirname $0`
 VMODE=hvm
 USEGRUB=0
 
-[ -z "$VERSION" ] && VERSION="`head -1 /etc/release | awk '{print $3}'`"
-: ${ZFSSEND:=/kayak_image/kayak_r$VERSION.zfs.bz2}
+[ -z "$VERSION" ] && \
+    VERSION="`nawk 'NR == 1 {sub(/^r/,"",$3);print $3}' /etc/release`"
+: ${ZFSSEND:=/kayak_image/kayak_r$VERSION.zfs.xz}
 : ${PVGRUB:=pv-grub.gz.d3950d8}
 
 lVERSION="`echo $VERSION | sed 's/[a-z]//g'`"
@@ -50,7 +51,7 @@ BENAME=omnios-r$VERSION
 ALTROOT=/mnt
 UNIX=/platform/i86xpv/kernel/amd64/unix
 
-[ -f "$ZFSSEND" ] || ZFSSEND="omniosce-r$VERSION.zfs.bz2"
+[ -f "$ZFSSEND" ] || ZFSSEND="omniosce-r$VERSION.zfs.xz"
 [ ! -f $ZFSSEND ] && echo "ZFS Image ($ZFSSEND) missing" && exit 
 
 # Find the disk
@@ -95,7 +96,7 @@ else
 fi
 
 BE_Create_Root $RPOOL
-BE_Receive_Image cat "bzip2 -dc" $RPOOL $BENAME $ZFSSEND
+BE_Receive_Image cat "xz -dc" $RPOOL $BENAME $ZFSSEND
 BE_Mount $RPOOL $BENAME $ALTROOT raw
 BE_SetUUID $RPOOL $BENAME $ALTROOT
 BE_SeedSMF $ALTROOT

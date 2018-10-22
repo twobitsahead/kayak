@@ -17,7 +17,7 @@
 #
 
 RPOOL=${1:-rpool}
-ZFS_IMAGE=/.cdrom/image/*.zfs.bz2
+ZFS_IMAGE=/.cdrom/image/*.zfs.xz
 keyboard_layout=${2:-US-English}
 tmpf=`mktemp`
 
