@@ -55,7 +55,6 @@ Documented functions for use in kayak configuration files are emboldened.
   * BE_Create_Root
   * BE_Receive_Image
   * BE_Mount
-  * BE_SeedSMF
   * BE_LinkMsglog
   * MakeSwapDump
   * zfs destroy kayak snapshot
@@ -76,39 +75,15 @@ Documented functions for use in kayak configuration files are emboldened.
 * **Postboot**
 * Reboot
 * RunInstall
-  FetchConfig
-  Postboot
-  ApplyChanges
-  MakeBootable
+* FetchConfig
+* Postboot
+* ApplyChanges
+* MakeBootable
 
-# xen_help.sh
+# hvm_help.sh
 
 * log
-* SetupPart
-* SetupPVGrub
-* SetupZPool
-* ZFSRootDS
-  * set compression=on
-  * zfs create ROOT
-  * Does not set canmount=off
-  * zfs set mountpoint=legacy ROOT
-* ZFSRecvBE
-  * Receive image
-  * set canmount=noauto
-  * set mountpoint=legacy
-  * destroy kayak snapshot
-* MountBE
-* UmountBE
-* PrepareBE
-  * Generate UUID
-  * activate
-  * Initialise SMF seed
-  * devfsadm -r
-  * Link msglog
-  * Grub stuff
-* Xen_Customise
-  * Enable root ssh lgin
-  * NP root in /etc/shadow
-  * Enable DNS
-  * install rsync ec2-credential ec2-api-tools
+* HVM_Create_Diskvol
+* HVM_Destroy_Diskvol
+* HVM_Build_Devtree
 

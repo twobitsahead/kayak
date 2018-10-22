@@ -1525,7 +1525,9 @@ typedef struct spa {
 	int		spa_inited;	/* initialized */
 } spa_t;
 
+/*
 static void decode_embedded_bp_compressed(const blkptr_t *, void *);
+*/
 
 #define ZIO_SET_CHECKSUM(zcp, w0, w1, w2, w3)   \
 {                                               \
