@@ -51,7 +51,8 @@ label_offset(uint64_t size, int label)
 }
 
 void
-update_vdev_labels(int fd, uint64_t size)
+update_vdev_labels(int fd, uint64_t size, char *new_path, char *new_phys,
+    char *new_devid)
 {
 	vdev_label_t vl;
 	nvlist_t *config;
@@ -60,23 +61,25 @@ update_vdev_labels(int fd, uint64_t size)
 	zio_cksum_t ck;
 	char *buf, *s;
 	size_t buflen;
-	int label, i;
-	uint64_t ashift, txg, offset;
+	int label;
+	vdev_t *v;
+	uint64_t ashift, txg;
 
 	/*
 	 * Read the first VDEV label from the disk...
 	 * There is no support here for reading a different label if the
-	 * first is corrupt.
+	 * first is corrupt. Since the pool should have been exported, it is
+	 * expected that all labels are consistent.
 	 *	typedef struct vdev_label {
-	 *	char		vl_pad1[VDEV_PAD_SIZE];
-	 *	char		vl_pad2[VDEV_PAD_SIZE];
-	 *	vdev_phys_t	vl_vdev_phys;
-	 *	char		vl_uberblock[VDEV_UBERBLOCK_RING];
+	 *		char		vl_pad1[VDEV_PAD_SIZE];
+	 *		char		vl_pad2[VDEV_PAD_SIZE];
+	 *		vdev_phys_t	vl_vdev_phys;
+	 *		char		vl_uberblock[VDEV_UBERBLOCK_RING];
 	 *	} vdev_label_t;
 	 */
 	assert(pread64(fd, &vl, sizeof(vdev_label_t), 0)
 	    == sizeof(vdev_label_t));
-	printf("Loaded label from disk\n");
+	printf("Loaded label from disk, %ld\n", sizeof(vdev_label_t));
 
 	/*
 	 * typedef struct vdev_phys {
@@ -87,8 +90,8 @@ update_vdev_labels(int fd, uint64_t size)
 	phys = &vl.vl_vdev_phys;
 
 	/* Unpack the nvlist */
-	assert(nvlist_unpack(phys->vp_nvlist, sizeof(phys->vp_nvlist),
-	    &config, 0) == 0);
+	assert(!nvlist_unpack(phys->vp_nvlist, sizeof(phys->vp_nvlist),
+	    &config, 0));
 	printf("Unpacked nvlist\n");
 
 	/*
@@ -108,25 +111,33 @@ update_vdev_labels(int fd, uint64_t size)
 	 */
 
 	/* Get the 'vdev_tree' value which is itself an nvlist */
-	assert(nvlist_lookup_nvlist(config, ZPOOL_CONFIG_VDEV_TREE,
-	    &vdt) == 0);
+	assert(!nvlist_lookup_nvlist(config, ZPOOL_CONFIG_VDEV_TREE, &vdt));
 
 	/* Report the current values */
-	assert(nvlist_lookup_string(vdt, ZPOOL_CONFIG_PATH, &s) == 0);
-	printf("                 Path: '%s'\n", s);
-	assert(nvlist_lookup_string(vdt, ZPOOL_CONFIG_PHYS_PATH, &s) == 0);
-	printf("        Physical path: '%s'\n", s);
-	assert(nvlist_lookup_string(vdt, ZPOOL_CONFIG_DEVID, &s) == 0);
-	printf("                Devid: '%s'\n", s);
+	if (!nvlist_lookup_string(vdt, ZPOOL_CONFIG_PATH, &s))
+		printf("                 Path: '%s'\n", s);
+	if (!nvlist_lookup_string(vdt, ZPOOL_CONFIG_PHYS_PATH, &s))
+		printf("        Physical path: '%s'\n", s);
+	if (!nvlist_lookup_string(vdt, ZPOOL_CONFIG_DEVID, &s))
+		printf("                Devid: '%s'\n", s);
 
 	/* Update the values */
-	assert(nvlist_remove_all(vdt, ZPOOL_CONFIG_PHYS_PATH) == 0);
-	assert(nvlist_remove_all(vdt, ZPOOL_CONFIG_PATH) == 0);
-	assert(nvlist_remove_all(vdt, ZPOOL_CONFIG_DEVID) == 0);
+	assert(!nvlist_remove_all(vdt, ZPOOL_CONFIG_PHYS_PATH));
+	assert(!nvlist_add_string(vdt, ZPOOL_CONFIG_PHYS_PATH, new_phys));
 
-	assert(nvlist_add_string(vdt, ZPOOL_CONFIG_PHYS_PATH, XEN_PHYS) == 0);
-	assert(nvlist_add_string(vdt, ZPOOL_CONFIG_PATH, XEN_PATH) == 0);
-	assert(nvlist_add_string(vdt, ZPOOL_CONFIG_DEVID, XEN_DEVID) == 0);
+	assert(!nvlist_remove_all(vdt, ZPOOL_CONFIG_PATH));
+	assert(!nvlist_add_string(vdt, ZPOOL_CONFIG_PATH, new_path));
+
+	/* devid may not exist */
+	nvlist_remove_all(vdt, ZPOOL_CONFIG_DEVID);
+	/* and we may not want a new one */
+	if (strlen(new_devid))
+		assert(!nvlist_add_string(vdt, ZPOOL_CONFIG_DEVID, new_devid));
+
+	/* Mark the pool as active */
+	assert(!nvlist_remove_all(config, ZPOOL_CONFIG_POOL_STATE));
+	assert(!nvlist_add_uint64(config, ZPOOL_CONFIG_POOL_STATE,
+	    POOL_STATE_ACTIVE));
 
 	/* Output the new pool configuration */
 	printf("Updated paths\n");
@@ -140,7 +151,7 @@ update_vdev_labels(int fd, uint64_t size)
 	/* Pack the nvlist... */
 	buf = phys->vp_nvlist;
 	buflen = sizeof(phys->vp_nvlist);
-	assert(nvlist_pack(config, &buf, &buflen, NV_ENCODE_XDR, 0) == 0);
+	assert(!nvlist_pack(config, &buf, &buflen, NV_ENCODE_XDR, 0));
 	printf("Packed nvlist\n");
 
 	/* ...and write the updated vdev_phys_t to the disk */
@@ -160,25 +171,88 @@ update_vdev_labels(int fd, uint64_t size)
 
 		assert(pwrite64(fd, phys, VDEV_PHYS_SIZE, offset)
 		    == VDEV_PHYS_SIZE);
-		printf("Wrote label %d (@%p) to disk\n", label, offset);
+		printf("Wrote label %d (@%p) to disk\n", label, (void *)offset);
 	}
+
+	/* Create a vdev structure representing this vdev */
+
+	assert((v = calloc(1, sizeof(vdev_t))) != NULL);
+	v->v_state = VDEV_STATE_HEALTHY;
+	assert(!nvlist_lookup_string(config, ZPOOL_CONFIG_POOL_NAME,
+	    (char **)&v->v_name));
+	assert(!nvlist_lookup_uint64(config, ZPOOL_CONFIG_GUID, &v->v_guid));
+	assert(!nvlist_lookup_uint64(vdt, ZPOOL_CONFIG_ASHIFT, &ashift));
+	v->v_ashift = ashift;
+	v->v_top = v;
+
+	assert(!nvlist_lookup_uint64(config, ZPOOL_CONFIG_POOL_TXG, &txg));
+	printf("Pool transaction group: %ld\n", txg);
+
+	/*
+	 * typedef struct uberblock {
+	 *	uint64_t        ub_magic;
+	 *	uint64_t        ub_version;
+	 *	uint64_t        ub_txg;
+	 *	uint64_t        ub_guid_sum;
+	 *	uint64_t        ub_timestamp;
+	 *	blkptr_t        ub_rootbp;
+	 * } uberblock_t;
+	 */
+
+	uberblock_t *ub = NULL;
+
+	for (int i = 0; i < VDEV_UBERBLOCK_COUNT(v); i++)
+	{
+		uint64_t uoff = VDEV_UBERBLOCK_OFFSET(v, i);
+		uberblock_t *_ub = (void *)((char *)&vl + uoff);
+
+		if (verbose)
+			printf("[%2d] %#010lx %5ld %ld\n", i,
+			    _ub->ub_magic, _ub->ub_txg, _ub->ub_timestamp);
+
+		if (_ub->ub_magic != UBERBLOCK_MAGIC)
+			continue;
+		if (_ub->ub_txg < txg)
+			continue;
+
+		if (!ub || _ub->ub_txg > ub->ub_txg ||
+		    (_ub->ub_txg == ub->ub_txg &&
+		    _ub->ub_timestamp > ub->ub_timestamp))
+			ub = _ub;
+	}
+	if (verbose)
+		printf("Best uberblock: %ld %ld\n",
+		    ub->ub_txg, ub->ub_timestamp);
 }
 
 int
 main(int argc, char **argv)
 {
 	struct stat64 st;
-	vdev_label_t vl;
-	nvlist_t *config;
 	uint64_t size;
+	char *path, *phys, *devid;
 	int fd;
 
 	if (argc >= 2 && !strcmp(argv[1], "-v"))
 		verbose++, argc--, argv++;
 
-	if (argc != 2)
+	if (argc == 5)
 	{
-		fprintf(stderr, "Syntax: %s [-v] <path to vdev>\n", argv[0]);
+		path = argv[2];
+		phys = argv[3];
+		devid = argv[4];
+	}
+	else if (argc == 2)
+	{
+		path = XEN_PATH;
+		phys = XEN_PHYS;
+		devid = XEN_DEVID;
+	}
+	else
+	{
+		fprintf(stderr,
+		    "Syntax: %s [-v] <path to vdev> [<path> <phys> <devid>]\n",
+		    argv[0]);
 		return -1;
 	}
 
@@ -195,7 +269,7 @@ main(int argc, char **argv)
 	}
 	size = P2ALIGN_TYPED(st.st_size, sizeof(vdev_label_t), uint64_t);
 
-	update_vdev_labels(fd, size);
+	update_vdev_labels(fd, size, path, phys, devid);
 
 	fsync(fd);
 	close(fd);
