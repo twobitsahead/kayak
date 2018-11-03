@@ -208,7 +208,7 @@ EOF
 # Add option to boot from hard disk
 cat << EOM > $ISO_ROOT/boot/menu.rc.local
 set mainmenu_caption[6]="Boot from [H]ard Disk"
-set mainmenu_command[6]="chain disk1:"
+set mainmenu_command[6]="chain disk0:"
 set mainmenu_keycode[6]=104
 set mainansi_caption[6]="Boot from ^[1mH^[mard Disk"
 EOM
