@@ -226,8 +226,10 @@ save_networking()
 		if [ "$net_ifmode" = "static" ]; then
 			echo "/sbin/ipadm create-addr -T static"\
 			    "-a local=$net_ip $net_if/v4"
-			[ -n "$net_gw" ] && \
-			    echo "echo $net_gw > /etc/defaultrouter"
+			if [ -n "$net_gw" ]; then
+				echo "echo $net_gw > /etc/defaultrouter"
+				echo "/sbin/route -p add default $net_gw"
+			fi
 			if [ -n "$net_dns" ]; then
 				rc=/etc/resolv.conf
 				echo "/bin/rm -f $rc"
