@@ -125,36 +125,7 @@ export SVCCFG_DTD SVCCFG_REPOSITORY SVCCFG_CHECKHASH
 cp $MP/lib/svc/seed/global.db $SVCCFG_REPOSITORY
 chmod 0600 $SVCCFG_REPOSITORY
 chown root:sys $SVCCFG_REPOSITORY
-$SVCCFG import -p /dev/stdout $MP/lib/svc/manifest
-
-tf=`mktemp`
-$SVCCFG -s smf/manifest listprop | grep /md5sum | while read line; do
-    set -- `echo $line`
-    pg="`echo $1 | sed 's^/md5sum^^'`"
-    [ "$2" = opaque ] || continue
-    sum="$3"
-    path=`echo $pg | sed '
-        s^.*_lib_svc_^_lib_svc_^
-        s^_xml$^.xml^
-        s^_^/^g
-    '`
-    newpg=`echo $path | sed '
-        s/\.xml$/_xml/
-        s^/^_^g
-        s/^_*//g
-    '`
-
-    cat << EOM >> $tf
-delprop $pg
-addpg $newpg framework
-setprop $newpg/manifestfile = astring: $path
-setprop $newpg/md5sum = opaque: $sum
-
-EOM
-done
-
-$SVCCFG -s smf/manifest -f $tf
-rm -f $tf
+PKG_INSTALL_ROOT=$MP $SVCCFG import -p /dev/stdout $MP/lib/svc/manifest
 
 cp -p $SVCCFG_REPOSITORY $MP/etc/svc/repository.db
 rm -f $SVCCFG_REPOSITORY
