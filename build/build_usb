@@ -52,18 +52,18 @@ set -o errexit
 EFI_LOADERS=""
 proto=$PREBUILT_ILLUMOS/proto/root_i386-nd
 if [ -n "$UEFI_SIZE" ]; then
-	for b in bootia32.efi bootx64.efi; do
-		if [ -n "$PREBUILT_ILLUMOS" -a -f $proto/boot/$b ]; then
-			echo "Using $b from proto"
-			EFI_LOADERS+=" $proto/boot/$b"
-		elif [ -f /boot/$b ]; then
-			echo "Using $b from running system"
-			EFI_LOADERS+=" /boot/$b"
-		else
-			echo "Cannot find $b"
-			exit 1
-		fi
-	done
+	if [ -n "$PREBUILT_ILLUMOS" -a -f $proto/boot/loader64.efi ]; then
+		echo "Using loader32/64.efi from proto"
+		EFI32=$proto/boot/loader32.efi
+		EFI64=$proto/boot/loader64.efi
+	elif [ -f /boot/loader64.efi ]; then
+		echo "Using loader32/64.efi from running system"
+		EFI32=/boot/loader32.efi
+		EFI64=/boot/loader64.efi
+	else
+		echo "Cannot find loader32/64.efi"
+		exit 1
+	fi
 fi
 
 ######################################################################
@@ -135,9 +135,8 @@ if [ -n "$UEFI_SIZE" ]; then
 	mkdir $UEFI_ROOT
 	mount -F pcfs ${LOFI_USB/p0/s0} $UEFI_ROOT
 	mkdir -p $UEFI_ROOT/efi/boot
-	for b in $EFI_LOADERS; do
-		cp $b $UEFI_ROOT/efi/boot/
-	done
+	cp $EFI32 $UEFI_ROOT/efi/boot/bootia32.efi
+	cp $EFI64 $UEFI_ROOT/efi/boot/bootx64.efi
 	umount $UEFI_ROOT
 	rmdir $UEFI_ROOT
 
