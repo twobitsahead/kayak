@@ -239,14 +239,16 @@ stage "ISO root size: `du -sh $ISO_ROOT/.`"
 # And finally, burn the ISO.
 
 if [ -n "$UEFI_SIZE" ]; then
-	if [ -n "$PROTO" -a -f $PROTO/boot/loader.efi ]; then
+	if [ -n "$PROTO" -a -f $PROTO/boot/loader64.efi ]; then
 		echo "Using loader.efi from proto"
-		EFI=$PROTO/boot/loader.efi
-	elif [ -f /boot/loader.efi ]; then
+		EFI32=$PROTO/boot/loader32.efi
+		EFI64=$PROTO/boot/loader64.efi
+	elif [ -f /boot/loader64.efi ]; then
 		echo "Using loader.efi from running system"
-		EFI=/boot/loader.efi
+		EFI32=/boot/loader32.efi
+		EFI64=/boot/loader64.efi
 	else
-		echo "Cannot find loader.efi"
+		echo "Cannot find loader32/64.efi"
 		rm -rf $ISO_ROOT
 		exit 1
 	fi
@@ -260,7 +262,8 @@ if [ -n "$UEFI_SIZE" ]; then
 	mkdir $UEFI_ROOT
 	mount -F pcfs $LOFI_UEFI $UEFI_ROOT
 	mkdir -p $UEFI_ROOT/efi/boot
-	cp $EFI $UEFI_ROOT/efi/boot/bootx64.efi
+	cp $EFI32 $UEFI_ROOT/efi/boot/bootia32.efi
+	cp $EFI64 $UEFI_ROOT/efi/boot/bootx64.efi
 	df -h $UEFI_ROOT
 	umount $UEFI_ROOT
 	rmdir $UEFI_ROOT
