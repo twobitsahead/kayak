@@ -32,6 +32,7 @@
 0 /boot/forth/support.4th
 0 /boot/forth/version.4th
 0 /boot/gptzfsboot
+0 /boot/isoboot
 0 /boot/loader.help
 0 /boot/loader.rc
 0 /boot/pmbr
@@ -42,6 +43,14 @@
 0 /boot/acpi
 0 /boot/acpi/tables
 0 /boot/solaris
+0 /boot/illumos.png
+0 /boot/omnios.png
+#
+# This is the default font
+0 /boot/fonts/8x16.fnt
+# For now, include all fonts
+0 /boot/fonts/*
+#
 0 /boot/solaris/filestat.ramdisk
 0 /boot/solaris/filelist.ramdisk
 0 /boot/solaris/devicedb
