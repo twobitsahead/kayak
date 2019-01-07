@@ -232,7 +232,7 @@ load_keep_list() {
                 keep_list+=([$file]="x")
             fi
             ((FCNT = FCNT + 1))
-        done < <(cut -f2- -d/ $datafile)
+        done < <(grep -v '^#' $datafile | cut -f2- -d/)
         echo " --- keeping $FCNT files from $datafile"
     done
 }
