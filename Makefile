@@ -83,10 +83,12 @@ $(DESTDIR)/tftpboot/kayak/miniroot.gz.hash:	$(BUILDSEND_MP)/miniroot.gz
 # More involved targets - creation of miniroot.gz & zfs image
 
 $(BUILDSEND_MP)/kayak_$(VERSION).zfs.xz:	build/build_zfs_send
+	@banner "ZFS IMG"
 	@test -d "$(BUILDSEND_MP)" || (echo "$(BUILDSEND) missing" && false)
 	./$< -d $(BUILDSEND) $(VERSION)
 
 $(BUILDSEND_MP)/miniroot.gz:	build/build_miniroot
+	@banner "MINIROOT"
 	if test -n "`zfs list -H -t snapshot $(BUILDSEND)/miniroot@fixup 2>/dev/null`"; then \
 	  VERSION=$(VERSION) DEBUG=$(DEBUG) ./$< $(BUILDSEND) fixup ; \
 	else \
@@ -119,10 +121,12 @@ etc/anon.dtrace.conf:
 	rm $@.tmp
 
 zfscreate:
+	@banner $@
 	zfs list -H -o name $(BUILDSEND) 2>/dev/null || \
 	    zfs create -o mountpoint=$(BUILDSEND_MP) $(BUILDSEND)
 
 zfsdestroy:
+	@banner $@
 	-zfs list -H -o name $(BUILDSEND) >/dev/null 2>&1 && \
 	    zfs destroy -r $(BUILDSEND)
 
@@ -175,9 +179,11 @@ check-mkisofs:
 	@test -x `which mkisofs`
 
 install-iso:	check-mkisofs bins install-tftp install-web
+	@banner .ISO
 	BUILDSEND_MP=$(BUILDSEND_MP) VERSION=$(VERSION) ./build/build_iso
 
 install-usb:	install-iso
+	@banner .USB-DD
 	./build/build_usb $(BUILDSEND_MP)/$(VERSION).iso \
 	    $(BUILDSEND_MP)/$(VERSION).usb-dd
 
