@@ -15,13 +15,8 @@
 0 /boot/forth/efi.4th
 0 /boot/forth/frames.4th
 0 /boot/forth/loader.4th
-0 /boot/forth/logo-beastie.4th
-0 /boot/forth/logo-beastiebw.4th
-0 /boot/forth/logo-fbsdbw.4th
 0 /boot/forth/logo-illumos.4th
 0 /boot/forth/logo-omnios.4th
-0 /boot/forth/logo-orb.4th
-0 /boot/forth/logo-orbbw.4th
 0 /boot/forth/menu-commands.4th
 0 /boot/forth/menu.4th
 0 /boot/forth/menu.rc
