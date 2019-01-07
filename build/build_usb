@@ -12,7 +12,7 @@
 # http://www.illumos.org/license/CDDL.
 # }}}
 
-# Copyright 2018 OmniOS Community Edition (OmniOSce) Association.
+# Copyright 2019 OmniOS Community Edition (OmniOSce) Association.
 
 export LC_ALL=C
 
@@ -49,22 +49,22 @@ set -o errexit
 ######################################################################
 # Find UEFI boot files
 
-EFI_LOADERS=""
-proto=$PREBUILT_ILLUMOS/proto/root_i386-nd
-if [ -n "$UEFI_SIZE" ]; then
-	if [ -n "$PREBUILT_ILLUMOS" -a -f $proto/boot/loader64.efi ]; then
-		echo "Using loader32/64.efi from proto"
-		EFI32=$proto/boot/loader32.efi
-		EFI64=$proto/boot/loader64.efi
-	elif [ -f /boot/loader64.efi ]; then
-		echo "Using loader32/64.efi from running system"
-		EFI32=/boot/loader32.efi
-		EFI64=/boot/loader64.efi
+PROTO=
+[ -n "$PREBUILT_ILLUMOS" -a -d $PREBUILT_ILLUMOS/proto/root_i386-nd ] \
+    && PROTO=$PREBUILT_ILLUMOS/proto/root_i386-nd
+for comp in loader32.efi loader64.efi pmbr gptzfsboot; do
+	if [ -n "$PROTO" -a -f $PROTO/boot/$comp ]; then
+		echo "Using $comp from proto"
+		eval COMP_${comp//./_}=$PROTO/boot/$comp
+	elif [ -f /boot/$comp ]; then
+		echo "Using $comp from running system"
+		eval COMP_${comp//./_}=/boot/$comp
 	else
-		echo "Cannot find loader32/64.efi"
+		echo "Cannot find $comp"
+		rm -rf $ISO_ROOT
 		exit 1
 	fi
-fi
+done
 
 ######################################################################
 # Compute the size for the new USB image.
@@ -135,8 +135,8 @@ if [ -n "$UEFI_SIZE" ]; then
 	mkdir $UEFI_ROOT
 	mount -F pcfs ${LOFI_USB/p0/s0} $UEFI_ROOT
 	mkdir -p $UEFI_ROOT/efi/boot
-	cp $EFI32 $UEFI_ROOT/efi/boot/bootia32.efi
-	cp $EFI64 $UEFI_ROOT/efi/boot/bootx64.efi
+	cp ${COMP_loader32_efi} $UEFI_ROOT/efi/boot/bootia32.efi
+	cp ${COMP_loader64_efi} $UEFI_ROOT/efi/boot/bootx64.efi
 	umount $UEFI_ROOT
 	rmdir $UEFI_ROOT
 
@@ -197,7 +197,7 @@ df -h $USB_ROOT
 #
 
 stage "Installing boot blocks"
-installboot -mf $USB_ROOT/boot/pmbr $USB_ROOT/boot/gptzfsboot $UFS_SLICE
+installboot -mf $COMP_pmbr $COMP_gptzfsboot $UFS_SLICE
 
 ######################################################################
 # Unmount and clean up
