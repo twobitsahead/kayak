@@ -104,7 +104,7 @@ note "Setting omnios publisher to $OMNIOS_URL"
 pkg -R $MP unset-publisher omnios
 pkg -R $MP set-publisher -P --no-refresh -O $OMNIOS_URL omnios
 note "Setting extra.omnios publisher to $EXTRA_URL"
-pkg -R $MP unset-publisher extra.omnios
+pkg -R $MP unset-publisher extra.omnios 2>/dev/null
 pkg -R $MP set-publisher --no-refresh -O $EXTRA_URL extra.omnios
 
 # Starting with r151014, require signatures for the omnios publisher.

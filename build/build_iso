@@ -13,7 +13,7 @@
 
 #
 # Copyright 2017 OmniTI Computer Consulting, Inc. All rights reserved.
-# Copyright 2018 OmniOS Community Edition (OmniOSce) Association.
+# Copyright 2019 OmniOS Community Edition (OmniOSce) Association.
 #
 
 #
@@ -31,7 +31,7 @@ if [ -z "$BUILDSEND_MP" ]; then
 fi
 
 [ -z "$VERSION" ] && \
-    VERSION="`head -1 $BUILDSEND_MP/root/etc/release | awk '{print $3}'`"
+    VERSION="`head -1 $BUILDSEND_MP/miniroot/etc/release | awk '{print $3}'`"
 echo "Using version $VERSION..."
 
 stage()
@@ -67,13 +67,18 @@ BA_FILE=$TMPDIR/boot_archive_$$.img
 
 BA_SIZE=225M
 
-# Uncomment the following line to build a UEFI ISO.
-# We aren't building UEFI yet.
+# Uncomment the following line to build a UEFI hybrid ISO.
 #UEFI_SIZE=4M
 
 # Output file
 
 DST_ISO=$BUILDSEND_MP/${VERSION}.iso
+
+# Source of files needed for build
+
+PROTO=
+[ -n "$PREBUILT_ILLUMOS" -a -d $PREBUILT_ILLUMOS/proto/root_i386-nd ] \
+    && PROTO=$PREBUILT_ILLUMOS/proto/root_i386-nd
 
 #############################################################################
 #
@@ -133,7 +138,7 @@ echo $VERSION > $ISO_ROOT/.volsetid
 # Put additional files into the boot-archive on $BA_ROOT, which is
 # what will be / (via ramdisk) once the ISO is booted.
 
-stage "Adding extra files to miniroot"
+stage "Adding extra files to boot archive"
 
 # Extra files
 for dir in bin; do
@@ -142,12 +147,14 @@ for dir in bin; do
 done
 
 if [ -n "$REFRESH_KAYAK" ]; then
-	# For testing, make sure files in miniroot are current
+	# For testing, make sure files in boot archive are current
 	find $BA_ROOT/kayak -type f | while read f; do
 		[ -f "$f" ] || continue
 		echo "REFRESH $f"
 		cp `echo $f | sed 's^.*/kayak/^^'` $f
 	done
+	#cp /boot/omnios.png $ISO_ROOT/boot/omnios.png
+	#cp /boot/forth/*-omnios.4th $ISO_ROOT/boot/forth/
 fi
 
 # Have initialboot invoke an interactive installer.
@@ -155,6 +162,7 @@ cat <<EOF > $BA_ROOT/.initialboot
 /kayak/bin/takeover-console /kayak/installer/kayak-menu
 exit 0
 EOF
+
 # Increase the timeout
 SVCCFG_REPOSITORY=$BA_ROOT/etc/svc/repository.db \
     svccfg -s system/initial-boot setprop "start/timeout_seconds=86400"
@@ -162,47 +170,32 @@ SVCCFG_REPOSITORY=$BA_ROOT/etc/svc/repository.db \
 # Refresh the devices on the miniroot.
 devfsadm -r $BA_ROOT
 
-#
-# The ISO's miniroot is going to be larger than the PXE miniroot. To that
-# end, some files not listed in the exception list do need to show up on
-# the miniroot. Use PREBUILT_ILLUMOS if available, or the current system
-# if not.
-#
+add_to_boot_archive() {
+	dir=$1; shift
 
-PROTO=
-[ -n "$PREBUILT_ILLUMOS" -a -d $PREBUILT_ILLUMOS/proto/root_i386-nd ] \
-    && PROTO=$PREBUILT_ILLUMOS/proto/root_i386-nd
+	[ -n "$PROTO" -a -d $PROTO/$dir ] && src=$PROTO || src=/
 
-from_one_to_other() {
-    dir=$1
+	echo "Adding $dir/$@ to boot archive"
 
-    [ -n "$PROTO" -a -d $PROTO/$dir ] && src=$PROTO || src=/
-
-    shift
-    tar -cf - -C $src/$dir ${@:-.} | tar -xf - -C $BA_ROOT/$dir
+	tar -cf - -C $src/$dir ${@:-.} | tar -xf - -C $BA_ROOT/$dir
 }
 
-from_one_to_other usr/share/lib/zoneinfo
-from_one_to_other usr/share/lib/keytables
-from_one_to_other usr/share/lib/terminfo
-from_one_to_other usr/gnu/share/terminfo
-from_one_to_other usr/sbin ping
-from_one_to_other usr/bin netstat
+add_to_boot_archive usr/share/lib/zoneinfo
+add_to_boot_archive usr/share/lib/keytables
+add_to_boot_archive usr/share/lib/terminfo
+add_to_boot_archive usr/gnu/share/terminfo
+add_to_boot_archive usr/sbin ping
+add_to_boot_archive usr/bin netstat
 
 ######################################################################
 # Configure the loader for installer
 
-# Splash screen - add release version to top of screen
-
-sed < $ISO_ROOT/boot/forth/brand-omnios.4th \
-    > $ISO_ROOT/boot/forth/brand-omniosi.4th "
-	/\" *\\/.*brand\+/s/ \"/  @[32m$VERSION@[m&/
-"
+stage "Loader configuration"
 
 cat <<EOF > $ISO_ROOT/boot/loader.conf.local
 loader_menu_title="Welcome to the OmniOSce installer"
-loader_brand="omniosi"
 autoboot_delay=10
+ooce_version="$VERSION"
 EOF
 
 # Add option to boot from hard disk
@@ -216,8 +209,8 @@ EOM
 ######################################################################
 
 #
-# Okay, we've populated the new miniroot. Close it up and install it
-# on $ISO_ROOT as the boot archive.
+# The new miniroot is populated.
+# Close it up and install it on $ISO_ROOT as the boot archive.
 #
 stage "Boot archive miniroot size"
 df -h $BA_ROOT
@@ -226,11 +219,10 @@ umount $BA_ROOT
 rmdir $BA_ROOT
 lofiadm -d $LOFI_BA
 
-stage "Installing boot archive"
+stage "Installing boot archive to ISO root"
 pv $BA_FILE | gzip -9c > $ISO_ROOT/platform/i86pc/amd64/boot_archive.gz
 ls -lh $ISO_ROOT/platform/i86pc/amd64/boot_archive.gz | awk '{print $5}'
-digest -a sha1 $BA_FILE \
-    > $ISO_ROOT/platform/i86pc/amd64/boot_archive.hash
+digest -a sha1 $BA_FILE > $ISO_ROOT/platform/i86pc/amd64/boot_archive.hash
 rm -f $BA_FILE
 stage "Removing unecessary files from ISO root"
 rm -rf $ISO_ROOT/{usr,bin,sbin,lib,kernel}
@@ -239,35 +231,38 @@ stage "ISO root size: `du -sh $ISO_ROOT/.`"
 # And finally, burn the ISO.
 
 if [ -n "$UEFI_SIZE" ]; then
-	if [ -n "$PROTO" -a -f $PROTO/boot/loader64.efi ]; then
-		echo "Using loader.efi from proto"
-		EFI32=$PROTO/boot/loader32.efi
-		EFI64=$PROTO/boot/loader64.efi
-	elif [ -f /boot/loader64.efi ]; then
-		echo "Using loader.efi from running system"
-		EFI32=/boot/loader32.efi
-		EFI64=/boot/loader64.efi
-	else
-		echo "Cannot find loader32/64.efi"
-		rm -rf $ISO_ROOT
-		exit 1
-	fi
+	for comp in loader32.efi loader64.efi pmbr isoboot; do
+		if [ -n "$PROTO" -a -f $PROTO/boot/$comp ]; then
+			echo "Using $comp from proto"
+			eval COMP_${comp//./_}=$PROTO/boot/$comp
+		elif [ -f /boot/$comp ]; then
+			echo "Using $comp from running system"
+			eval COMP_${comp//./_}=/boot/$comp
+		else
+			echo "Cannot find $comp"
+			rm -rf $ISO_ROOT
+			exit 1
+		fi
+	done
+
 	# Create a UEFI bootblock
 	stage "Building UEFI bootblock"
 	UEFI_FILE=$ISO_ROOT/boot/efiboot.img
 	mkfile $UEFI_SIZE $UEFI_FILE
 	LOFI_UEFI=`lofiadm -a $UEFI_FILE`
 	yes | mkfs -F pcfs \
-	    -o b=System,nofdisk,size=8800 ${LOFI_UEFI//lofi/rlofi}
+	    -o b=System,nofdisk,size=8800 ${LOFI_UEFI/lofi/rlofi}
 	mkdir $UEFI_ROOT
 	mount -F pcfs $LOFI_UEFI $UEFI_ROOT
 	mkdir -p $UEFI_ROOT/efi/boot
-	cp $EFI32 $UEFI_ROOT/efi/boot/bootia32.efi
-	cp $EFI64 $UEFI_ROOT/efi/boot/bootx64.efi
+	cp ${COMP_loader32_efi} $UEFI_ROOT/efi/boot/bootia32.efi
+	cp ${COMP_loader64_efi} $UEFI_ROOT/efi/boot/bootx64.efi
 	df -h $UEFI_ROOT
 	umount $UEFI_ROOT
 	rmdir $UEFI_ROOT
 	lofiadm -d $LOFI_UEFI
+
+	stage "Building ISO"
 
 	mkisofs -N -l -R -U -d -D \
 		-V "OmniOSce $VERSION" \
@@ -279,9 +274,52 @@ if [ -n "$UEFI_SIZE" ]; then
 		\
 		-eltorito-boot boot/cdboot -no-emul-boot -boot-info-table \
 		-eltorito-alt-boot \
+		-eltorito-platform efi \
 		-eltorito-boot boot/`basename $UEFI_FILE` -no-emul-boot \
 		\
 		$ISO_ROOT
+
+	######################################################################
+	# Convert ISO to a hybrid image which can be written to a USB drive
+	# This is taken from:
+	#   https://github.com/tsoome/slim_source/commit/a8cdb4a40b57fddaa152ef
+
+	stage "Converting ISO to hybrid image"
+
+	set +e
+	LOFI_ISO=`lofiadm -la $DST_ISO 2>/dev/null`
+	sleep 1
+	lofiadm -d $DST_ISO
+	sleep 1
+	LOFI_ISO=`lofiadm -la $DST_ISO`
+	[ -n "$LOFI_ISO" ] || exit 1
+	set -e
+
+	RLOFI_ISO=${LOFI_ISO/dsk/rdsk}
+	P2LOFI_ISO=${RLOFI_ISO/p0/p2}
+
+	# Look for the ESP in the ISO image
+	for entry in `etdump --format shell $DST_ISO`; do
+		echo "--> $entry"
+		eval $entry
+		[ "$et_platform" = "efi" ] || continue
+		((et_lba = et_lba * 2048 / 512))
+		espparam="239:0:0:0:0:0:0:0:$et_lba:$et_sectors"
+		break
+	done
+
+	if [ -n "$espparam" ]; then
+		# The system area will start at sector 64
+		fdisk -A 190:0:0:0:0:0:0:0:3:60 $RLOFI_ISO
+		fdisk -A $espparam $RLOFI_ISO
+		installboot -m $COMP_pmbr $COMP_isoboot $P2LOFI_ISO
+
+		echo
+		echo "Partition table after"
+		fdisk -W - $RLOFI_ISO | tail -5 | head -3
+	fi
+
+	lofiadm -d $LOFI_ISO
 else
 	mkisofs -N -l -R -U -d -D \
 		-V "OmniOSce $VERSION" \
