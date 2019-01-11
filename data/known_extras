@@ -82,3 +82,4 @@
 0 /usr/bin/cpuid
 0 /usr/sbin/chroot
 0 /usr/sbin/psrinfo
+0 /usr/bin/kstat
