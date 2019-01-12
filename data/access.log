@@ -1249,6 +1249,8 @@
 20707186 /mnt
 20707272 /lib/libcmdutils.so.1
 20707272 /lib/amd64/libcmdutils.so.1
+20707272 /lib/libcustr.so.1
+20707272 /lib/amd64/libcustr.so.1
 20707308 /usr/bin/chown
 20707355 /etc/zones
 20707355 /etc/zones/index
