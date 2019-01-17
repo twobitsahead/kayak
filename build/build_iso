@@ -67,8 +67,8 @@ BA_FILE=$TMPDIR/boot_archive_$$.img
 
 BA_SIZE=225M
 
-# Uncomment the following line to build a UEFI hybrid ISO.
-#UEFI_SIZE=4M
+# Comment the following line to build a CSM-only ISO.
+UEFI_SIZE=4M
 
 # Output file
 
@@ -153,8 +153,7 @@ if [ -n "$REFRESH_KAYAK" ]; then
 		echo "REFRESH $f"
 		cp `echo $f | sed 's^.*/kayak/^^'` $f
 	done
-	#cp /boot/omnios.png $ISO_ROOT/boot/omnios.png
-	#cp /boot/forth/*-omnios.4th $ISO_ROOT/boot/forth/
+	rsync -avr $PROTO/boot/ $ISO_ROOT/boot/
 fi
 
 # Have initialboot invoke an interactive installer.
