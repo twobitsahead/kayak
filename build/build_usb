@@ -27,8 +27,7 @@ USB_FILE=${2:?usb}
 [ ! -f "$ISO_FILE" ] && echo "Cannot find $ISO_FILE" && exit 1
 
 # Uncomment the following line to build a UEFI image.
-# We aren't building UEFI yet.
-#UEFI_SIZE=34M
+UEFI_SIZE=34M
 
 # Allow temporary directory override
 : ${TMPDIR:=/tmp}
