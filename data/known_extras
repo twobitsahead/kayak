@@ -83,3 +83,7 @@
 0 /usr/sbin/chroot
 0 /usr/sbin/psrinfo
 0 /usr/bin/kstat
+0 /usr/lib/amd64/libreadline.so.8
+0 /usr/lib/libreadline.so.8
+0 /usr/lib/amd64/libhistory.so.8
+0 /usr/lib/libhistory.so.8
