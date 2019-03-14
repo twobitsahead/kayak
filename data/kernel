@@ -630,3 +630,13 @@
 0 /kernel/drv/emlxs.conf
 0 /kernel/drv/bge.conf
 0 /kernel/drv/ipsecesp.conf
+0 /kernel/drv/amd64/hv_heartbeat
+0 /kernel/drv/amd64/hv_kvp
+0 /kernel/drv/amd64/hv_netvsc
+0 /kernel/drv/amd64/hv_shutdown
+0 /kernel/drv/amd64/hv_storvsc
+0 /kernel/drv/amd64/hv_timesync
+0 /kernel/drv/amd64/hv_vmbus
+0 /kernel/misc/amd64/hyperv
+0 /kernel/drv/hv_netvsc.conf
+0 /kernel/drv/hv_vmbus.conf
