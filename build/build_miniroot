@@ -140,7 +140,7 @@ DEBUG_PKGS="system/dtrace developer/dtrace"
 DRIVERS="driver/audio driver/crypto/dca driver/crypto/tpm driver/firewire
     driver/graphics/agpgart driver/graphics/atiatom driver/graphics/drm
     driver/i86pc/fipe driver/i86pc/ioat driver/i86pc/platform
-    driver/misc/virtio
+    driver/misc/virtio driver/hyperv/pv
     driver/network/afe driver/network/amd8111s driver/network/atge
     driver/network/bfe driver/network/bge driver/network/bnx
     driver/network/bnxe driver/network/bpf driver/network/chxge
