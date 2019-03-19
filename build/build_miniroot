@@ -13,7 +13,7 @@
 
 #
 # Copyright 2017 OmniTI Computer Consulting, Inc.  All rights reserved.
-# Copyright 2018 OmniOS Community Edition (OmniOSce) Association.
+# Copyright 2019 OmniOS Community Edition (OmniOSce) Association.
 #
 
 fail() {
@@ -254,6 +254,8 @@ step() {
     # No need to install documentation or development files in the miniroot
     $PKG -R $ROOTDIR change-facet doc.man=false
     $PKG -R $ROOTDIR change-facet devel=false
+    [ -n "$DEBUG_VARIANT" ] && \
+        $PKG -R $ROOTDIR change-variant debug.illumos=true
     # If a version was requested, respect it
     if [ -n "$BUILDNUM" ]; then
         $PKG -R $ROOTDIR install illumos-gate@11-$BUILDNUM \

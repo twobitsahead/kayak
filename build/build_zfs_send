@@ -12,7 +12,7 @@
 # }}}
 
 # Copyright 2017 OmniTI Computer Consulting, Inc. All rights reserved.
-# Copyright 2018 OmniOS Community Edition (OmniOSce) Association.
+# Copyright 2019 OmniOS Community Edition (OmniOSce) Association.
 #
 
 fail() {
@@ -66,6 +66,7 @@ else
     MP=`zfs get -H mountpoint $ZROOT/$name | awk '{print $3}'`
     note "Creating IPS image"
     pkg image-create -F -p $PUBLISHER=$PKGURL $MP || fail "image-create"
+    [ -n "$DEBUG_VARIANT" ] && pkg -R $MP change-variant debug.illumos=true
     entire_version=${name//[a-z]/}
     entire_fmri="entire@11-$entire_version"
     note "Installing $entire_fmri"
