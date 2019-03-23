@@ -1241,6 +1241,7 @@
 20571296 /usr/bin/pv
 20571357 /usr/bin/bzip2
 20571367 /usr/bin/amd64/bzip2
+0 /usr/bin/gzip
 0 /usr/bin/xz
 0 /usr/bin/amd64/xz
 0 /usr/bin/i386/xz

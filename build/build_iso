@@ -20,6 +20,9 @@
 # Build an ISO installer using the Kayak tools.
 #
 
+[ -x /opt/ooce/bin/pigz ] && GZIP=/opt/ooce/bin/pigz || GZIP=gzip
+: ${GZIP_CMD:=$GZIP}
+
 if [ "`id -u`" != "0" ]; then
 	echo "You must be root to run this script."
 	exit 1
@@ -92,7 +95,7 @@ set -o errexit
 # $MINIROOT_ROOT
 
 stage "Mounting source miniroot"
-gzip -dc $KAYAK_MINIROOT > $MINIROOT_FILE
+$GZIP_CMD -dc $KAYAK_MINIROOT > $MINIROOT_FILE
 LOFI_MINIROOT=`lofiadm -a $MINIROOT_FILE`
 mkdir $MINIROOT_ROOT
 mount $LOFI_MINIROOT $MINIROOT_ROOT
@@ -219,7 +222,7 @@ rmdir $BA_ROOT
 lofiadm -d $LOFI_BA
 
 stage "Installing boot archive to ISO root"
-pv $BA_FILE | gzip -9c > $ISO_ROOT/platform/i86pc/amd64/boot_archive.gz
+pv $BA_FILE | $GZIP_CMD -9c > $ISO_ROOT/platform/i86pc/amd64/boot_archive.gz
 ls -lh $ISO_ROOT/platform/i86pc/amd64/boot_archive.gz | awk '{print $5}'
 digest -a sha1 $BA_FILE > $ISO_ROOT/platform/i86pc/amd64/boot_archive.hash
 rm -f $BA_FILE
