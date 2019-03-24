@@ -35,7 +35,8 @@ EXTRA_URL=${OMNIOS_URL/%core/extra}
 ZROOT=rpool
 OUT=
 CLEANUP=0
-set -- `getopt cd:o:p: $*`
+VARIANT=global
+set -- `getopt cd:o:p:V: $*`
 for i in $*
 do
     case $i in
@@ -44,6 +45,7 @@ do
         -o) OUT=$2; shift 2;;
         -p) PROFILE=$2; shift 2;;
         -P) PUBLISHER_OVERRIDE=1; shift ;;
+        -V) VARIANT=$2; shift 2;;
         --) shift; break ;;
     esac
 done
@@ -55,7 +57,10 @@ if [ -z "$name" ]; then
 fi
 
 MPR=`zfs get -H mountpoint $ZROOT | awk '{print $3}'`
-[ -z "$OUT" ] && OUT=$MPR/kayak_$name.zfs.xz
+if [ -z "$OUT" ]; then
+    OUT=$MPR/kayak_$name.zfs.xz
+    [ $VARIANT = nonglobal ] && OUT=$MPR/kayak_$name.ngz.zfs.xz
+fi
 
 if zfs list $ZROOT/$name@entire > /dev/null 2>&1; then
     note "Rolling back to last @entire"
@@ -71,13 +76,22 @@ else
     entire_fmri="entire@11-$entire_version"
     note "Installing $entire_fmri"
     pkg -R $MP install $entire_fmri || fail "install entire"
-    # Install the optional packages from entire too
-    note "Installing optional packages"
-    pkg -R $MP install \
-        `pkg -R $MP contents -H -a type=optional -o fmri $entire_fmri` \
-        || fail "install optional entire"
     zfs snapshot $ZROOT/$name@entire
 fi
+
+note "Changing zone variant to $VARIANT"
+pkg -R $MP change-variant opensolaris.zone=$VARIANT
+
+note "Installing optional packages"
+typeset -a optlist=
+while read p v; do
+        [ -n "$v" -a "$v" != "$VARIANT" ] && continue
+        echo "++++ $p"
+        optlist+=($p)
+done < <(pkg -R $MP contents -H -a type=optional \
+    -o fmri,variant.opensolaris.zone $entire_fmri)
+
+pkg -R $MP install ${optlist[*]} || fail "install optional entire"
 
 if [ -n "$PROFILE" ]; then
     note "Applying custom profile: $PROFILE"
@@ -108,7 +122,7 @@ note "Setting extra.omnios publisher to $EXTRA_URL"
 pkg -R $MP unset-publisher extra.omnios 2>/dev/null
 pkg -R $MP set-publisher --no-refresh -O $EXTRA_URL extra.omnios
 
-# Starting with r151014, require signatures for the omnios publisher.
+# Starting with r151014, require signatures for the omnios publishers.
 if [[ $OMNIOS_URL != */bloody/* ]]; then
     note "Setting signature policy to require."
     for pub in omnios extra.omnios; do
@@ -117,35 +131,54 @@ if [[ $OMNIOS_URL != */bloody/* ]]; then
     done
 fi
 
-# Pre-seed the SMF database.
+pkg -R $MP purge-history
 
-note "Seeding SMF database."
+function seed_smf
+{
+    typeset variant="${1:-global}"
 
-[ -x "$PREBUILT_ILLUMOS/usr/src/cmd/svc/svccfg/svccfg-native" ] \
-    && SVCCFG="${PREBUILT_ILLUMOS}/usr/src/cmd/svc/svccfg/svccfg-native" \
-    || SVCCFG=/usr/sbin/svccfg
-SVCCFG_DTD=$MP/usr/share/lib/xml/dtd/service_bundle.dtd.1
-SVCCFG_REPOSITORY=/tmp/kayak.svc.$$
-SVCCFG_CHECKHASH=1
-export SVCCFG_DTD SVCCFG_REPOSITORY SVCCFG_CHECKHASH
+    note "Seeding SMF database ($variant)"
 
-cp $MP/lib/svc/seed/global.db $SVCCFG_REPOSITORY
-chmod 0600 $SVCCFG_REPOSITORY
-chown root:sys $SVCCFG_REPOSITORY
-PKG_INSTALL_ROOT=$MP $SVCCFG import -p /dev/stdout $MP/lib/svc/manifest
+    [ -x "$PREBUILT_ILLUMOS/usr/src/cmd/svc/svccfg/svccfg-native" ] \
+        && SVCCFG="${PREBUILT_ILLUMOS}/usr/src/cmd/svc/svccfg/svccfg-native" \
+        || SVCCFG=/usr/sbin/svccfg
+    SVCCFG_DTD=$MP/usr/share/lib/xml/dtd/service_bundle.dtd.1
+    SVCCFG_REPOSITORY=/tmp/kayak.svc.$$
+    SVCCFG_CHECKHASH=1
+    export SVCCFG_DTD SVCCFG_REPOSITORY SVCCFG_CHECKHASH
 
-cp -p $SVCCFG_REPOSITORY $MP/etc/svc/repository.db
-rm -f $SVCCFG_REPOSITORY
-unset SVCCFG_DTD SVCCFG_REPOSITORY SVCCFG_CHECKHASH
+    cp $MP/lib/svc/seed/$variant.db $SVCCFG_REPOSITORY || fail "seed $variant"
+    chmod 0600 $SVCCFG_REPOSITORY
+    chown root:sys $SVCCFG_REPOSITORY
+    PKG_INSTALL_ROOT=$MP $SVCCFG import -p /dev/stdout $MP/lib/svc/manifest
+
+    cp -p $SVCCFG_REPOSITORY $MP/etc/svc/repository.db
+    rm -f $SVCCFG_REPOSITORY
+    unset SVCCFG_DTD SVCCFG_REPOSITORY SVCCFG_CHECKHASH
+}
 
 ############################################################################
+
+seed_smf $VARIANT
+
+if [ "$VARIANT" = nonglobal ]; then
+    PROFILEDIR=etc/svc/profile
+    ln -s ns_files.xml $MP/$PROFILEDIR/name_service.xml
+    ln -s generic_limited_net.xml $MP/$PROFILEDIR/generic.xml
+    ln -s inetd_generic.xml $MP/$PROFILEDIR/inetd_services.xml
+    ln -s platform_none.xml $MP/$PROFILEDIR/platform.xml
+    # Set a blank password for root (to enable zlogin to zone)
+    sed -i -e 's%^root::%root:$5$kr1VgdIt$OUiUAyZCDogH/uaxH71rMeQxvpDEY2yX.x0ZQRnmeb9:%' $MP/etc/shadow
+fi
 
 note "Creating compressed stream"
 zfs snapshot $ZROOT/$name@kayak || fail "snap"
 zfs send $ZROOT/$name@kayak | pv | xz -9c > $OUT || fail "send/compress"
+
+############################################################################
+
 if [ "$CLEANUP" -eq "1" ]; then
-    zfs destroy $ZROOT/$name@kayak || fail "could not remove snapshot"
-    zfs destroy $ZROOT/$name || fail "could not remove zfs filesystem"
+    zfs destroy -r $ZROOT/$name || fail "could not remove zfs filesystem"
 fi
 
 # Vim hints

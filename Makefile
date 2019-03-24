@@ -24,8 +24,6 @@ BUILDSEND_MP=/kayak_image
 VERSION?=$(shell awk '$$1 == "OmniOS" { print $$3 }' /etc/release)
 DESTDIR::=$(BUILDSEND_MP)
 
-all:
-
 PKGDIRS=build src/include src bin etc data lib installer sample
 IMG_FILES=corner.png tail_bg_v1.png OmniOSce_logo_medium.png tail_bg_v2.png
 PKGFILES=Makefile README.md
@@ -42,7 +40,8 @@ TFTP_FILES=\
 	$(DESTDIR)/tftpboot/pxeboot \
 	$(DESTDIR)/tftpboot/pxegrub
 
-WEB_FILES=$(DESTDIR)/var/kayak/kayak/$(VERSION).zfs.xz
+GZ_ZFS_STREAM=$(DESTDIR)/var/kayak/kayak/$(VERSION).zfs.xz
+NGZ_ZFS_STREAM=$(DESTDIR)/var/kayak/kayak/$(VERSION).ngz.zfs.xz
 
 $(DESTDIR)/tftpboot/boot/loader.conf.local:	etc/loader.conf.local
 	sed -e 's/@VERSION@/$(VERSION)/' $< > $@
@@ -70,7 +69,10 @@ $(DESTDIR)/tftpboot/boot/defaults:	$(BUILDSEND_MP)/miniroot/boot/defaults
 $(DESTDIR)/tftpboot/boot/platform/i86pc/kernel/amd64/unix:	$(BUILDSEND_MP)/miniroot/platform/i86pc/kernel/amd64/unix
 	cp -p $< $@
 
-$(DESTDIR)/var/kayak/kayak/$(VERSION).zfs.xz:	$(BUILDSEND_MP)/kayak_$(VERSION).zfs.xz
+$(GZ_ZFS_STREAM):	$(BUILDSEND_MP)/kayak_$(VERSION).zfs.xz
+	cp -p $< $@
+
+$(NGZ_ZFS_STREAM):	$(BUILDSEND_MP)/kayak_$(VERSION).ngz.zfs.xz
 	cp -p $< $@
 
 $(DESTDIR)/tftpboot/kayak/miniroot.gz:	$(BUILDSEND_MP)/miniroot.gz
@@ -83,9 +85,14 @@ $(DESTDIR)/tftpboot/kayak/miniroot.gz.hash:	$(BUILDSEND_MP)/miniroot.gz
 # More involved targets - creation of miniroot.gz & zfs image
 
 $(BUILDSEND_MP)/kayak_$(VERSION).zfs.xz:	build/build_zfs_send
-	@banner "ZFS IMG"
+	@banner "ZFS GZ IMG"
 	@test -d "$(BUILDSEND_MP)" || (echo "$(BUILDSEND) missing" && false)
 	./$< -d $(BUILDSEND) $(VERSION)
+
+$(BUILDSEND_MP)/kayak_$(VERSION).ngz.zfs.xz:	build/build_zfs_send
+	@banner "ZFS NGZ IMG"
+	@test -d "$(BUILDSEND_MP)" || (echo "$(BUILDSEND) missing" && false)
+	./$< -d $(BUILDSEND) -V nonglobal $(VERSION)
 
 $(BUILDSEND_MP)/miniroot.gz:	build/build_miniroot
 	@banner "MINIROOT"
@@ -172,20 +179,24 @@ miniroot:	install-tftp
 install-tftp:	zfscreate tftp-dirs $(TFTP_FILES)
 
 zfs:		install-web
-install-web:	zfscreate server-dirs $(WEB_FILES)
+install-web:	zfscreate server-dirs $(GZ_ZFS_STREAM)
 
 check-mkisofs:
 	-@test -x `which mkisofs` || echo "No 'mkisofs' command found."
 	@test -x `which mkisofs`
 
-install-iso:	check-mkisofs bins install-tftp install-web
+build-iso:
 	@banner .ISO
 	BUILDSEND_MP=$(BUILDSEND_MP) VERSION=$(VERSION) ./build/build_iso
 
-install-usb:	install-iso
+build-usb:
 	@banner .USB-DD
 	./build/build_usb $(BUILDSEND_MP)/$(VERSION).iso \
 	    $(BUILDSEND_MP)/$(VERSION).usb-dd
+
+install-iso:	check-mkisofs bins install-tftp install-web build-iso
+install-usb:	install-iso build-usb
+all:		install-usb $(NGZ_ZFS_STREAM)
 
 # Used by omnios-build/kayak/ to create the kayak package
 
