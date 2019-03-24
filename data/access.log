@@ -390,6 +390,7 @@
 20506180 /usr/lib/libssp.so.*
 20506180 /usr/lib/amd64/libssp.so.*
 20506184 /lib/libavl.so.1
+20506184 /lib/64/libavl.so.1
 20506187 /lib/libelf.so.1
 20506190 /lib/librtld_db.so.1
 20506191 /lib/libctf.so.1
