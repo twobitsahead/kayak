@@ -131,10 +131,10 @@ BE_Receive_Image() {
             | dialog --gauge 'Installing ZFS image' 7 70
     else
         $_grab $_media | $pv -w 78 | $_decomp | \
-            zfs receive -u $_rpool/ROOT/$_bename
+            zfs receive -u $_rpool/ROOT/$_bename 2>&4
     fi
-    zfs set canmount=noauto $_rpool/ROOT/$_bename
-    zfs set mountpoint=legacy $_rpool/ROOT/$_bename
+    zfs set canmount=noauto $_rpool/ROOT/$_bename 1>&4 2>&4
+    zfs set mountpoint=legacy $_rpool/ROOT/$_bename 1>&4 2>&4
 }
 
 BE_Mount() {
@@ -146,9 +146,9 @@ BE_Mount() {
     slog "Mounting BE $_bename on $_root"
 
     if [ "$_method" = beadm ]; then
-        beadm mount $_bename $_root
+        beadm mount $_bename $_root 1>&4 2>&4
     else
-        mount -F zfs $_rpool/ROOT/$_bename $_root
+        mount -F zfs $_rpool/ROOT/$_bename $_root 1>&4 2>&4
     fi
     export ALTROOT=$_root
 }
@@ -160,9 +160,9 @@ BE_Umount() {
 
     slog "Unmounting BE $_bename"
     if [ "$_method" = beadm ]; then
-        beadm umount $_bename
+        beadm umount $_bename 1>&4 2>&4
     else
-        umount $_root
+        umount $_root 1>&4 2>&4
     fi
 }
 
@@ -175,14 +175,14 @@ BE_SetUUID() {
         $_root/usr/bin/uuidgen`
 
     slog "Setting BE $_bename UUID: $uuid"
-    zfs set org.opensolaris.libbe:uuid=$uuid $_rpool/ROOT/$_bename
-    zfs set org.opensolaris.libbe:policy=static $_rpool/ROOT/$_bename
+    zfs set org.opensolaris.libbe:uuid=$uuid $_rpool/ROOT/$_bename 1>&4 2>&4
+    zfs set org.opensolaris.libbe:policy=static $_rpool/ROOT/$_bename 1>&4 2>&4
 }
 
 BE_LinkMsglog() {
     local _root=${1:?root}
 
-    /usr/sbin/devfsadm -r $_root
+    /usr/sbin/devfsadm -r $_root 1>&4 2>&4
     [ -L "$_root/dev/msglog" ] || \
         ln -s ../devices/pseudo/sysmsg@0:msglog $_root/dev/msglog
 }
@@ -214,7 +214,7 @@ BuildBE() {
     BE_SetUUID $RPOOL $_bename /mnt
     BE_LinkMsglog /mnt
     MakeSwapDump
-    zfs destroy $RPOOL/ROOT/$_bename@kayak
+    zfs destroy $RPOOL/ROOT/$_bename@kayak 1>&4 2>&4
 }
 
 FetchConfig(){

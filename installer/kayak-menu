@@ -21,7 +21,7 @@
 
 # Copyright (c) 2009, 2011, Oracle and/or its affiliates. All rights reserved.
 # Copyright 2017 OmniTI Computer Consulting, Inc. All rights reserved.
-# Copyright 2018 OmniOS Community Edition (OmniOSce) Association.
+# Copyright 2019 OmniOS Community Edition (OmniOSce) Association.
 
 # This started its life as the Caiman text-installer menu, hence the old
 # OpenSolaris CDDL statement.
@@ -59,7 +59,7 @@ fi
 if [ -n "$USE_DIALOG" ]; then
 	i=10
 	echo; echo
-	echo "Press return to start the OmniOSce installer."
+	echo "Press return to start the OmniOS installer."
 	while [ $i -gt 0 ]; do
 		unit=second
 		[ $i -gt 1 ] && unit=seconds
@@ -134,12 +134,12 @@ d_detecting()
 
 # Preinstall menu
 menu_items=( \
-    (menu_str="Find disks, create rpool, and install OmniOSce"		\
+    (menu_str="Find disks, create rpool, and install OmniOS"		\
 	cmds=("/kayak/installer/find-and-install $klang")		\
 	dcmds=("d_detecting x", "/kayak/installer/dialog-install $klang")\
 	default="true"							\
 	do_subprocess="true")						\
-    (menu_str="Install OmniOSce straight on to a preconfigured rpool"	\
+    (menu_str="Install OmniOS straight on to a preconfigured rpool"	\
 	cmds=("/kayak/installer/rpool-install rpool $klang")		\
 	do_subprocess="true")						\
     (menu_str="Shell (for manual rpool creation)"			\
@@ -189,7 +189,7 @@ display_text_menu()
 	installed && nameref menu=pi_menu_items || nameref menu=menu_items
 
 	clear
-	printf "Welcome to the OmniOSce installation menu\n\n"
+	printf "Welcome to the OmniOS installation menu\n\n"
 	for i in "${!menu[@]}"; do
 		nameref item=menu[$i]
 		print "\t$((i + 1))  ${item.menu_str}"
@@ -217,7 +217,7 @@ display_dialog_menu()
 
 	tmpf=`mktemp`
 	dialog \
-		--title "Welcome to the OmniOSce installer" \
+		--title "Welcome to the OmniOS installer" \
 		--hline "Use arrow or hot keys to select one of the options above" \
 		--no-ok \
 		--no-tags \

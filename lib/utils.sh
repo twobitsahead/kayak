@@ -10,7 +10,7 @@
 # http://www.illumos.org/license/CDDL.
 # }}}
 
-# Copyright 2018 OmniOS Community Edition (OmniOSce) Association.
+# Copyright 2019 OmniOS Community Edition (OmniOSce) Association.
 
 check_hostname() {
 	echo $1 | egrep -s '^[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9]$'
@@ -63,5 +63,38 @@ d_prompt_timezone() {
 
 prompt_timezone() {
 	[ -n "$USE_DIALOG" ] && d_prompt_timezone "$@" || t_prompt_timezone "$@"
+}
+
+runpkg() {
+	LD_LIBRARY_PATH=$ALTROOT/usr/lib/amd64 \
+	    PYTHONPATH=$ALTROOT/usr/lib/python3.5/vendor-packages \
+	    $ALTROOT/usr/bin/python3.5 \
+	    $ALTROOT/usr/bin/pkg -R $ALTROOT "$@"
+}
+
+extrarepo() {
+	if [ "$1" = "-off" ]; then
+		runpkg unset-publisher extra.omnios
+		sed -i '
+        /^#*PATH=/c\
+PATH=/usr/bin
+        /^#*SUPATH=/c\
+SUPATH=/usr/sbin:/sbin:/usr/bin
+		' $ALTROOT/etc/default/login $ALTROOT/etc/default/su
+	else
+		coreuri=`runpkg publisher omnios | \
+		    nawk '/Origin URI:/ { print $3 }'`
+		extrauri="${coreuri/core/extra}"
+		runpkg set-publisher --no-refresh -O $extrauri extra.omnios
+		runpkg publisher omnios | egrep -s require-signatures &&
+		    runpkg set-publisher --no-refresh --set-property \
+		    signature-policy=require-signatures extra.omnios
+		sed -i~ '
+        /^#*PATH=/c\
+PATH=/usr/bin:/opt/ooce/bin
+        /^#*SUPATH=/c\
+SUPATH=/usr/sbin:/sbin:/opt/ooce/sbin:/usr/bin:/opt/ooce/bin
+		' $ALTROOT/etc/default/login $ALTROOT/etc/default/su
+	fi
 }
 

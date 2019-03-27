@@ -30,7 +30,6 @@ note() {
 # Change "bloody" to whatever release the current branch is.
 PUBLISHER=omnios
 OMNIOS_URL=https://pkg.omniosce.org/bloody/core
-EXTRA_URL=${OMNIOS_URL/%core/extra}
 : ${PKGURL:=$OMNIOS_URL}
 ZROOT=rpool
 OUT=
@@ -118,14 +117,11 @@ fi
 note "Setting omnios publisher to $OMNIOS_URL"
 pkg -R $MP unset-publisher omnios
 pkg -R $MP set-publisher -P --no-refresh -O $OMNIOS_URL omnios
-note "Setting extra.omnios publisher to $EXTRA_URL"
-pkg -R $MP unset-publisher extra.omnios 2>/dev/null
-pkg -R $MP set-publisher --no-refresh -O $EXTRA_URL extra.omnios
 
 # Starting with r151014, require signatures for the omnios publishers.
 if [[ $OMNIOS_URL != */bloody/* ]]; then
     note "Setting signature policy to require."
-    for pub in omnios extra.omnios; do
+    for pub in omnios; do
         pkg -R $MP set-publisher \
             --set-property signature-policy=require-signatures $pub
     done
