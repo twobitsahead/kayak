@@ -1,8 +1,7 @@
 #!/usr/bin/ksh
 #
 # Copyright 2005 Sun Microsystems, Inc.  All rights reserved.
-# Copyright 2018 OmniOS Community Edition (OmniOSce) Association.
-# Use is subject to license terms.
+# Copyright 2019 OmniOS Community Edition (OmniOSce) Association.
 #
 # Ask the user about the time zone, and place the resulting TZ in a file
 # whose name is specified in the first argument.
@@ -66,6 +65,7 @@ get_continent()
 		--no-tags \
 		--no-lines \
 		--nocancel \
+		--default-item UTC \
 		--menu "\n$INFO_SELECT_CONT\n\Zn" \
 		20 0 12 \
 		Africa Africa \
