@@ -13,7 +13,7 @@
 # }}}
 
 #
-# Copyright 2018 OmniOS Community Edition (OmniOSce) Association.
+# Copyright 2019 OmniOS Community Edition (OmniOSce) Association.
 #
 
 ALTROOT=/mnt
@@ -22,6 +22,7 @@ INITIALBOOT=$ALTROOT/.initialboot
 IPCALC=/kayak/bin/ipcalc
 PASSUTIL=/kayak/bin/passutil
 NODENAME="`cat $ALTROOT/etc/nodename`"
+RELVER=`head -1 $ALTROOT/etc/release | awk '{print $3}' | sed 's/[a-z]//g'`
 
 debug=0
 if [ "$1" = '-t' ]; then
@@ -31,7 +32,10 @@ else
 	trap "" TSTP INT TERM ABRT QUIT
 fi
 
+echo "Reading system configuration..."
+
 [ "$1" = "-dialog" ] && . /kayak/lib/dialog.sh
+. /kayak/lib/utils.sh
 
 dmsg()
 {
@@ -82,7 +86,7 @@ show_dialog_menu()
 
 	tmpf=`mktemp`
 	dialog \
-		--title "OmniOSce $title menu" \
+		--title "OmniOS $title menu" \
 		--hline "Use arrow or hot keys to select one of the options above" \
 		--no-ok \
 		--no-tags \
@@ -115,7 +119,7 @@ show_text_menu()
 	clear
 
 	defaultchoice=
-	printf "OmniOSce $title menu\n\n"
+	printf "OmniOS $title menu\n\n"
 	for i in "${!menu[@]}"; do
 		nameref item=menu[$i]
 		printf "\t%d  %-40s" "$((i + 1))" "${item.menu_str}"
@@ -1177,6 +1181,26 @@ show_sshd()
 }
 
 ##############################################################################
+# Extra Repo
+
+cfg_extrarepo()
+{
+	if egrep -s extra.omnios $ALTROOT/var/pkg/pkg5.image; then
+		echo "Removing extra software repository..."
+		extrarepo -off
+	else
+		echo "Enabling extra software repository..."
+		extrarepo -on
+	fi
+}
+
+show_extrarepo()
+{
+	egrep -s extra.omnios $ALTROOT/var/pkg/pkg5.image \
+	    && echo "Enabled" || echo "Disabled"
+}
+
+##############################################################################
 
 # Main menu
 main_menu=( \
@@ -1197,6 +1221,10 @@ main_menu=( \
     (menu_str="SSH Server"						\
 	cmds=("cfg_sshd")						\
 	current="show_sshd"						\
+    )									\
+    (menu_str="Extra Packages Repo"					\
+	cmds=("cfg_extrarepo")						\
+	current="show_extrarepo"					\
     )									\
     (menu_str="Virtual Terminals"					\
 	cmds=("cfg_vtdaemon")						\

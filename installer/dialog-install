@@ -13,11 +13,15 @@
 
 #
 # Copyright 2017 OmniTI Computer Consulting, Inc. All rights reserved.
-# Copyright 2018 OmniOS Community Edition (OmniOSce) Association.
+# Copyright 2019 OmniOS Community Edition (OmniOSce) Association.
 #
 
 . /kayak/lib/dialog.sh
 . /kayak/lib/utils.sh
+. /kayak/lib/install_help.sh
+. /kayak/lib/disk_help.sh
+
+SetupLog /tmp/kayak.log
 
 keyboard_layout=${1:-US-English}
 
@@ -368,9 +372,6 @@ d_info "Preparing to install..."
 # Because of kayak's small miniroot, just use C as the language for now.
 LANG=C
 
-. /kayak/lib/install_help.sh
-. /kayak/lib/disk_help.sh
-
 panic()
 {
 	echo
@@ -386,9 +387,18 @@ ver=`head -1 /etc/release | awk '{print $3}'`
 BuildBE $RPOOL $ZFS_IMAGE $bename
 ApplyChanges $HOSTNAME $TZ $LANG $keyboard_layout || panic
 MakeBootable $RPOOL $bename || panic
-# Disable SSH by default for interactive installations
+
+######################################################################
+# Apply some additional settings for interactive installations.
+
+# Disable SSH
 [ -f /kayak/etc/nossh.xml ] && \
     cp /kayak/etc/nossh.xml $ALTROOT/etc/svc/profile/site/
+
+# Add extra repo (can be disabled in the configuration menu)
+extrarepo -on
+
+######################################################################
 
 efifixdb=$ALTROOT/usr/share/hwdata/efi.fixes
 if [ -n "$fixdb" -a -f $efifixdb ]; then
