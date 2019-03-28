@@ -18,6 +18,10 @@
 
 . /kayak/lib/dialog.sh
 . /kayak/lib/utils.sh
+. /kayak/lib/install_help.sh
+. /kayak/lib/disk_help.sh
+
+SetupLog /tmp/kayak.log
 
 keyboard_layout=${1:-US-English}
 
@@ -367,9 +371,6 @@ d_info "Preparing to install..."
 
 # Because of kayak's small miniroot, just use C as the language for now.
 LANG=C
-
-. /kayak/lib/install_help.sh
-. /kayak/lib/disk_help.sh
 
 panic()
 {

@@ -15,58 +15,79 @@
 
 #
 # Copyright 2017 OmniTI Computer Consulting, Inc.  All rights reserved.
-# Copyright 2018 OmniOS Community Edition (OmniOSce) Association.
+# Copyright 2019 OmniOS Community Edition (OmniOSce) Association.
 #
 
 LOG_SETUP=0
 
-ConsoleLog(){
-  exec 4>/dev/console
-  exec 1>>${1}
-  exec 2>>${1}
-  INSTALL_LOG=${1}
-  LOG_SETUP=1
+SetupLog() {
+    if [ "$LOG_SETUP" -eq 0 ]; then
+        INSTALL_LOG=${1}
+        LOG_SETUP=1
+        exec 4>>${1}
+    fi
 }
-CopyInstallLog(){
-  if [[ -n "$INSTALL_LOG" ]]; then
-    cp $INSTALL_LOG $ALTROOT/var/log/install/kayak.log
-  fi
+
+ConsoleLog() {
+    if [ "$LOG_SETUP" -eq 0 ]; then
+        exec 4>/dev/console
+        exec 1>>${1}
+        exec 2>>${1}
+        INSTALL_LOG=${1}
+        LOG_SETUP=1
+    fi
 }
-SendInstallLog(){
-  PUTURL=`echo $CONFIG | sed -e 's%/kayak/%/kayaklog/%g;'`
-  PUTURL=`echo $PUTURL | sed -e 's%/kayak$%/kayaklog%g;'`
-  curl -T $INSTALL_LOG $PUTURL/$ETHER
+
+OutputLog() {
+    if [ "$LOG_SETUP" -eq 0 ]; then
+        exec 4>/dev/null
+        LOG_SETUP=1
+    fi
 }
-OutputLog(){
-  if [[ "$LOG_SETUP" -eq "0" ]]; then
-    exec 4>/dev/null
-    LOG_SETUP=1
-  fi
+
+CopyInstallLog() {
+    if [ -n "$INSTALL_LOG" ]; then
+        cp $INSTALL_LOG $ALTROOT/var/log/install/kayak.log
+    fi
 }
+
+SendInstallLog() {
+    PUTURL=`echo $CONFIG | sed -e 's%/kayak/%/kayaklog/%g;'`
+    PUTURL=`echo $PUTURL | sed -e 's%/kayak$%/kayaklog%g;'`
+    curl -T $INSTALL_LOG $PUTURL/$ETHER
+}
+
 log() {
-  OutputLog
-  TS=`date +%Y/%m/%d-%H:%M:%S`
-  echo "[$TS] $*" 1>&4
-  echo "[$TS] $*"
+    OutputLog
+    TS=`date +%Y/%m/%d-%H:%M:%S`
+    echo "[$TS] $*" 1>&4
+    echo "[$TS] $*"
 }
+
+pipelog() {
+    tee -a $INSTALL_LOG
+}
+
 slog() {
     if [ -n "$USE_DIALOG" ]; then
+        TS=`date +%Y/%m/%d-%H:%M:%S`
         echo "[$TS] $*" 1>&4
         d_info "$@"
     else
         log "$@"
     fi
 }
+
 bomb() {
-  log
-  log ======================================================
-  log "$*"
-  log ======================================================
-  if [[ -n "$INSTALL_LOG" ]]; then
-      log "For more information, check $INSTALL_LOG"
-      log ======================================================
-  fi
-  exit 1
+    log
+    log ======================================================
+    log "$*"
+    log ======================================================
+    if [[ -n "$INSTALL_LOG" ]]; then
+        log "For more information, check $INSTALL_LOG"
+        log ======================================================
+    fi
+    exit 1
 }
 
 . /kayak/lib/net_help.sh
