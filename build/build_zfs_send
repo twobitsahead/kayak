@@ -169,7 +169,8 @@ fi
 
 note "Creating compressed stream"
 zfs snapshot $ZROOT/$name@kayak || fail "snap"
-zfs send $ZROOT/$name@kayak | pv | xz -9c > $OUT || fail "send/compress"
+zfs send $ZROOT/$name@kayak | pv | xz -T0 -9c > $OUT || fail "send/compress"
+xz -l $OUT
 
 ############################################################################
 
