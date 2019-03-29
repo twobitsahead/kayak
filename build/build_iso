@@ -49,7 +49,7 @@ stage()
 
 # Files prepared by other parts of the kayak build process
 
-KAYAK_MINIROOT=$BUILDSEND_MP/miniroot.gz
+KAYAK_MINIROOT=$BUILDSEND_MP/miniroot.ufs
 ZFS_IMG=$BUILDSEND_MP/kayak_${VERSION}.zfs.xz
 
 [ ! -f $KAYAK_MINIROOT -o ! -f $ZFS_IMG ] && echo "Missing files." && exit 1
@@ -95,7 +95,7 @@ set -o errexit
 # $MINIROOT_ROOT
 
 stage "Mounting source miniroot"
-$GZIP_CMD -dc $KAYAK_MINIROOT > $MINIROOT_FILE
+cp $KAYAK_MINIROOT $MINIROOT_FILE
 LOFI_MINIROOT=`lofiadm -a $MINIROOT_FILE`
 mkdir $MINIROOT_ROOT
 mount $LOFI_MINIROOT $MINIROOT_ROOT

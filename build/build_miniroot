@@ -424,8 +424,8 @@ EOM
     ;;
 
   "compress")
-    $GZIP_CMD -9c -f $MKFILEDIR/miniroot > $WORKDIR/miniroot.gz
-    rm -f $MKFILEDIR/miniroot
+    mv $MKFILEDIR/miniroot $WORKDIR/miniroot.ufs
+    $GZIP_CMD -9c -f $WORKDIR/miniroot.ufs > $WORKDIR/miniroot.gz
     chmod 644 $WORKDIR/miniroot.gz
     echo " === Finished ==="
     $GZIP_CMD -l $WORKDIR/miniroot.gz
