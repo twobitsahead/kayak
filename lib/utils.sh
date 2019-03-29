@@ -77,7 +77,7 @@ extrarepo() {
 		runpkg unset-publisher extra.omnios
 		sed -i '
         /^#*PATH=/c\
-PATH=/usr/bin
+PATH=/usr/bin:/usr/sbin:/sbin:/usr/gnu/bin
         /^#*SUPATH=/c\
 SUPATH=/usr/sbin:/sbin:/usr/bin
 		' $ALTROOT/etc/default/login $ALTROOT/etc/default/su
@@ -91,7 +91,7 @@ SUPATH=/usr/sbin:/sbin:/usr/bin
 		    signature-policy=require-signatures extra.omnios
 		sed -i~ '
         /^#*PATH=/c\
-PATH=/usr/bin:/opt/ooce/bin
+PATH=/usr/bin:/usr/sbin:/sbin:/opt/ooce/bin:/usr/gnu/bin
         /^#*SUPATH=/c\
 SUPATH=/usr/sbin:/sbin:/opt/ooce/sbin:/usr/bin:/opt/ooce/bin
 		' $ALTROOT/etc/default/login $ALTROOT/etc/default/su
