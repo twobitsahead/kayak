@@ -92,7 +92,7 @@ done
 # if the installer is re-run.
 flag=0
 for disk in $DISKLIST; do
-	if zpool status | fgrep " $disk"; then
+	if zpool status | grep -F " $disk"; then
 		d_msg "$disk is part of an active ZFS pool."
 		flag=1
 	fi
