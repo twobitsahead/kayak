@@ -51,8 +51,7 @@ pause()
 	read a
 }
 
-ask()
-{
+function ask {
 	typeset a=
 
 	while [[ "$a" != [yYnN] ]]; do
@@ -62,8 +61,21 @@ ask()
 	[[ "$a" = [yY] ]]
 }
 
-show_dialog_menu()
-{
+function cycle {
+	typeset val="$1"; shift
+	typeset -a arr=("$@")
+
+	i=0
+	while [ $i -le ${#arr[@]} ]; do
+		[ "${arr[$i]}" = "$val" ] && break
+		((i++))
+	done
+	((i++))
+	[ $i -ge ${#arr[@]} ] && i=0
+	echo ${arr[$i]}
+}
+
+function show_dialog_menu {
 	nameref menu="$1"
 	typeset title="${2:-configuration}"
 	defaultchoice="$3"
@@ -108,11 +120,10 @@ show_dialog_menu()
 	return 0
 }
 
-show_text_menu()
-{
+function show_text_menu {
 	nameref menu="$1"
 	typeset title="${2:-configuration}"
-	typeset -i input
+	input=
 
 	# Display the menu.
 	stty sane
@@ -173,10 +184,10 @@ show_menu()
 			${item.cmds[$j]}
 		done
 	fi
+	return 0
 }
 
-remove_config()
-{
+function remove_config {
 	typeset tag=$1
 	if [ -f $INITIALBOOT ]; then
 		sed -i "/BEGIN_$tag/,/END_$tag/d" $INITIALBOOT
@@ -277,7 +288,7 @@ load_networking()
 	[ -z "$net_if" ] \
 	    && net_if="`/sbin/dladm show-phys -p -o link,media \
 	       | grep ':Ethernet$' | head -1 | cut -d: -f1`"
-	[ -z "$net_dns" ] && net_dns=80.80.80.80
+	[ -z "$net_dns" ] && net_dns=1.1.1.1
 }
 
 clear_networking()
@@ -313,8 +324,7 @@ mkiflist()
 	done
 }
 
-dcfg_interface()
-{
+function dcfg_interface {
 	mkiflist
 	typeset -a args=()
 	for i in "${!iflist[@]}"; do
@@ -404,8 +414,7 @@ show_ifmode()
 	fi
 }
 
-dcfg_ip()
-{
+function dcfg_ip {
 	def="${1:-1}"
 
 	if [ "$net_ifmode" != "static" ]; then
@@ -766,7 +775,7 @@ network_menu=( \
 	current="show_dns"						\
     )									\
     (menu_str="Return to main configuration menu"			\
-	cmds=("save_networking" "back")							\
+	cmds=("save_networking" "back")					\
     )									\
 )
 
@@ -1161,6 +1170,134 @@ show_vtdaemon()
 }
 
 ##############################################################################
+# Serial Console
+
+load_console()
+{
+	con_sconsole=Disabled
+	con_baud=115200
+	con_dbits=8
+	con_parity=none
+	con_sbits=1
+
+	s=$ALTROOT/boot/conf.d/serial
+	if [ -f $s ]; then
+		con_sconsole=`grep '^os_console=' $s | cut -d'"' -f2`
+		modeline=`grep '^ttya-mode=' $s | cut -d'"' -f2`
+		con_baud=`echo $modeline | cut -d, -f1`
+		con_dbits=`echo $modeline | cut -d, -f2`
+		con_parity=`echo $modeline | cut -d, -f3`
+		con_sbits=`echo $modeline | cut -d, -f4`
+
+		case $con_parity in
+			n*)	con_parity=none ;;
+			e*)	con_parity=even ;;
+			o*)	con_parity=odd ;;
+		esac
+	fi
+}
+
+save_console()
+{
+	if [ "$con_sconsole" = "Disabled" ]; then
+		rm -f $ALTROOT/boot/config
+		rm -f $ALTROOT/boot/conf.d/serial
+	else
+		echo -h > $ALTROOT/boot/config
+		cat <<- EOM > $ALTROOT/boot/conf.d/serial
+		console="$con_sconsole,text"
+		os_console="$con_sconsole"
+		ttya-mode="$con_baud,$con_dbits,${con_parity:0:1},$con_sbits,-"
+		EOM
+	fi
+	return 0
+}
+
+show_sconsole() {
+	echo $con_sconsole
+}
+
+show_console_param() {
+	nameref param="con_$1"
+	[ "$con_sconsole" != "Disabled" ] && echo $param || echo "---"
+}
+show_baud() { show_console_param baud; }
+show_dbits() { show_console_param dbits; }
+show_parity() { show_console_param parity; }
+show_sbits() { show_console_param sbits; }
+
+cfg_sconsole()
+{
+	con_sconsole="`cycle "$con_sconsole" Disabled ttya ttyb`"
+}
+
+cfg_baud()
+{
+	con_baud="`cycle "$con_baud" 9600 19200 38400 57600 115200`"
+}
+
+cfg_dbits()
+{
+	con_dbits="`cycle "$con_dbits" 7 8`"
+}
+
+cfg_parity()
+{
+	con_parity="`cycle "$con_parity" none even odd`"
+}
+
+cfg_sbits()
+{
+	con_sbits="`cycle "$con_sbits" 1 2`"
+}
+
+console_menu=( \
+    (menu_str="Serial Console"						\
+	cmds=("cfg_sconsole")						\
+	current="show_sconsole"						\
+    )									\
+    (menu_str="Baud rate"						\
+	cmds=("cfg_baud")						\
+	current="show_baud"						\
+    )
+    (menu_str="Data bits"						\
+	cmds=("cfg_dbits")						\
+	current="show_dbits"						\
+    )
+    (menu_str="Parity"							\
+	cmds=("cfg_parity")						\
+	current="show_parity"						\
+    )
+    (menu_str="Stop bits"						\
+	cmds=("cfg_sbits")						\
+	current="show_sbits"						\
+    )
+    (menu_str="Return to main configuration menu"			\
+	cmds=("save_console" "back")					\
+    )									\
+)
+
+cfg_console()
+{
+	load_console
+	input=
+	while show_menu console_menu "serial console configuration" $input; do
+		((input++))
+	done
+}
+
+show_console()
+{
+	if [ -f $ALTROOT/boot/conf.d/serial ]; then
+		load_console
+		parity=${con_parity:0:1}
+		echo "$con_sconsole/$con_baud/$con_dbits/$parity/$con_sbits"
+	else
+		echo 'Disabled'
+	fi
+}
+
+##############################################################################
 # SSH Server
 
 cfg_sshd()
@@ -1229,6 +1366,10 @@ main_menu=( \
     (menu_str="Virtual Terminals"					\
 	cmds=("cfg_vtdaemon")						\
 	current="show_vtdaemon"						\
+    )									\
+    (menu_str="Serial Console"						\
+	cmds=("cfg_console")						\
+	current="show_console"						\
     )									\
     (menu_str="Return to main menu"					\
 	cmds=("exit")							\
