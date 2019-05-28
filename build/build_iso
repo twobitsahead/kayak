@@ -288,14 +288,8 @@ if [ -n "$UEFI_SIZE" ]; then
 
 	stage "Converting ISO to hybrid image"
 
-	set +e
-	LOFI_ISO=`lofiadm -la $DST_ISO 2>/dev/null`
-	sleep 1
-	lofiadm -d $DST_ISO
-	sleep 1
 	LOFI_ISO=`lofiadm -la $DST_ISO`
 	[ -n "$LOFI_ISO" ] || exit 1
-	set -e
 
 	RLOFI_ISO=${LOFI_ISO/dsk/rdsk}
 	P2LOFI_ISO=${RLOFI_ISO/p0/p2}
