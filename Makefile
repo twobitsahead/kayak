@@ -153,7 +153,7 @@ bin/mount_media:	src/mount_media.c
 	gcc -o $@ $< -ldevinfo
 
 bin/zpool_patch:	src/zpool_patch.c
-	gcc -m64 -g -Isrc/include -o $@ $< -lnvpair
+	gcc -m64 -g -Wall -Wunused -g -Isrc/include -o $@ $< -lnvpair
 
 bin/ipcalc:	build/build_ipcalc
 	./build/build_ipcalc
