@@ -22,8 +22,7 @@
 #
 # Copyright 2013 by Andrzej Szeszo. All rights reserved.
 # Copyright 2013 OmniTI Computer Consulting, Inc.  All rights reserved.
-# Copyright 2018 OmniOS Community Edition (OmniOSce) Association.
-# Use is subject to license terms.
+# Copyright 2019 OmniOS Community Edition (OmniOSce) Association.
 #
 
 [ "`id -u`" != 0 ] && echo Run this script as root && exit 1
@@ -34,29 +33,27 @@ SRCDIR=`dirname $0`
 . $SRCDIR/../lib/install_help.sh 2>/dev/null
 . $SRCDIR/../lib/disk_help.sh
 . $SRCDIR/../lib/net_help.sh
-. $SRCDIR/../lib/xen_help.sh
-
-VMODE=hvm
-USEGRUB=0
+. $SRCDIR/../lib/hvm_help.sh
 
 [ -z "$VERSION" ] && \
     VERSION="`nawk 'NR == 1 {sub(/^r/,"",$3);print $3}' /etc/release`"
 : ${ZFSSEND:=/kayak_image/kayak_r$VERSION.zfs.xz}
-: ${PVGRUB:=pv-grub.gz.d3950d8}
 
 lVERSION="`echo $VERSION | sed 's/[a-z]//g'`"
 
-RPOOL=syspool
+RPOOL=rpool
+XENPOOL=xenpool
 BENAME=omnios-r$VERSION
-ALTROOT=/mnt
+ALTROOT=/xenroot
+POOLMOUNT=/xenpool
 UNIX=/platform/i86xpv/kernel/amd64/unix
 
 [ -f "$ZFSSEND" ] || ZFSSEND="omniosce-r$VERSION.zfs.xz"
-[ ! -f $ZFSSEND ] && echo "ZFS Image ($ZFSSEND) missing" && exit 
+[ ! -f $ZFSSEND ] && echo "ZFS Image ($ZFSSEND) missing" && exit
 
 # Find the disk
 
-DISK="`diskinfo -pH | grep -w 8589934592 | awk '{print $2}'`"
+DISK="`diskinfo -pH | grep -w 8589934592 | awk '{print $2; exit}'`"
 [ -z "$DISK" ] && echo "Cannot find 8GiB disk" && exit 1
 cat << EOM
 
@@ -72,41 +69,49 @@ EOM
 echo "Using disk $DISK...return to continue, ^C to abort...\\c"
 read a
 
-if [ $VMODE = pv -a  ! -f $PVGRUB ]; then
-    wget https://downloads.omniosce.org/media/misc/pv-grub.gz.d3950d8
-fi
+SetupLog /tmp/kayak-ami.log
 
 # Begin
 
-zpool destroy -f $RPOOL 2>/dev/null || true
+zpool destroy -f $XENPOOL 2>/dev/null || true
 zpool labelclear -f ${DISK}s0 >/dev/null 2>&1
 
-if [ $VMODE = pv ]; then
-    SetupPVPart
-    SetupPVGrub
-    SetupPVZPool
-else
-    if [ $USEGRUB -eq 1 ]; then
-        SetupHVMPart
-        zpool create -f $RPOOL ${DISK}s0
-    else
-        # Use whole-disk EFI but without an EFI System Partition (ESP)
-        zpool create -fd $RPOOL ${DISK}
-    fi
-fi
+# Use whole-disk EFI but without an EFI System Partition (ESP)
+# and do not enable any features.
+zpool create -fd -t $XENPOOL -m $POOLMOUNT $RPOOL ${DISK}
 
-BE_Create_Root $RPOOL
-BE_Receive_Image cat "xz -dc" $RPOOL $BENAME $ZFSSEND
-BE_Mount $RPOOL $BENAME $ALTROOT raw
-BE_SetUUID $RPOOL $BENAME $ALTROOT
-BE_SeedSMF $ALTROOT
+BE_Create_Root $XENPOOL
+BE_Receive_Image cat "xz -dc" $XENPOOL $BENAME $ZFSSEND
+BE_Mount $XENPOOL $BENAME $ALTROOT raw
+BE_SetUUID $XENPOOL $BENAME $ALTROOT
 BE_LinkMsglog $ALTROOT
 
-if [ $USEGRUB -eq 1 ]; then
-    Grub_MakeBootable
-else
-    MakeBootable $RPOOL $BENAME
-fi
+MakeBootable $XENPOOL $BENAME
+
+Xen_Customise() {
+    # Allow root to ssh in
+    log "...setting PermitRootLogin=yes in sshd_config"
+    sed -i -e 's%^PermitRootLogin.*%PermitRootLogin without-password%' \
+        $ALTROOT/etc/ssh/sshd_config
+
+    # Set up to use DNS
+    log "...enabling DNS resolution"
+    SetDNS 1.1.1.1 80.80.80.80
+
+    # Install ec2-credential package
+    # rsync needed for vagrant
+    log "...installing EC2 and rsync packages"
+    pkg -R $ALTROOT install network/rsync ec2-credential
+
+    # Remove disk links so they will be correctly generated on first boot.
+    rm -f $ALTROOT/dev/dsk/* $ALTROOT/dev/rdsk/*
+    touch $ALTROOT/reconfigure
+
+    # Decrease boot delay
+    cat << EOM > $ALTROOT/boot/loader.conf.local
+autoboot_delay=1
+EOM
+}
 
 ApplyChanges
 # In case we are preparing a pre-release, temporarily add staging
@@ -131,7 +136,7 @@ sed -i '/^last_uuid/d' $ALTROOT/var/pkg/pkg5.image
 
 BE_Umount $BENAME $ALTROOT raw
 
-zpool export $RPOOL
+zpool export $XENPOOL
 
 (
     cd $SRCDIR/..
