@@ -23,6 +23,7 @@ tmpf=`mktemp`
 
 [ -n "$USE_DIALOG" ] && . /kayak/lib/dialog.sh
 . /kayak/lib/utils.sh
+. /kayak/lib/vm.sh
 
 zpool list $RPOOL >& /dev/null
 if [[ $? != 0 ]]; then
@@ -50,9 +51,22 @@ ver=`head -1 /etc/release | awk '{print $3}'`
 BuildBE $RPOOL $ZFS_IMAGE $bename
 ApplyChanges $HOSTNAME $TZ $LANG $keyboard_layout
 MakeBootable $RPOOL $bename
+
+######################################################################
+# Apply some additional settings for interactive installations.
+
 # Disable SSH by default for interactive installations
 [ -f /kayak/etc/nossh.xml ] && \
     cp /kayak/etc/nossh.xml $ALTROOT/etc/svc/profile/site/
+
+# Add extra repo (can be disabled in the configuration menu)
+extrarepo -on
+
+# If a VM environment is detected, perform additional steps
+setupvm
+
+######################################################################
+
 zpool list -v $RPOOL
 echo ""
 beadm list $bename
