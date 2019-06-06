@@ -42,6 +42,8 @@ DISK=${lofi/p0/}
 
 # Begin
 
+SetupLog /tmp/kayak-bhyve.log
+
 echo "Clearing any old pool"
 zpool destroy -f $RPOOL 2>/dev/null || true
 
@@ -96,9 +98,6 @@ EOM
 # It's important that we do a reconfigure boot if removing the magic
 # string from path_to_inst
 touch $ALTROOT/reconfigure
-
-echo "PAUSE"
-read a
 
 echo "Unmount"
 BE_Umount $BENAME $ALTROOT raw
