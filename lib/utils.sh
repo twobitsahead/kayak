@@ -70,6 +70,7 @@ runpkg() {
 	    PYTHONPATH=$ALTROOT/usr/lib/python3.5/vendor-packages \
 	    $ALTROOT/usr/bin/python3.5 \
 	    $ALTROOT/usr/bin/pkg -R $ALTROOT "$@"
+	sed -i '/^last_uuid/d' $ALTROOT/var/pkg/pkg5.image
 }
 
 extrarepo() {

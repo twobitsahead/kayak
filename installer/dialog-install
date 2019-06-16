@@ -18,6 +18,7 @@
 
 . /kayak/lib/dialog.sh
 . /kayak/lib/utils.sh
+. /kayak/lib/vm.sh
 . /kayak/lib/install_help.sh
 . /kayak/lib/disk_help.sh
 
@@ -397,6 +398,15 @@ MakeBootable $RPOOL $bename || panic
 
 # Add extra repo (can be disabled in the configuration menu)
 extrarepo -on
+
+# If a VM environment is detected, perform additional steps
+setupvm
+
+if hypervisor | egrep -s '^Microsoft' && \
+    dialog --defaultno --yesno \
+    "\nInstall extra components for Microsoft Azure?" 7 50; then
+	vm_azure
+fi
 
 ######################################################################
 

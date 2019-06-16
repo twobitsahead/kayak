@@ -1,0 +1,49 @@
+#!/bin/ksh
+#
+# {{{ CDDL HEADER
+# This file and its contents are supplied under the terms of the
+# Common Development and Distribution License ("CDDL"), version 1.0.
+# You may only use this file in accordance with the terms of version
+# 1.0 of the CDDL.
+#
+# A full copy of the text of the CDDL should have accompanied this
+# source. A copy of the CDDL is also available via the Internet at
+# http://www.illumos.org/license/CDDL.
+# }}}
+
+# Copyright 2019 OmniOS Community Edition (OmniOSce) Association.
+#
+# This script creates p5p archives of additional packages that will be added
+# to the installer media. Some will be automatically added to the image; for
+# example the VM packages will be added if the associated hypervisor is
+# detected during installation.
+
+typeset -A pkg
+pkg['aws']=(system/management/ec2-credential)
+pkg['vmware']=(system/virtualization/open-vm-tools)
+pkg['azure']=(system/virtualization/azure-agent \
+                service/storage/media-volume-manager)
+pkg['iwn']=(driver/network/iwn)
+
+set -- `getopt d:o: $*`
+for i in $*
+do
+    case $i in
+        -d) OUTPUT=$2; shift 2;;
+        -o) ORIGIN=$2; shift 2;;
+        --) shift; break ;;
+    esac
+done
+
+if [ -z "$OUTPUT" -o -z "$ORIGIN" ]; then
+    echo "$0 -d <output dir> -o <IPS origin>"
+    exit 1
+fi
+
+for vm in ${!pkg[@]}; do
+    rm -f $OUTPUT/$vm.p5p
+	pkgrecv -a -s $ORIGIN -d $OUTPUT/$vm.p5p -m latest ${pkg[$vm][*]}
+done
+
+# Vim hints
+# vim:ts=4:sw=4:et:fdm=marker

@@ -127,9 +127,10 @@ rmdir $MINIROOT_ROOT
 lofiadm -d $LOFI_MINIROOT
 rm $MINIROOT_FILE
 
+#############################################################################
 # Place the full ZFS image into the ISO root so it does not form part of the
-# boot archive (otherwise the boot seems to hang for several minutes while
-# the miniroot is loaded)
+# boot archive. This allows the installer to be booted even if there is not
+# much available memory, and reduces the time taken to load the boot archive.
 
 stage "Adding ZFS image to ISO root"
 mkdir -p $ISO_ROOT/image
@@ -138,6 +139,19 @@ pv $ZFS_IMG > $ISO_ROOT/image/`basename $ZFS_IMG`
 # find the image - see src/mount_media.c
 echo $VERSION > $ISO_ROOT/.volsetid
 
+#############################################################################
+# Add .p5p files to the ISO root containing the packages required for running
+# under various VM environments.
+
+stage "Adding p5p files"
+mkdir -p $ISO_ROOT/image/p5p
+for p in $BUILDSEND_MP/*.p5p; do
+	[ -f "$p" ] || exit 1
+	echo "* $p"
+	cp $p $ISO_ROOT/image/p5p/
+done
+
+#############################################################################
 # Put additional files into the boot-archive on $BA_ROOT, which is
 # what will be / (via ramdisk) once the ISO is booted.
 

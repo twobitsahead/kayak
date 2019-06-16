@@ -26,6 +26,8 @@ note() {
     echo "***"
 }
 
+MYDIR=$PWD/`dirname $BASH_SOURCE[0]`
+
 PUBLISHER=omnios
 OMNIOS_URL=https://pkg.omniosce.org/r151030/core
 : ${PKGURL:=$OMNIOS_URL}
@@ -169,6 +171,13 @@ note "Creating compressed stream"
 zfs snapshot $ZROOT/$name@kayak || fail "snap"
 zfs send $ZROOT/$name@kayak | pv | xz -T0 -9c > $OUT || fail "send/compress"
 xz -l $OUT
+
+############################################################################
+# Also build .p5p files for various VM environments
+
+if [ $VARIANT = global ]; then
+    $MYDIR/build_extra_p5p -d $MPR -o $PKGURL
+fi
 
 ############################################################################
 
