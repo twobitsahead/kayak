@@ -87,3 +87,5 @@
 0 /usr/lib/libreadline.so.8
 0 /usr/lib/amd64/libhistory.so.8
 0 /usr/lib/libhistory.so.8
+0 /lib/libcryptoutil.so.1
+0 /usr/lib/libpkcs11.so.1
