@@ -454,8 +454,6 @@
 20512201 /usr/bin/who
 20512201 /usr/bin/svcprop
 20512300 /usr/sbin/svcadm
-20512300 /usr/sbin/inetconv
-20512300 /usr/sbin/syslogd
 20512300 /usr/sbin/killall
 20512300 /usr/bin/pkill
 20513042 /usr/bin/kill
@@ -550,9 +548,7 @@
 20516083 /sbin/route
 20516083 /sbin/rc0
 20516084 /sbin/fiocompress
-20516084 /sbin/in.mpathd
 20516084 /sbin/biosdev
-20516084 /sbin/jsh
 20516084 /sbin/ibd_delete_link
 20516084 /sbin/uname
 20516084 /sbin/devprop
@@ -563,7 +559,6 @@
 20516085 /sbin/beadm
 20516086 /sbin/rc1
 20516086 /sbin/uadmin
-20516086 /sbin/pfsh
 20516086 /sbin/fdisk
 20516086 /sbin/bootadm
 20516086 /sbin/mountall
@@ -578,7 +573,6 @@
 20516087 /sbin/su
 20516088 /sbin/installgrub
 20516088 /sbin/sulogin
-20516088 /sbin/ipmpstat
 20516088 /sbin/sync
 20516088 /sbin/flowstat
 20516088 /sbin/rc2
@@ -631,7 +625,6 @@
 20516105 /dev/crypto
 20516106 /dev/cryptoadm
 20516106 /dev/vni
-20516106 /dev/ipmpstub
 20516106 /dev/icmp
 20516106 /dev/rawip
 20516106 /dev/icmp6
@@ -1070,13 +1063,10 @@
 20561709 /var/adm
 20561709 /var/adm/utmpx
 20561710 /var/adm/wtmpx
-20561712 /var/svc/log/svc.startd.log
-20562442 /var/svc/log/system-initial-boot:default.log
 20562493 /lib/svc/share/initial_include.sh
 20562494 /etc/svc/profile
 20562494 /etc/svc/profile/site
 20562505 /usr/bin/mktemp
-20562633 /var/svc/log/network-rpc-bind:default.log
 20562639 /root
 20562717 /usr/spool
 20562717 /var/spool
@@ -1097,9 +1087,7 @@
 20563000 /kayak/net_help.sh
 20563000 /kayak/disk_help.sh
 20563095 /etc/default/dhcpagent
-20563196 /var/svc/log/system-manifest-import:default.log
 20563316 /etc/default/login
-20563434 /var/svc/log/system-boot-config:default.log
 20563498 /usr/sbin/uadmin
 20567658 /usr/bin/date
 20567747 /usr/bin/tr
@@ -1375,10 +1363,6 @@
 20862203 /usr/sbin/quota
 20862203 /usr/lib/fs/ufs/quota
 20862250 /etc/motd
-20862283 /usr/bin/mail
-20862296 /usr/lib/libmail.so.1
-20862298 /var/mail
-20862298 /var/mail/:saved
 20862301 /root/.profile
 20862301 /root/.bashrc
 20862331 /usr/share/lib/terminfo

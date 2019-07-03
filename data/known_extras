@@ -11,21 +11,13 @@
 0 /usr/bin/sleep
 0 /usr/sbin/disks
 0 /usr/sbin/prtconf
-0 /usr/sbin/amd64/prtconf
-0 /usr/sbin/swap
-0 /usr/sbin/amd64/swap
+0 /usr/sbin/prtdiag
 0 /usr/sbin/modinfo
-0 /usr/sbin/amd64/modinfo
 0 /usr/sbin/modload
-0 /usr/sbin/amd64/modload
 0 /usr/sbin/modunload
-0 /usr/sbin/amd64/modunload
 0 /usr/sbin/add_drv
-0 /usr/sbin/amd64/add_drv
 0 /usr/sbin/update_drv
-0 /usr/sbin/amd64/update_drv
 0 /usr/sbin/rem_drv
-0 /usr/sbin/amd64/rem_drv
 0 /lib/fm/amd64/libfmevent.so.1
 0 /lib/fm/libfmevent.so.1
 0 /lib/libcontract.so
@@ -42,8 +34,6 @@
 0 /usr/bin/more
 0 /usr/lib/libgss.so.1
 0 /lib/libcrypto.so.*
-0 /usr/bin/ssh
-0 /usr/bin/scp
 0 /usr/bin/clear
 0 /usr/bin/tput
 0 /usr/bin/getent
@@ -57,7 +47,6 @@
 0 /usr/bin/pfiles
 0 /usr/bin/vi
 0 /usr/bin/vim
-0 /usr/bin/edit
 0 /usr/lib/libncurses.so.*
 0 /usr/lib/amd64/libncurses.so.*
 0 /usr/lib/lddstub
@@ -89,3 +78,6 @@
 0 /usr/lib/libhistory.so.8
 0 /lib/libcryptoutil.so.1
 0 /usr/lib/libpkcs11.so.1
+0 /lib/amd64/libuutil.so.1
+0 /usr/lib/libsum.so.1
+0 /usr/lib/libdll.so.1
