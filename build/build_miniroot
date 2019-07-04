@@ -35,7 +35,7 @@ if [ ${SRCDIR:0:1} != "/" ]; then
 fi
 SRCDIR+=/..
 if [ -z "$1" ]; then
-    echo "$0 <zfs pool> [checkpoint]"
+    echo "$0 <zfs dataset> [checkpoint]"
     exit 1
 else
     BASE=${1}
@@ -344,7 +344,10 @@ EOM
 
   "cull")
     if [ -z "$BIGROOT" ]; then
-        load_keep_list data/*
+        for f in data/*; do
+            [ "`basename $f`" = baseline ] && continue
+            load_keep_list $f
+        done
         while read file; do
             [ -z "$file" ] && continue
             [ -n "${keep_list[$file]}" ] && continue
@@ -358,7 +361,40 @@ EOM
         for path in $RMRF; do
             rm -rf ${ROOTDIR}$path && echo " --- discarding $path"
         done
+        while read link; do
+            readlink -e "$link" >/dev/null && continue
+            echo " --- remove dangling $link"
+            rm -f "$link"
+        done < <(cd $ROOTDIR; find ./ -type l | cut -c3-)
     fi
+
+    chkpt sanity
+    ;;
+
+  "sanity")
+
+    of=`mktemp`
+    pushd $ROOTDIR >/dev/null
+    for f in usr/bin/* sbin/* usr/sbin/* lib/*.so.* usr/lib/*.so.*; do
+        LD_LIBRARY_PATH=./lib:./usr/lib \
+        LD_LIBRARY_PATH_32=./lib:./usr/lib \
+        LD_LIBRARY_PATH_64=./lib/amd64:./usr/lib/amd64 \
+            ldd $f 2>/dev/null | \
+            nawk -v file="$f" '
+                $3 !~ /^\./ { print "Missing library", file, "requires", $3 }
+            '
+    done | sort > $of
+    popd >/dev/null
+
+    diff -U0 $SRCDIR/data/baseline $of
+    if [ $? -gt 0 ]; then
+        echo
+        echo "-- SANITY CHECK FAILED, see above"
+        echo
+        mv $of $WORKDIR/sanity.baseline
+        exit 1
+    fi
+    rm -f $of
 
     chkpt strip
     ;;

@@ -170,7 +170,6 @@
 0 /etc/motd
 0 /etc/rc0.d
 0 /etc/uadmin
-0 /etc/mailcap
 0 /etc/project
 0 /etc/auto_home
 0 /etc/mkfs
@@ -312,8 +311,6 @@
 0 /etc/svc/profile/ns_files.xml
 0 /etc/svc/profile/generic_limited_net.xml
 0 /etc/svc/profile/inetd_upgrade.xml
-0 /etc/mail
-0 /etc/mail/mailx.rc
 0 /etc/umount
 0 /etc/wall
 0 /etc/rcS
