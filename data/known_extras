@@ -15,6 +15,7 @@
 0 /usr/sbin/modinfo
 0 /usr/sbin/modload
 0 /usr/sbin/modunload
+0 /usr/sbin/nvmeadm
 0 /usr/sbin/add_drv
 0 /usr/sbin/update_drv
 0 /usr/sbin/rem_drv
