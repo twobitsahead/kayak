@@ -32,6 +32,7 @@
 0 /usr/lib/utmpd
 0 /lib/libintl.so.1
 0 /usr/bin/less
+0 /usr/lib/amd64/libpcre2-8.so.*
 0 /usr/bin/more
 0 /usr/lib/libgss.so.1
 0 /lib/libcrypto.so.*
