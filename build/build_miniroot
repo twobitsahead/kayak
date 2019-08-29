@@ -187,7 +187,7 @@ if [ -n "$DEBUG" ]; then
 fi
 CULL="perl python package/pkg snmp"
 RMRF="/var/pkg /usr/share/man /usr/lib/iconv
-      /usr/lib/python2.7 /usr/lib/python3.5"
+      /usr/lib/python2.7 /usr/lib/python3.5 /usr/lib/python3.7"
 
 ID=`id -u`
 if [ "$ID" != "0" ]; then
