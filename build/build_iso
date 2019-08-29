@@ -322,7 +322,7 @@ if [ -n "$UEFI_SIZE" ]; then
 		# The system area will start at sector 64
 		fdisk -A 190:0:0:0:0:0:0:0:3:60 $RLOFI_ISO
 		fdisk -A $espparam $RLOFI_ISO
-		installboot -m $COMP_pmbr $COMP_isoboot $P2LOFI_ISO
+		installboot -fm $COMP_pmbr $COMP_isoboot $P2LOFI_ISO
 
 		echo
 		echo "Partition table after"
