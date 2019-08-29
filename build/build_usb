@@ -51,19 +51,32 @@ set -o errexit
 PROTO=
 [ -n "$PREBUILT_ILLUMOS" -a -d $PREBUILT_ILLUMOS/proto/root_i386-nd ] \
     && PROTO=$PREBUILT_ILLUMOS/proto/root_i386-nd
+
+protocnt=0
+livecnt=0
 for comp in loader32.efi loader64.efi pmbr gptzfsboot; do
 	if [ -n "$PROTO" -a -f $PROTO/boot/$comp ]; then
-		echo "Using $comp from proto"
-		eval COMP_${comp//./_}=$PROTO/boot/$comp
+		((protocnt++))
+		echo "Found $comp in proto"
 	elif [ -f /boot/$comp ]; then
-		echo "Using $comp from running system"
-		eval COMP_${comp//./_}=/boot/$comp
+		((livecnt++))
+		echo "Found $comp on running system"
 	else
 		echo "Cannot find $comp"
 		rm -rf $ISO_ROOT
 		exit 1
 	fi
 done
+
+if [ $protocnt -eq 4 ]; then
+	BOOT=$PROTO/boot
+elif [ $livecnt -eq 4 ]; then
+	BOOT=/boot
+else
+	echo "Cannot find all boot components"
+	rm -rf $ISO_ROOT
+	exit 1
+fi
 
 ######################################################################
 # Compute the size for the new USB image.
@@ -128,17 +141,6 @@ if [ -n "$UEFI_SIZE" ]; then
 	fmthard -d $new_boot $RLOFI_USB
 	fmthard -d $new_root $RLOFI_USB
 
-	stage "Building UEFI bootblock"
-
-	yes | mkfs -F pcfs -o b=System ${RLOFI_USB/p0/s0}
-	mkdir $UEFI_ROOT
-	mount -F pcfs ${LOFI_USB/p0/s0} $UEFI_ROOT
-	mkdir -p $UEFI_ROOT/efi/boot
-	cp ${COMP_loader32_efi} $UEFI_ROOT/efi/boot/bootia32.efi
-	cp ${COMP_loader64_efi} $UEFI_ROOT/efi/boot/bootx64.efi
-	umount $UEFI_ROOT
-	rmdir $UEFI_ROOT
-
 	ufs=2
 else
 	# Create Solaris2 partition filling the entire disk
@@ -196,7 +198,7 @@ df -h $USB_ROOT
 #
 
 stage "Installing boot blocks"
-installboot -mf $COMP_pmbr $COMP_gptzfsboot $UFS_SLICE
+installboot -F -m -f -b $BOOT $UFS_SLICE
 
 ######################################################################
 # Unmount and clean up
