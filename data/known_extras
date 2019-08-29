@@ -13,6 +13,7 @@
 0 /usr/sbin/prtconf
 0 /usr/sbin/prtdiag
 0 /usr/sbin/modinfo
+0 /usr/sbin/fstyp
 0 /usr/sbin/modload
 0 /usr/sbin/modunload
 0 /usr/sbin/nvmeadm
