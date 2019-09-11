@@ -235,6 +235,7 @@ BuildBE() {
     BE_SetUUID $RPOOL $_bename /mnt
     BE_LinkMsglog /mnt
     MakeSwapDump
+    Postboot "zpool set cachefile=/etc/zfs/zpool.cache $RPOOL"
     zfs destroy $RPOOL/ROOT/$_bename@kayak 1>&4 2>&4
 }
 
