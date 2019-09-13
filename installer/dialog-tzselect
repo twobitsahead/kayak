@@ -247,8 +247,8 @@ build_tz()
 			}
 		}
 
-		$1 == cc && $5 == region { 
-			# Check if tzname mapped to 
+		$1 == cc && $5 == region {
+			# Check if tzname mapped to
 			# backward compatible tzname
 			if ($4 == "-") {
 				print $3
