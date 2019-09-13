@@ -13,6 +13,7 @@
 0 /usr/sbin/prtconf
 0 /usr/sbin/prtdiag
 0 /usr/sbin/modinfo
+0 /usr/sbin/fstyp
 0 /usr/sbin/modload
 0 /usr/sbin/modunload
 0 /usr/sbin/nvmeadm
@@ -67,7 +68,7 @@
 0 /lib/libofmt.so.1
 0 /lib/amd64/libofmt.so.1
 0 /usr/xpg4/bin/egrep
-0 /usr/lib/security/crypt_sha256.so.1
+0 /usr/lib/security/crypt_sha512.so.1
 0 /usr/bin/nc
 0 /usr/sbin/smbios
 0 /usr/bin/cpuid
@@ -84,3 +85,4 @@
 0 /usr/lib/libsum.so.1
 0 /usr/lib/libdll.so.1
 0 /usr/lib/libjedec.so.1
+0 /usr/bin/dmesg

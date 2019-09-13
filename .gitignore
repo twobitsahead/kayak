@@ -1,5 +1,10 @@
 kayak_root/
-bin/*
+bin/dialog
+bin/ipcalc
+bin/mount_media
+bin/passutil
+bin/takeover-console
+bin/zpool_patch
 etc/kbd.list
 run
 mkiso

@@ -217,9 +217,13 @@ EOF
 # Add option to boot from hard disk
 cat << EOM > $ISO_ROOT/boot/menu.rc.local
 set mainmenu_caption[6]="Boot from [H]ard Disk"
-set mainmenu_command[6]="chain disk0:"
 set mainmenu_keycode[6]=104
 set mainansi_caption[6]="Boot from ^[1mH^[mard Disk"
+s" efi-version" getenv? [if]
+  set mainmenu_command[6]="chain disk0p1:/efi/boot/bootx64.efi"
+[else]
+  set mainmenu_command[6]="chain disk0:"
+[then]
 EOM
 
 ######################################################################
@@ -322,7 +326,7 @@ if [ -n "$UEFI_SIZE" ]; then
 		# The system area will start at sector 64
 		fdisk -A 190:0:0:0:0:0:0:0:3:60 $RLOFI_ISO
 		fdisk -A $espparam $RLOFI_ISO
-		installboot -m $COMP_pmbr $COMP_isoboot $P2LOFI_ISO
+		installboot -fm $COMP_pmbr $COMP_isoboot $P2LOFI_ISO
 
 		echo
 		echo "Partition table after"

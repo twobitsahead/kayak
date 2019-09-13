@@ -830,6 +830,7 @@
 20559793 /usr/kernel/fs
 20559793 /usr/kernel/fs/amd64
 20559793 /usr/kernel/fs/amd64/fdfs
+20559793 /usr/kernel/fs/amd64/pcfs
 20559877 /etc/svc/repository.db-journal
 20560464 /etc/dev
 20560464 /etc/dev/.devfsadm_dev.lock
@@ -1219,6 +1220,8 @@
 20570409 /usr/lib/fs/nfs
 20570409 /usr/lib/fs/dev
 20570410 /usr/lib/fs/pcfs
+20570410 /usr/lib/fs/pcfs/mount
+20570410 /usr/lib/fs/pcfs/fstyp
 20570410 /usr/lib/fs/ctfs
 20570410 /usr/lib/fs/zfs
 20570410 /usr/lib/fs/proc

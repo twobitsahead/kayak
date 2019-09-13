@@ -141,7 +141,7 @@ zfsdestroy:
 # Binaries to build from source
 
 BINS=bin/takeover-console bin/ipcalc bin/dialog bin/passutil bin/mount_media \
-	 etc/kbd.list
+	 etc/kbd.list bin/zpool_patch
 
 bin/takeover-console:	src/takeover-console.c
 	gcc -o $@ $<

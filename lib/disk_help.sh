@@ -122,9 +122,9 @@ GetTargetVolSize() {
         local vsize=`printf %0.f $quart`
     fi
     echo $vsize
-}    
+}
 GetRpoolFree() {
-    local zfsavail=`/sbin/zfs list -H -o avail $RPOOL` 
+    local zfsavail=`/sbin/zfs list -H -o avail $RPOOL`
     if [[ ${zfsavail:(-1)} = "G" ]]; then
         local avail=`printf %0.f ${zfsavail::-1}`
     elif [[ ${zfsavail:(-1)} = "T" ]]; then

@@ -187,7 +187,7 @@ if [ -n "$DEBUG" ]; then
 fi
 CULL="perl python package/pkg snmp"
 RMRF="/var/pkg /usr/share/man /usr/lib/iconv
-      /usr/lib/python2.7 /usr/lib/python3.5"
+      /usr/lib/python2.7 /usr/lib/python3.5 /usr/lib/python3.7"
 
 ID=`id -u`
 if [ "$ID" != "0" ]; then
@@ -339,6 +339,13 @@ export HOME=/root
 export PS1='kayak-$VERSION# '
 EOM
 
+    echo " --- installing dmesg"
+    # Install a small dummy dmesg command that will work from the installer
+    # shell.
+    rm -f $ROOTDIR/usr/bin/dmesg
+    cp $SRCDIR/bin/dmesg $ROOTDIR/usr/bin/dmesg
+    chmod 0755 $ROOTDIR/usr/bin/dmesg
+
     chkpt cull
     ;;
 
@@ -447,8 +454,14 @@ EOM
         chmod a+x $WORKDIR/mnt/kayak/$dir/*
     done
 
-    # So "bootadm update-archive" can work.
-    cp $SRCDIR/installer/digest $WORKDIR/mnt/usr/bin/digest
+    echo " --- installing digest"
+    # "bootadm update-archive" uses `digest -a sha1` but digest has a lot of
+    # dependencies on crypto libraries etc. Install a small replacement
+    # digest utility to allow bootadm to work.
+    #
+    # We don't want this in the boot filesystem, just the ramdisk hence it is
+    # done here rather than under the 'fixup' stage.
+    cp $SRCDIR/bin/digest $WORKDIR/mnt/usr/bin/digest
     chmod 0755 $WORKDIR/mnt/usr/bin/digest
 
     make_initial_boot $WORKDIR/mnt/.initialboot

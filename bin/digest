@@ -23,8 +23,8 @@
 # which uses "digest -a sha1 <one-filename>".
 
 usage() {
-    echo "Usage:" > /dev/stderr
-    echo "  digest -l | [-v] -a <algorithm> [file...]" > /dev/stderr
+    echo "Usage:" >&2
+    echo "  digest -l | [-v] -a <algorithm> [file...]" >&2
     exit 2
 }
 
