@@ -285,14 +285,10 @@ done
 d_info "Creating $RPOOL..."
 
 case $SFORCE in
-	4K)	min_ashift=c ;;
-	8K)	min_ashift=d ;;
-	*)	min_ashift=0 ;;
+	4K)	ashift=12 ;;
+	8K)	ashift=13 ;;
+	*)	ashift=0 ;;
 esac
-
-if [ $min_ashift != 0 ]; then
-	mdb -kwe "zfs_ashift_min/z$min_ashift" >/dev/null 2>&1
-fi
 
 NO_COMPRESSION=
 [ "$COMPRESSION" = "YES" ] || NO_COMPRESSION=1
@@ -300,6 +296,10 @@ export NO_COMPRESSION
 
 _DISKLIST="$DISKLIST"
 _FLAGS=f
+_OPTS=
+
+[ $ashift != 0 ] && _OPTS+=" -o ashift=$ashift"
+
 case "$PSCHEME" in
 	UEFI)
 		_FLAGS+=B
@@ -322,7 +322,7 @@ case "$PSCHEME" in
 		;;
 esac
 
-if ! zpool create -$_FLAGS "$RPOOL" $ztype $_DISKLIST || \
+if ! zpool create -$_FLAGS $_OPTS "$RPOOL" $ztype $_DISKLIST || \
    ! zpool list $RPOOL >& /dev/null; then
 	d_msg "Failed to create root pool"
 	exit 0

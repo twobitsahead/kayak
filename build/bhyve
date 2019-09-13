@@ -47,11 +47,7 @@ SetupLog /tmp/kayak-bhyve.log
 echo "Clearing any old pool"
 zpool destroy -f $RPOOL 2>/dev/null || true
 
-echo "Creating new pool"
-# Use ashift=13
-mdb -kwe "zfs_ashift_min/zd"
-zpool create -fdB $RPOOL ${DISK} || exit 1
-mdb -kwe "zfs_ashift_min/z0"
+zpool create -fdB -o ashift=13 $RPOOL ${DISK} || exit 1
 
 BE_Create_Root $RPOOL
 BE_Receive_Image cat "xz -dc" $RPOOL $BENAME $ZFSSEND
