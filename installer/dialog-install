@@ -317,6 +317,23 @@ case "$PSCHEME" in
 				d_msg "Failed to partition $disk"
 				exit 0
 			fi
+			# At this point, the disk will have three slices:
+			#	s0	entire disk
+			#	s2	entire disk
+			#	s8	reserved boot area
+			# with s0 and s8 overlapping.
+
+			# Fix this by first removing slice 0
+			fmthard -d 0:0:0:0:0 /dev/rdsk/${disk}p0
+
+			# Create slice 0 covering all of the non-reserved space
+			OIFS="$IFS"; IFS=" ="
+			set -- `prtvtoc -f /dev/rdsk/${disk}p0`
+			IFS="$OIFS"
+			# FREE_START=16065 FREE_SIZE=196608 FREE_COUNT=1...
+			start=$2; size=$4
+			fmthard -d 0:2:01:$start:$size /dev/rdsk/${disk}p0
+
 			_DISKLIST+="${disk}s0 "
 		done
 		;;

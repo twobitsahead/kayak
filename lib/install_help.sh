@@ -272,7 +272,7 @@ MakeBootable(){
   slog "Activating BE"
   beadm activate $_bename 2>/dev/null|| return 1
   slog "Installing bootloader"
-  bootadm install-bootloader -f -P $_rpool || return 1
+  bootadm install-bootloader -Mf -P $_rpool || return 1
   slog "Updating boot archive"
   bootadm update-archive -R $ALTROOT || return 1
   return 0
