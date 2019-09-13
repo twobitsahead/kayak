@@ -640,3 +640,5 @@
 0 /kernel/misc/amd64/hyperv
 0 /kernel/drv/hv_netvsc.conf
 0 /kernel/drv/hv_vmbus.conf
+0 /kernel/misc/amd64/cc
+0 /kernel/cc/amd64/cc_sunreno
