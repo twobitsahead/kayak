@@ -291,7 +291,7 @@ case $SFORCE in
 esac
 
 if [ $min_ashift != 0 ]; then
-	mdb -kwe "zfs_ashift_min/z$min_ashift" >/dev/null 2>&1
+	mdb -kwe "zfs_ashift_min/W$min_ashift" >/dev/null 2>&1
 fi
 
 NO_COMPRESSION=

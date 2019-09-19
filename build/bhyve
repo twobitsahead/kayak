@@ -49,9 +49,9 @@ zpool destroy -f $RPOOL 2>/dev/null || true
 
 echo "Creating new pool"
 # Use ashift=13
-mdb -kwe "zfs_ashift_min/zd"
+mdb -kwe "zfs_ashift_min/Wd"
 zpool create -fdB $RPOOL ${DISK} || exit 1
-mdb -kwe "zfs_ashift_min/z0"
+mdb -kwe "zfs_ashift_min/W0"
 
 BE_Create_Root $RPOOL
 BE_Receive_Image cat "xz -dc" $RPOOL $BENAME $ZFSSEND
