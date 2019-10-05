@@ -212,6 +212,7 @@ cat <<EOF > $ISO_ROOT/boot/loader.conf.local
 loader_menu_title="Welcome to the OmniOS installer"
 autoboot_delay=10
 ooce_version="$VERSION"
+boot_resolution="800x600"
 EOF
 
 # Add option to boot from hard disk
