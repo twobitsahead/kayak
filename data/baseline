@@ -1,21 +1,170 @@
-Missing library lib/ld.so.1 requires /lib/libld.so.4
-Missing library lib/ld.so.1 requires /lib/liblddbg.so.4
-Missing library lib/ld.so.1 requires /lib/librtld.so.1
-Missing library sbin/beadm requires /usr/lib/libficl-sys.so.4.1.0
-Missing library sbin/bootadm requires /usr/lib/libficl-sys.so.4.1.0
-Missing library sbin/dladm requires /usr/lib/librstp.so.1
-Missing library sbin/hostconfig requires /lib/librpcsvc.so.1
-Missing library sbin/ifconfig requires /lib/libipmp.so.1
-Missing library sbin/init requires /lib/libpam.so.1
-Missing library sbin/route requires /lib/libtsnet.so.1
-Missing library sbin/su.static requires /lib/libpam.so.1
-Missing library usr/bin/diskinfo requires /usr/lib/fm/libtopo.so.1
-Missing library usr/lib/ld.so.1 requires /lib/libld.so.4
-Missing library usr/lib/ld.so.1 requires /lib/liblddbg.so.4
-Missing library usr/lib/ld.so.1 requires /lib/librtld.so.1
-Missing library usr/lib/libbe.so.1 requires /usr/lib/libficl-sys.so.4.1.0
-Missing library usr/sbin/beadm requires /usr/lib/libficl-sys.so.4.1.0
-Missing library usr/sbin/bootadm requires /usr/lib/libficl-sys.so.4.1.0
-Missing library usr/sbin/prtdiag requires /usr/lib/fm/libtopo.so.1
-Missing library usr/sbin/reboot requires /usr/lib/libficl-sys.so.4.1.0
-Missing library usr/sbin/rpcbind requires /usr/lib/libwrap.so.1
+Missing dependency for etc/fs/nfs/mount - librpcsvc.so.1
+Missing dependency for lib/amd64/ld.so.1 - libld.so.4
+Missing dependency for lib/amd64/ld.so.1 - liblddbg.so.4
+Missing dependency for lib/amd64/ld.so.1 - librtld.so.1
+Missing dependency for lib/amd64/libdladm.so.1 - libkstat.so.1
+Missing dependency for lib/amd64/libdladm.so.1 - librcm.so.1
+Missing dependency for lib/amd64/libuuid.so.1 - libdlpi.so.1
+Missing dependency for lib/amd64/libzfs.so.1 - libadm.so.1
+Missing dependency for lib/amd64/libzfs.so.1 - libcryptoutil.so.1
+Missing dependency for lib/amd64/libzfs.so.1 - libefi.so.1
+Missing dependency for lib/amd64/libzfs.so.1 - libpkcs11.so.1
+Missing dependency for lib/fm/amd64/libfmevent.so.1 - libtopo.so.1
+Missing dependency for lib/inet/in.mpathd - libipmp.so.1
+Missing dependency for lib/ld.so.1 - libld.so.4
+Missing dependency for lib/ld.so.1 - liblddbg.so.4
+Missing dependency for lib/ld.so.1 - librtld.so.1
+Missing dependency for lib/svc/method/svc-fcoei - libfcoe.so.1
+Missing dependency for lib/svc/method/svc-fcoet - libfcoe.so.1
+Missing dependency for lib/svc/method/svc-stmf - libstmf.so.1
+Missing dependency for sbin/bootadm - libficl-sys.so.4.1.0
+Missing dependency for sbin/dladm - librstp.so.1
+Missing dependency for sbin/hostconfig - librpcsvc.so.1
+Missing dependency for sbin/ifconfig - libipmp.so.1
+Missing dependency for sbin/init - libpam.so.1
+Missing dependency for sbin/route - libtsnet.so.1
+Missing dependency for sbin/su.static - libpam.so.1
+Missing dependency for usr/bin/amd64/mdb - libdemangle-sys.so.1
+Missing dependency for usr/bin/amd64/mdb - libvmm.so.1
+Missing dependency for usr/bin/i86/truss - libc_db.so.1
+Missing dependency for usr/lib/amd64/libcmd.so.1 - libsum.so.1
+Missing dependency for usr/lib/amd64/libdiskmgt.so.1 - libadm.so.1
+Missing dependency for usr/lib/amd64/libdiskmgt.so.1 - libefi.so.1
+Missing dependency for usr/lib/amd64/libdiskmgt.so.1 - libfdisk.so.1
+Missing dependency for usr/lib/amd64/libdiskmgt.so.1 - libkstat.so.1
+Missing dependency for usr/lib/amd64/libshell.so.1 - libdll.so.1
+Missing dependency for usr/lib/fs/smbfs/libshare_smbfs.so.1 - libsmbfs.so.1
+Missing dependency for usr/lib/libbe.so.1 - libficl-sys.so.4.1.0
+Missing dependency for usr/platform/i86pc/lib/fm/topo/plugins/chip.so - libfmd_agent.so.1
+Missing dependency for usr/sbin/rpcbind - libwrap.so.1
+Unused library lib/amd64/ld.so.1
+Unused library lib/amd64/libcontract.so.1
+Unused library lib/amd64/libdladm.so.1
+Unused library lib/amd64/libmd5.so.1
+Unused library lib/amd64/libssl.so.1.0.0
+Unused library lib/amd64/libthread.so.1
+Unused library lib/amd64/libuuid.so.1
+Unused library lib/amd64/libzfs.so.1
+Unused library lib/amd64/nss_files.so.1
+Unused library lib/fm/amd64/libfmevent.so.1
+Unused library lib/ld.so.1
+Unused library lib/libcrypto.so.1.0.0
+Unused library lib/libcrypto.so.1.1
+Unused library lib/libdl.so.1
+Unused library lib/libgrubmgmt.so.1
+Unused library lib/libintl.so.1
+Unused library lib/libm.so.1
+Unused library lib/libresolv.so.1
+Unused library lib/libthread.so.1
+Unused library lib/nss_files.so.1
+Unused library usr/lib/amd64/libbrand.so.1
+Unused library usr/lib/amd64/libdiskmgt.so.1
+Unused library usr/lib/amd64/libidn.so.11.6.18
+Unused library usr/lib/amd64/libidn.so.12.6.0
+Unused library usr/lib/amd64/libipmi.so.1
+Unused library usr/lib/amd64/libncurses.so.5.9
+Unused library usr/lib/amd64/libproject.so.1
+Unused library usr/lib/amd64/libtecla.so.1
+Unused library usr/lib/devfsadm/linkmod/SUNW_audio_link.so
+Unused library usr/lib/devfsadm/linkmod/SUNW_cfg_link.so
+Unused library usr/lib/devfsadm/linkmod/SUNW_disk_link.so
+Unused library usr/lib/devfsadm/linkmod/SUNW_dtrace_link.so
+Unused library usr/lib/devfsadm/linkmod/SUNW_fssnap_link.so
+Unused library usr/lib/devfsadm/linkmod/SUNW_ieee1394_link.so
+Unused library usr/lib/devfsadm/linkmod/SUNW_lofi_link.so
+Unused library usr/lib/devfsadm/linkmod/SUNW_misc_link.so
+Unused library usr/lib/devfsadm/linkmod/SUNW_misc_link_i386.so
+Unused library usr/lib/devfsadm/linkmod/SUNW_port_link.so
+Unused library usr/lib/devfsadm/linkmod/SUNW_ramdisk_link.so
+Unused library usr/lib/devfsadm/linkmod/SUNW_sgen_link.so
+Unused library usr/lib/devfsadm/linkmod/SUNW_smp_link.so
+Unused library usr/lib/devfsadm/linkmod/SUNW_tape_link.so
+Unused library usr/lib/devfsadm/linkmod/SUNW_usb_link.so
+Unused library usr/lib/devfsadm/linkmod/SUNW_xen_link.so
+Unused library usr/lib/devfsadm/linkmod/SUNW_zfs_link.so
+Unused library usr/lib/fs/autofs/libshare_autofs.so.1
+Unused library usr/lib/fs/hsfs/fstyp.so.1
+Unused library usr/lib/fs/pcfs/fstyp.so.1
+Unused library usr/lib/fs/smb/libshare_smb.so.1
+Unused library usr/lib/fs/smbfs/libshare_smbfs.so.1
+Unused library usr/lib/fs/udfs/fstyp.so.1
+Unused library usr/lib/fs/ufs/fstyp.so.1
+Unused library usr/lib/fs/zfs/fstyp.so.1
+Unused library usr/lib/libc/libc_hwcap1.so.1
+Unused library usr/lib/libc/libc_hwcap2.so.1
+Unused library usr/lib/libc/libc_hwcap3.so.1
+Unused library usr/lib/libdisasm.so.1
+Unused library usr/lib/libgss.so.1
+Unused library usr/lib/libhistory.so.8
+Unused library usr/lib/libidn.so.11.6.18
+Unused library usr/lib/libidn.so.12.6.0
+Unused library usr/lib/libkvm.so.1
+Unused library usr/lib/libncurses.so.5.9
+Unused library usr/lib/libncurses.so.6.1
+Unused library usr/lib/libreadline.so.8
+Unused library usr/lib/libsasl.so.1
+Unused library usr/lib/mdb/kvm/amd64/arp.so
+Unused library usr/lib/mdb/kvm/amd64/cpc.so
+Unused library usr/lib/mdb/kvm/amd64/cpu.generic.so
+Unused library usr/lib/mdb/kvm/amd64/cpu_ms.AuthenticAMD.15.so
+Unused library usr/lib/mdb/kvm/amd64/crypto.so
+Unused library usr/lib/mdb/kvm/amd64/genunix.so
+Unused library usr/lib/mdb/kvm/amd64/hook.so
+Unused library usr/lib/mdb/kvm/amd64/ip.so
+Unused library usr/lib/mdb/kvm/amd64/ipc.so
+Unused library usr/lib/mdb/kvm/amd64/ipp.so
+Unused library usr/lib/mdb/kvm/amd64/krtld.so
+Unused library usr/lib/mdb/kvm/amd64/lofs.so
+Unused library usr/lib/mdb/kvm/amd64/logindmux.so
+Unused library usr/lib/mdb/kvm/amd64/mac.so
+Unused library usr/lib/mdb/kvm/amd64/mdb_kb.so
+Unused library usr/lib/mdb/kvm/amd64/mdb_ks.so
+Unused library usr/lib/mdb/kvm/amd64/mpt.so
+Unused library usr/lib/mdb/kvm/amd64/mpt_sas.so
+Unused library usr/lib/mdb/kvm/amd64/mr_sas.so
+Unused library usr/lib/mdb/kvm/amd64/nca.so
+Unused library usr/lib/mdb/kvm/amd64/neti.so
+Unused library usr/lib/mdb/kvm/amd64/nfs.so
+Unused library usr/lib/mdb/kvm/amd64/ptm.so
+Unused library usr/lib/mdb/kvm/amd64/random.so
+Unused library usr/lib/mdb/kvm/amd64/s1394.so
+Unused library usr/lib/mdb/kvm/amd64/sata.so
+Unused library usr/lib/mdb/kvm/amd64/scsi_vhci.so
+Unused library usr/lib/mdb/kvm/amd64/sctp.so
+Unused library usr/lib/mdb/kvm/amd64/sd.so
+Unused library usr/lib/mdb/kvm/amd64/sockfs.so
+Unused library usr/lib/mdb/kvm/amd64/specfs.so
+Unused library usr/lib/mdb/kvm/amd64/sppp.so
+Unused library usr/lib/mdb/kvm/amd64/ufs.so
+Unused library usr/lib/mdb/kvm/amd64/uhci.so
+Unused library usr/lib/mdb/kvm/amd64/usba.so
+Unused library usr/lib/mdb/kvm/amd64/xhci.so
+Unused library usr/lib/mdb/proc/amd64/ld.so
+Unused library usr/lib/mdb/proc/amd64/libavl.so
+Unused library usr/lib/mdb/proc/amd64/libc.so
+Unused library usr/lib/mdb/proc/amd64/libcmdutils.so
+Unused library usr/lib/mdb/proc/amd64/libnvpair.so
+Unused library usr/lib/mdb/proc/amd64/libproc.so
+Unused library usr/lib/mdb/proc/amd64/libpython2.7.so
+Unused library usr/lib/mdb/proc/amd64/libsysevent.so
+Unused library usr/lib/mdb/proc/amd64/libtopo.so
+Unused library usr/lib/mdb/proc/amd64/libumem.so
+Unused library usr/lib/mdb/proc/amd64/libuutil.so
+Unused library usr/lib/mdb/proc/amd64/mdb_ds.so
+Unused library usr/lib/mdb/proc/amd64/mdb_test.so
+Unused library usr/lib/security/crypt_sha512.so.1
+Unused library usr/lib/straddr.so.2
+Unused library usr/lib/sysevent/modules/datalink_mod.so
+Unused library usr/lib/sysevent/modules/devfsadmd_mod.so
+Unused library usr/lib/sysevent/modules/picl_slm.so
+Unused library usr/lib/sysevent/modules/sysevent_conf_mod.so
+Unused library usr/lib/sysevent/modules/sysevent_reg_mod.so
+Unused library usr/lib/sysevent/modules/zfs_mod.so
+Unused library usr/platform/i86pc/lib/fm/topo/plugins/chip.so
+Unused library usr/platform/i86pc/lib/fm/topo/plugins/hostbridge.so
+Unused library usr/platform/i86pc/lib/fm/topo/plugins/pcibus.so
+Unused library usr/platform/i86pc/lib/fm/topo/plugins/x86pi.so
+Unused library usr/platform/i86pc/lib/mdb/kvm/amd64/apix.so
+Unused library usr/platform/i86pc/lib/mdb/kvm/amd64/pcplusmp.so
+Unused library usr/platform/i86pc/lib/mdb/kvm/amd64/unix.so
+Unused library usr/platform/i86pc/lib/mdb/kvm/amd64/uppc.so
