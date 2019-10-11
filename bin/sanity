@@ -1,0 +1,118 @@
+#!/usr/bin/python3.5
+
+# {{{ CDDL HEADER
+# This file and its contents are supplied under the terms of the
+# Common Development and Distribution License ("CDDL"), version 1.0.
+# You may only use this file in accordance with the terms of version
+# 1.0 of the CDDL.
+#
+# A full copy of the text of the CDDL should have accompanied this
+# source. A copy of the CDDL is also available via the Internet at
+# http://www.illumos.org/license/CDDL.
+# }}}
+
+# Copyright 2019 OmniOS Community Edition (OmniOSce) Association.
+
+import sys, os
+import pkg.elf as elf
+from pprint import pprint
+
+default_run_paths = ['lib', 'usr/lib']
+
+if len(sys.argv) < 2:
+    print("Syntax: sanity <altroot> [-d]")
+    sys.exit(1)
+
+root = sys.argv[1]
+if not os.path.isdir(root):
+    print("{} is not a directory".format(root))
+    sys.exit(1)
+
+try:
+    if sys.argv[2] == "-d":
+        debug = True
+except:
+    debug = False
+
+rootl = len(root) + 1
+
+def elfs(types=None):
+    for r, d, files in os.walk(root):
+        for f in files:
+            obj = os.path.join(r, f)
+            if os.path.islink(obj): continue
+            if not os.path.isfile(obj): continue
+            try:
+                if not elf.is_elf_object(obj): continue
+                ei = elf.get_info(obj)
+            except:
+                continue
+            if types is not None and ei['type'] not in types:
+                continue
+            yield obj, ei
+
+libraries = {}
+for obj, ei in elfs(['so']):
+        libraries[obj[rootl:]] = False
+
+for obj, ei in elfs(['so', 'exe']):
+    ed = elf.get_dynamic(obj)
+    obj = obj[rootl:]
+
+    try:
+        rp = [ e[1:].replace('/64', '/amd64')
+            for e in ed['runpath'].split(":") ]
+        if len(rp) == 1 and rp[0] == "":
+            rp = []
+    except KeyError:
+        rp = []
+
+    for p in default_run_paths:
+        if ei['bits'] == 64:
+            p += '/amd64'
+        rp.append(p)
+
+    try:
+        deps = ed['deps']
+    except KeyError:
+        continue
+
+    for deplist in deps:
+        dep = deplist[0]
+        # deplist[1] is the list of required versions
+        flags = deplist[2]
+
+        if dep in ['genunix', 'dtracestubs']:
+            continue
+
+        if os.path.isabs(dep):
+            path = os.path.join(root, dep[1:])
+        else:
+            for p in rp:
+                if "ORIGIN" in p:
+                    p = p.replace("ORIGIN", os.path.dirname(obj))
+                path = os.path.normpath(os.path.join(root, p, dep))
+                while os.path.islink(path):
+                    rpath = os.readlink(path)
+                    if not os.path.isabs(rpath):
+                        rpath = os.path.join(os.path.dirname(path), rpath)
+                    path = os.path.normpath(rpath)
+                    if not path.startswith(root):
+                        path = os.path.join(root, path[1:])
+                if os.path.isfile(path):
+                    break
+        if os.path.isfile(path):
+            path = path[rootl:]
+            libraries[path] = True
+            if debug:
+                print("Dependency for {} - {}".format(obj, path))
+        else:
+            print("Missing dependency for {} - {}{}".format(obj, dep,
+                " [LAZY]" if flags & elf.DYNFLAG_LAZY else ""))
+
+for l, c in libraries.items():
+    if not c:
+        print("Unused library {}".format(l))
+
+# Vim hints
+# vim:ts=4:sw=4:et:fdm=marker

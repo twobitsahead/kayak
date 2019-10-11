@@ -1,334 +1,329 @@
-0 /etc
-0 /etc/nsswitch.ldap
-0 /etc/fsck
-0 /etc/net
-0 /etc/net/ticotsord
-0 /etc/net/ticotsord/hosts
-0 /etc/net/ticotsord/services
-0 /etc/net/ticots
-0 /etc/net/ticots/services
-0 /etc/net/ticots/hosts
-0 /etc/net/ticlts
-0 /etc/net/ticlts/services
-0 /etc/net/ticlts/hosts
-0 /etc/dhcp
-0 /etc/dhcp/inittab6
-0 /etc/dhcp/inittab
-0 /etc/crypto
-0 /etc/crypto/certs
-0 /etc/crypto/kcf.conf
-0 /etc/crypto/pkcs11.conf
-0 /etc/crypto/kmf.conf
-0 /etc/crypto/crls
-0 /etc/sock2path.d
-0 /etc/sock2path.d/system%2Fkernel
-0 /etc/sock2path.d/driver%2Fnetwork%2Frdsv3
-0 /etc/sock2path.d/driver%2Fnetwork%2Frds
-0 /etc/sock2path.d/driver%2Fnetwork%2Fsdp
-0 /etc/sock2path.d/driver%2Fnetwork%2Fbpf
-0 /etc/nsswitch.files
-0 /etc/reboot
-0 /etc/rcm
-0 /etc/rcm/scripts
-0 /etc/rc2.d
-0 /etc/rc2.d/S20sysetup
-0 /etc/rc2.d/README
-0 /etc/rc2.d/S89PRESERVE
-0 /etc/nscd.conf
-0 /etc/protocols
-0 /etc/netconfig
-0 /etc/ioctl.syscon
-0 /etc/inet
-0 /etc/inet/services
-0 /etc/inet/ike
-0 /etc/inet/ike/publickeys
-0 /etc/inet/ike/crls
-0 /etc/inet/ike/config.sample
-0 /etc/inet/protocols
-0 /etc/inet/netmasks
-0 /etc/inet/hosts
-0 /etc/inet/datemsk.ndpd
-0 /etc/inet/ipaddrsel.conf
-0 /etc/inet/ipnodes
-0 /etc/inet/secret
-0 /etc/inet/inetd.conf
-0 /etc/inet/ipsecinit.sample
-0 /etc/inet/networks
-0 /etc/inet/wanboot.conf.sample
-0 /etc/inet/ipsecalgs
-0 /etc/user_attr.d
-0 /etc/user_attr.d/SUNWcs
-0 /etc/mnttab
-0 /etc/group
-0 /etc/inetd.conf
-0 /etc/rc3.d
-0 /etc/rc3.d/README
-0 /etc/gss
-0 /etc/gss/mech
-0 /etc/gss/gsscred.conf
-0 /etc/gss/qop
-0 /etc/sysdef
-0 /etc/mach
-0 /etc/pam.conf
-0 /etc/fmthard
-0 /etc/driver_aliases
-0 /etc/name_to_major
-0 /etc/rc0
-0 /etc/openssl
-0 /etc/openssl/certs
-0 /etc/saf
-0 /etc/saf/zsmon
-0 /etc/saf/zsmon/_pmtab
-0 /etc/saf/_sysconfig
-0 /etc/saf/_sactab
-0 /etc/inittab
-0 /etc/killall
-0 /etc/nwam
-0 /etc/nwam/loc
-0 /etc/nwam/loc/NoNet
-0 /etc/nwam/loc/NoNet/ipf6.conf.dfl
-0 /etc/nwam/loc/NoNet/ipf.conf.dfl
-0 /etc/nwam/loc/create_loc_nonet
-0 /etc/nwam/loc/create_loc_auto
-0 /etc/magic
-0 /etc/usb
-0 /etc/usb/config_map.conf
-0 /etc/security
-0 /etc/security/policy.conf
-0 /etc/security/exec_attr.d
-0 /etc/security/exec_attr.d/package:pkg
-0 /etc/security/exec_attr.d/SUNWcs
-0 /etc/security/dev
-0 /etc/security/dev/st1
-0 /etc/security/dev/audio
-0 /etc/security/dev/sr0
-0 /etc/security/dev/st0
-0 /etc/security/dev/fd0
-0 /etc/security/auth_attr
-0 /etc/security/exec_attr
-0 /etc/security/device_policy
-0 /etc/security/kmfpolicy.xml
-0 /etc/security/audit_event
-0 /etc/security/prof_attr
-0 /etc/security/priv_names
-0 /etc/security/prof_attr.d
-0 /etc/security/prof_attr.d/SUNWcs
-0 /etc/security/auth_attr.d
-0 /etc/security/auth_attr.d/package:pkg
-0 /etc/security/auth_attr.d/SUNWcs
-0 /etc/security/crypt.conf
-0 /etc/security/lib
-0 /etc/security/lib/fd_clean
-0 /etc/security/lib/sr_clean
-0 /etc/security/lib/st_clean
-0 /etc/security/lib/audio_clean
-0 /etc/security/audit
-0 /etc/security/audit/localhost
-0 /etc/security/audit/localhost/files
-0 /etc/security/extra_privs
-0 /etc/security/audit_warn
-0 /etc/security/audit_class
-0 /etc/system
-0 /etc/device.tab
-0 /etc/volcopy
-0 /etc/hba.conf
-0 /etc/fs
-0 /etc/fs/ufs
-0 /etc/fs/ufs/mount
-0 /etc/fs/hsfs
-0 /etc/fs/hsfs/mount
-0 /etc/fs/zfs
-0 /etc/fs/zfs/umount
-0 /etc/fs/zfs/mount
-0 /etc/fs/dev
-0 /etc/fs/dev/mount
-0 /etc/fs/nfs
-0 /etc/fs/nfs/mount
-0 /etc/logadm.conf
-0 /etc/driver_classes
-0 /etc/nsswitch.conf
-0 /etc/fm
-0 /etc/fm/fmd
-0 /etc/cron
-0 /etc/mount
-0 /etc/devlink.tab
-0 /etc/notices
-0 /etc/notices/LICENSE
-0 /etc/notices/COPYRIGHT
-0 /etc/.login
-0 /etc/telinit
-0 /etc/lib
-0 /etc/lib/ld.so.1
-0 /etc/lib/libdl.so.1
-0 /etc/lib/nss_files.so.1
-0 /etc/rc1.d
-0 /etc/utmpx
-0 /etc/swapadd
-0 /etc/setmnt
-0 /etc/nsswitch.dns
-0 /etc/netmasks
-0 /etc/motd
-0 /etc/rc0.d
-0 /etc/uadmin
-0 /etc/project
-0 /etc/auto_home
-0 /etc/mkfs
-0 /etc/passwd
-0 /etc/rcS.d
-0 /etc/rcS.d/README
-0 /etc/sysevent
-0 /etc/sysevent/config
-0 /etc/sysevent/config/README
-0 /etc/sysevent/config/SUNW,EC_dr,ESC_dr_req,sysevent.conf
-0 /etc/sysevent/config/SUNW,EC_zfs,ESC_ZFS_bootfs_vdev_attach,sysevent.conf
-0 /etc/services
-0 /etc/fstyp
-0 /etc/logindevperm
-0 /etc/rc3
-0 /etc/sdp.conf
-0 /etc/auto_master
-0 /etc/fsdb
-0 /etc/dcopy
-0 /etc/nfssec.conf
-0 /etc/net-snmp
-0 /etc/autopush
-0 /etc/networks
-0 /etc/umountall
-0 /etc/sulogin
-0 /etc/brand
-0 /etc/rc1
-0 /etc/syslog.conf
-0 /etc/ncheck
-0 /etc/shutdown
-0 /etc/tar
-0 /etc/profile
-0 /etc/krb5
-0 /etc/krb5/warn.conf
-0 /etc/krb5/krb5.conf
-0 /etc/opt
-0 /etc/name_to_sysnum
-0 /etc/release
-0 /etc/halt
-0 /etc/user_attr
-0 /etc/prtconf
-0 /etc/sasl
-0 /etc/cfgadm
-0 /etc/grpck
-0 /etc/install
-0 /etc/dgroup.tab
-0 /etc/dacf.conf
-0 /etc/cron.d
-0 /etc/cron.d/at.deny
-0 /etc/cron.d/queuedefs
-0 /etc/cron.d/cron.deny
-0 /etc/cron.d/.proto
-0 /etc/rpcsec
-0 /etc/flash
-0 /etc/flash/postcreation
-0 /etc/flash/precreation
-0 /etc/flash/preexit
-0 /etc/mpapi.conf
-0 /etc/remote
-0 /etc/ftpd
-0 /etc/ftpd/ftpusers
-0 /etc/default
-0 /etc/default/ipsec
-0 /etc/default/inetinit
-0 /etc/default/nss
-0 /etc/default/autofs
-0 /etc/default/keyserv
-0 /etc/default/mpathd
-0 /etc/default/cron
-0 /etc/default/power
-0 /etc/default/passwd
-0 /etc/default/syslogd
-0 /etc/default/login
-0 /etc/default/nfs
-0 /etc/default/init
-0 /etc/default/fs
-0 /etc/default/tar
-0 /etc/default/devfsadm
-0 /etc/default/dhcpagent
-0 /etc/default/su
-0 /etc/nsswitch.ad
-0 /etc/TIMEZONE
-0 /etc/rpc
-0 /etc/bash
-0 /etc/labelit
-0 /etc/swap
-0 /etc/rc6
-0 /etc/vfstab
-0 /etc/rc2
-0 /etc/tm
-0 /etc/dumpdates
-0 /etc/mime.types
-0 /etc/.pwd.lock
-0 /etc/devices
-0 /etc/ttydefs
-0 /etc/dladm
-0 /etc/dladm/flowprop.conf
-0 /etc/dladm/datalink.conf
-0 /etc/dladm/secobj.conf
-0 /etc/dladm/flowadm.conf
-0 /etc/zones
-0 /etc/zones/SUNWdefault.xml
-0 /etc/zones/index
-0 /etc/zones/SUNWblank.xml
-0 /etc/minor_perm
-0 /etc/init
-0 /etc/skel
-0 /etc/skel/.profile
-0 /etc/dfs
-0 /etc/dfs/sharetab
-0 /etc/dfs/fstypes
-0 /etc/dfs/dfstab
-0 /etc/hosts
-0 /etc/shadow
-0 /etc/prtvtoc
-0 /etc/datemsk
-0 /etc/power.conf
-0 /etc/ksh.kshrc
-0 /etc/init.d
-0 /etc/init.d/README
-0 /etc/init.d/sysetup
-0 /etc/init.d/PRESERVE
-0 /etc/mountall
-0 /etc/wtmpx
-0 /etc/dev
-0 /etc/dev/reserved_devnames
-0 /etc/svc
-0 /etc/svc/repository.db
-0 /etc/svc/volatile
-0 /etc/svc/profile
-0 /etc/svc/profile/ns_nis.xml
-0 /etc/svc/profile/ns_none.xml
-0 /etc/svc/profile/inetd_generic.xml
-0 /etc/svc/profile/generic_open.xml
-0 /etc/svc/profile/ns_dns.xml
-0 /etc/svc/profile/platform_none.xml
-0 /etc/svc/profile/ns_ldap.xml
-0 /etc/svc/profile/site
-0 /etc/svc/profile/ns_files.xml
-0 /etc/svc/profile/generic_limited_net.xml
-0 /etc/svc/profile/inetd_upgrade.xml
-0 /etc/umount
-0 /etc/wall
-0 /etc/rcS
-0 /etc/whodo
-0 /etc/clri
-0 /etc/ttysrch
-0 /etc/zfs
-0 /etc/getty
-0 /etc/iu.ap
-0 /etc/mknod
-0 /etc/ima.conf
-0 /etc/format
-0 /etc/ipadm
-0 /etc/ipadm/ipadm.conf
-0 /etc/path_to_inst
-0 /etc/rc5
-0 /etc/log
-0 /etc/ff
-0 /etc/format.dat
-0 /etc/logadm.d
-0 /etc/logadm.d/fmd.logadm.conf
+/etc
+/etc/.login
+/etc/.pwd.lock
+/etc/TIMEZONE
+/etc/auto_home
+/etc/auto_master
+/etc/autopush
+/etc/bash
+/etc/brand
+/etc/cfgadm
+/etc/clri
+/etc/cron
+/etc/cron.d
+/etc/cron.d/.proto
+/etc/cron.d/at.deny
+/etc/cron.d/cron.deny
+/etc/cron.d/queuedefs
+/etc/crypto
+/etc/crypto/certs
+/etc/crypto/crls
+/etc/crypto/kcf.conf
+/etc/crypto/kmf.conf
+/etc/crypto/pkcs11.conf
+/etc/dacf.conf
+/etc/datemsk
+/etc/dcopy
+/etc/default
+/etc/default/autofs
+/etc/default/cron
+/etc/default/devfsadm
+/etc/default/dhcpagent
+/etc/default/fs
+/etc/default/inetinit
+/etc/default/init
+/etc/default/ipsec
+/etc/default/keyserv
+/etc/default/login
+/etc/default/mpathd
+/etc/default/nfs
+/etc/default/nss
+/etc/default/passwd
+/etc/default/power
+/etc/default/su
+/etc/default/syslogd
+/etc/default/tar
+/etc/dev
+/etc/dev/reserved_devnames
+/etc/device.tab
+/etc/devices
+/etc/devlink.tab
+/etc/dfs
+/etc/dfs/dfstab
+/etc/dfs/fstypes
+/etc/dfs/sharetab
+/etc/dgroup.tab
+/etc/dhcp
+/etc/dhcp/inittab
+/etc/dhcp/inittab6
+/etc/dladm
+/etc/dladm/datalink.conf
+/etc/dladm/flowadm.conf
+/etc/dladm/flowprop.conf
+/etc/dladm/secobj.conf
+/etc/driver_aliases
+/etc/driver_classes
+/etc/dumpdates
+/etc/ff
+/etc/flash
+/etc/flash/postcreation
+/etc/flash/precreation
+/etc/flash/preexit
+/etc/fm
+/etc/fm/fmd
+/etc/fmthard
+/etc/format
+/etc/format.dat
+/etc/fs
+/etc/fs/dev
+/etc/fs/dev/mount
+/etc/fs/hsfs
+/etc/fs/hsfs/mount
+/etc/fs/nfs
+/etc/fs/nfs/mount
+/etc/fs/ufs
+/etc/fs/ufs/mount
+/etc/fs/zfs
+/etc/fs/zfs/mount
+/etc/fs/zfs/umount
+/etc/fsck
+/etc/fsdb
+/etc/fstyp
+/etc/ftpd
+/etc/ftpd/ftpusers
+/etc/getty
+/etc/group
+/etc/grpck
+/etc/gss
+/etc/gss/gsscred.conf
+/etc/gss/mech
+/etc/gss/qop
+/etc/halt
+/etc/hba.conf
+/etc/hosts
+/etc/ima.conf
+/etc/inet
+/etc/inet/datemsk.ndpd
+/etc/inet/hosts
+/etc/inet/ike
+/etc/inet/ike/config.sample
+/etc/inet/ike/crls
+/etc/inet/ike/publickeys
+/etc/inet/inetd.conf
+/etc/inet/ipaddrsel.conf
+/etc/inet/ipnodes
+/etc/inet/ipsecalgs
+/etc/inet/ipsecinit.sample
+/etc/inet/netmasks
+/etc/inet/networks
+/etc/inet/protocols
+/etc/inet/secret
+/etc/inet/services
+/etc/inet/wanboot.conf.sample
+/etc/inetd.conf
+/etc/init
+/etc/init.d
+/etc/init.d/PRESERVE
+/etc/init.d/README
+/etc/init.d/sysetup
+/etc/inittab
+/etc/install
+/etc/ioctl.syscon
+/etc/ipadm
+/etc/ipadm/ipadm.conf
+/etc/iu.ap
+/etc/killall
+/etc/krb5
+/etc/krb5/krb5.conf
+/etc/krb5/warn.conf
+/etc/ksh.kshrc
+/etc/labelit
+/etc/lib
+/etc/lib/ld.so.1
+/etc/lib/libdl.so.1
+/etc/lib/nss_files.so.1
+/etc/log
+/etc/logadm.conf
+/etc/logadm.d
+/etc/logadm.d/fmd.logadm.conf
+/etc/logindevperm
+/etc/mach
+/etc/magic
+/etc/mime.types
+/etc/minor_perm
+/etc/mkfs
+/etc/mknod
+/etc/mnttab
+/etc/motd
+/etc/mount
+/etc/mountall
+/etc/mpapi.conf
+/etc/name_to_major
+/etc/name_to_sysnum
+/etc/ncheck
+/etc/net
+/etc/net-snmp
+/etc/net/ticlts
+/etc/net/ticlts/hosts
+/etc/net/ticlts/services
+/etc/net/ticots
+/etc/net/ticots/hosts
+/etc/net/ticots/services
+/etc/net/ticotsord
+/etc/net/ticotsord/hosts
+/etc/net/ticotsord/services
+/etc/netconfig
+/etc/netmasks
+/etc/networks
+/etc/nfssec.conf
+/etc/notices
+/etc/notices/COPYRIGHT
+/etc/notices/LICENSE
+/etc/nscd.conf
+/etc/nsswitch.ad
+/etc/nsswitch.conf
+/etc/nsswitch.dns
+/etc/nsswitch.files
+/etc/nsswitch.ldap
+/etc/nwam
+/etc/nwam/loc
+/etc/nwam/loc/NoNet
+/etc/nwam/loc/NoNet/ipf.conf.dfl
+/etc/nwam/loc/NoNet/ipf6.conf.dfl
+/etc/nwam/loc/create_loc_auto
+/etc/nwam/loc/create_loc_nonet
+/etc/openssl
+/etc/openssl/certs
+/etc/opt
+/etc/pam.conf
+/etc/passwd
+/etc/path_to_inst
+/etc/power.conf
+/etc/profile
+/etc/project
+/etc/protocols
+/etc/prtconf
+/etc/prtvtoc
+/etc/rc0
+/etc/rc0.d
+/etc/rc1
+/etc/rc1.d
+/etc/rc2
+/etc/rc2.d
+/etc/rc2.d/README
+/etc/rc2.d/S20sysetup
+/etc/rc2.d/S89PRESERVE
+/etc/rc3
+/etc/rc3.d
+/etc/rc3.d/README
+/etc/rc5
+/etc/rc6
+/etc/rcS
+/etc/rcS.d
+/etc/rcS.d/README
+/etc/rcm
+/etc/rcm/scripts
+/etc/reboot
+/etc/release
+/etc/remote
+/etc/rpc
+/etc/rpcsec
+/etc/saf
+/etc/saf/_sactab
+/etc/saf/_sysconfig
+/etc/saf/zsmon
+/etc/saf/zsmon/_pmtab
+/etc/sasl
+/etc/sdp.conf
+/etc/security
+/etc/security/audit
+/etc/security/audit/localhost
+/etc/security/audit/localhost/files
+/etc/security/audit_class
+/etc/security/audit_event
+/etc/security/audit_warn
+/etc/security/auth_attr
+/etc/security/auth_attr.d
+/etc/security/auth_attr.d/SUNWcs
+/etc/security/auth_attr.d/package:pkg
+/etc/security/crypt.conf
+/etc/security/dev
+/etc/security/dev/audio
+/etc/security/dev/fd0
+/etc/security/dev/sr0
+/etc/security/dev/st0
+/etc/security/dev/st1
+/etc/security/device_policy
+/etc/security/exec_attr
+/etc/security/exec_attr.d
+/etc/security/exec_attr.d/SUNWcs
+/etc/security/exec_attr.d/package:pkg
+/etc/security/extra_privs
+/etc/security/kmfpolicy.xml
+/etc/security/lib
+/etc/security/lib/audio_clean
+/etc/security/lib/fd_clean
+/etc/security/lib/sr_clean
+/etc/security/lib/st_clean
+/etc/security/policy.conf
+/etc/security/priv_names
+/etc/security/prof_attr
+/etc/security/prof_attr.d
+/etc/security/prof_attr.d/SUNWcs
+/etc/services
+/etc/setmnt
+/etc/shadow
+/etc/shutdown
+/etc/skel
+/etc/skel/.profile
+/etc/sock2path.d
+/etc/sock2path.d/driver%2Fnetwork%2Fbpf
+/etc/sock2path.d/driver%2Fnetwork%2Frds
+/etc/sock2path.d/driver%2Fnetwork%2Frdsv3
+/etc/sock2path.d/driver%2Fnetwork%2Fsdp
+/etc/sock2path.d/system%2Fkernel
+/etc/sulogin
+/etc/svc
+/etc/svc/profile
+/etc/svc/profile/generic_limited_net.xml
+/etc/svc/profile/generic_open.xml
+/etc/svc/profile/inetd_generic.xml
+/etc/svc/profile/inetd_upgrade.xml
+/etc/svc/profile/ns_dns.xml
+/etc/svc/profile/ns_files.xml
+/etc/svc/profile/ns_ldap.xml
+/etc/svc/profile/ns_nis.xml
+/etc/svc/profile/ns_none.xml
+/etc/svc/profile/platform_none.xml
+/etc/svc/profile/site
+/etc/svc/repository.db
+/etc/svc/volatile
+/etc/swap
+/etc/swapadd
+/etc/sysdef
+/etc/syslog.conf
+/etc/system
+/etc/tar
+/etc/telinit
+/etc/tm
+/etc/ttydefs
+/etc/ttysrch
+/etc/uadmin
+/etc/umount
+/etc/umountall
+/etc/usb
+/etc/usb/config_map.conf
+/etc/user_attr
+/etc/user_attr.d
+/etc/user_attr.d/SUNWcs
+/etc/utmpx
+/etc/vfstab
+/etc/volcopy
+/etc/wall
+/etc/whodo
+/etc/wtmpx
+/etc/zfs
+/etc/zones
+/etc/zones/SUNWblank.xml
+/etc/zones/SUNWdefault.xml
+/etc/zones/index

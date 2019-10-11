@@ -1,644 +1,665 @@
-0 /kernel/exec/amd64
-0 /kernel/exec/amd64/intpexec
-0 /kernel/exec/amd64/elfexec
-0 /kernel/amd64
-0 /kernel/amd64/genunix
-0 /kernel/kiconv/amd64
-0 /kernel/kiconv/amd64/kiconv_tc
-0 /kernel/kiconv/amd64/kiconv_emea
-0 /kernel/kiconv/amd64/kiconv_sc
-0 /kernel/kiconv/amd64/kiconv_ko
-0 /kernel/kiconv/amd64/kiconv_ja
-0 /kernel/socketmod/amd64
-0 /kernel/socketmod/amd64/ksslf
-0 /kernel/socketmod/amd64/trill
-0 /kernel/socketmod/amd64/udp
-0 /kernel/socketmod/amd64/tcp
-0 /kernel/socketmod/amd64/icmp
-0 /kernel/socketmod/amd64/sockrds
-0 /kernel/socketmod/amd64/socksctp
-0 /kernel/socketmod/amd64/socksdp
-0 /kernel/socketmod/amd64/rts
-0 /kernel/crypto/amd64
-0 /kernel/crypto/amd64/blowfish
-0 /kernel/crypto/amd64/des
-0 /kernel/crypto/amd64/ecc
-0 /kernel/crypto/amd64/swrand
-0 /kernel/crypto/amd64/md4
-0 /kernel/crypto/amd64/sha2
-0 /kernel/crypto/amd64/edonr
-0 /kernel/crypto/amd64/skein
-0 /kernel/crypto/amd64/rsa
-0 /kernel/crypto/amd64/arcfour
-0 /kernel/crypto/amd64/sha1
-0 /kernel/crypto/amd64/aes
-0 /kernel/crypto/amd64/md5
-0 /kernel/ipp/amd64
-0 /kernel/ipp/amd64/ipgpc
-0 /kernel/dacf/amd64
-0 /kernel/dacf/amd64/net_dacf
-0 /kernel/misc/scsi_vhci/amd64
-0 /kernel/misc/scsi_vhci/amd64/scsi_vhci_f_sym_hds
-0 /kernel/misc/scsi_vhci/amd64/scsi_vhci_f_asym_lsi
-0 /kernel/misc/scsi_vhci/amd64/scsi_vhci_f_asym_emc
-0 /kernel/misc/scsi_vhci/amd64/scsi_vhci_f_tape
-0 /kernel/misc/scsi_vhci/amd64/scsi_vhci_f_tpgs
-0 /kernel/misc/scsi_vhci/amd64/scsi_vhci_f_tpgs_tape
-0 /kernel/misc/scsi_vhci/amd64/scsi_vhci_f_asym_sun
-0 /kernel/misc/scsi_vhci/amd64/scsi_vhci_f_sym
-0 /kernel/misc/scsi_vhci/amd64/scsi_vhci_f_sym_emc
-0 /kernel/misc/kgss/amd64
-0 /kernel/misc/kgss/amd64/kmech_krb5
-0 /kernel/misc/emlxs/amd64
-0 /kernel/misc/emlxs/amd64/emlxs_fw
-0 /kernel/misc/qlc/amd64
-0 /kernel/misc/qlc/amd64/qlc_fw_2400
-0 /kernel/misc/qlc/amd64/qlc_fw_8100
-0 /kernel/misc/qlc/amd64/qlc_fw_2500
-0 /kernel/misc/qlc/amd64/qlc_fw_2200
-0 /kernel/misc/qlc/amd64/qlc_fw_6322
-0 /kernel/misc/qlc/amd64/qlc_fw_2300
-0 /kernel/misc/amd64
-0 /kernel/misc/amd64/net80211
-0 /kernel/misc/amd64/sda
-0 /kernel/misc/amd64/strplumb
-0 /kernel/misc/amd64/dadk
-0 /kernel/misc/amd64/iommulib
-0 /kernel/misc/amd64/pcmcia
-0 /kernel/misc/amd64/usba10
-0 /kernel/misc/amd64/sata
-0 /kernel/misc/amd64/gda
-0 /kernel/misc/amd64/ksocket
-0 /kernel/misc/amd64/fssnap_if
-0 /kernel/misc/amd64/dcopy
-0 /kernel/misc/amd64/fctl
-0 /kernel/misc/amd64/mii
-0 /kernel/misc/amd64/pci_autoconfig
-0 /kernel/misc/amd64/agpmaster
-0 /kernel/misc/amd64/ibdm
-0 /kernel/misc/amd64/mac
-0 /kernel/misc/amd64/tlimod
-0 /kernel/misc/amd64/md5
-0 /kernel/misc/amd64/bignum
-0 /kernel/misc/amd64/tem
-0 /kernel/misc/amd64/ibcm
-0 /kernel/misc/amd64/rpcsec_gss
-0 /kernel/misc/amd64/cardbus
-0 /kernel/misc/amd64/acpica
-0 /kernel/misc/amd64/usbser
-0 /kernel/misc/amd64/hidparser
-0 /kernel/misc/amd64/busra
-0 /kernel/misc/amd64/kmdbmod
-0 /kernel/misc/amd64/cmlb
-0 /kernel/misc/amd64/kbtrans
-0 /kernel/misc/amd64/usba
-0 /kernel/misc/amd64/usbs49_fw
-0 /kernel/misc/amd64/hook
-0 /kernel/misc/amd64/sha2
-0 /kernel/misc/amd64/edonr
-0 /kernel/misc/amd64/skein
-0 /kernel/misc/amd64/s1394
-0 /kernel/misc/amd64/scsi
-0 /kernel/misc/amd64/hpcsvc
-0 /kernel/misc/amd64/drm
-0 /kernel/misc/amd64/pcie
-0 /kernel/misc/amd64/ibmf
-0 /kernel/misc/amd64/idmap
-0 /kernel/misc/amd64/des
-0 /kernel/misc/amd64/ac97
-0 /kernel/misc/amd64/ibdma
-0 /kernel/misc/amd64/kcf
-0 /kernel/misc/amd64/kgssapi
-0 /kernel/misc/amd64/ibtl
-0 /kernel/misc/amd64/nfs_dlboot
-0 /kernel/misc/amd64/ctf
-0 /kernel/misc/amd64/bootdev
-0 /kernel/misc/amd64/consconfig
-0 /kernel/misc/amd64/ipc
-0 /kernel/misc/amd64/klmops
-0 /kernel/misc/amd64/sha1
-0 /kernel/misc/amd64/sol_ofs
-0 /kernel/misc/amd64/klmmod
-0 /kernel/misc/amd64/neti
-0 /kernel/misc/amd64/sbp2
-0 /kernel/misc/amd64/dls
-0 /kernel/misc/amd64/gld
-0 /kernel/misc/amd64/pcicfg
-0 /kernel/misc/amd64/rpcsec
-0 /kernel/misc/amd64/pcihp
-0 /kernel/misc/amd64/strategy
-0 /kernel/misc/amd64/virtio
-0 /kernel/misc/pmcs/amd64
-0 /kernel/misc/pmcs/amd64/pmcs8001fw
-0 /kernel/kmdb/amd64
-0 /kernel/kmdb/amd64/scsi_vhci
-0 /kernel/kmdb/amd64/sctp
-0 /kernel/kmdb/amd64/arp
-0 /kernel/kmdb/amd64/hook
-0 /kernel/kmdb/amd64/random
-0 /kernel/kmdb/amd64/usba
-0 /kernel/kmdb/amd64/krtld
-0 /kernel/kmdb/amd64/crypto
-0 /kernel/kmdb/amd64/nca
-0 /kernel/kmdb/amd64/sockfs
-0 /kernel/kmdb/amd64/neti
-0 /kernel/kmdb/amd64/nfs
-0 /kernel/kmdb/amd64/mac
-0 /kernel/kmdb/amd64/uhci
-0 /kernel/kmdb/amd64/xhci
-0 /kernel/kmdb/amd64/mpt
-0 /kernel/kmdb/amd64/mr_sas
-0 /kernel/kmdb/amd64/sd
-0 /kernel/kmdb/amd64/sppp
-0 /kernel/kmdb/amd64/logindmux
-0 /kernel/kmdb/amd64/cpu_ms.AuthenticAMD.15
-0 /kernel/kmdb/amd64/zfs
-0 /kernel/kmdb/amd64/mpt_sas
-0 /kernel/kmdb/amd64/stmf_sbd
-0 /kernel/kmdb/amd64/lofs
-0 /kernel/kmdb/amd64/specfs
-0 /kernel/kmdb/amd64/sata
-0 /kernel/kmdb/amd64/s1394
-0 /kernel/kmdb/amd64/ufs
-0 /kernel/kmdb/amd64/pmcs
-0 /kernel/kmdb/amd64/genunix
-0 /kernel/kmdb/amd64/cpc
-0 /kernel/kmdb/amd64/ipc
-0 /kernel/kmdb/amd64/stmf
-0 /kernel/kmdb/amd64/cpu.generic
-0 /kernel/kmdb/amd64/emlxs
-0 /kernel/kmdb/amd64/ipp
-0 /kernel/kmdb/amd64/ptm
-0 /kernel/kmdb/amd64/ip
-0 /kernel/sched/amd64
-0 /kernel/sched/amd64/TS_DPTBL
-0 /kernel/sched/amd64/TS
-0 /kernel/sched/amd64/SDC
-0 /kernel/mac/amd64
-0 /kernel/mac/amd64/mac_wifi
-0 /kernel/mac/amd64/mac_ether
-0 /kernel/mac/amd64/mac_ipv4
-0 /kernel/mac/amd64/mac_ib
-0 /kernel/mac/amd64/mac_ipv6
-0 /kernel/mac/amd64/mac_6to4
-0 /kernel/drv/amd64
-0 /kernel/drv/amd64/consms
-0 /kernel/drv/amd64/usb_ac
-0 /kernel/drv/amd64/atiatom
-0 /kernel/drv/amd64/cpqary3
-0 /kernel/drv/amd64/adpu320
-0 /kernel/drv/amd64/usbprn
-0 /kernel/drv/amd64/xge
-0 /kernel/drv/amd64/sysmsg
-0 /kernel/drv/amd64/intel_nhmex
-0 /kernel/drv/amd64/scsa2usb
-0 /kernel/drv/amd64/ixgb
-0 /kernel/drv/amd64/cryptoadm
-0 /kernel/drv/amd64/mxfe
-0 /kernel/drv/amd64/pcn
-0 /kernel/drv/amd64/rds
-0 /kernel/drv/amd64/sdt
-0 /kernel/drv/amd64/glm
-0 /kernel/drv/amd64/fp
-0 /kernel/drv/amd64/hid
-0 /kernel/drv/amd64/fd
-0 /kernel/drv/amd64/pseudo
-0 /kernel/drv/amd64/profile
-0 /kernel/drv/amd64/stmf_sbd
-0 /kernel/drv/amd64/eibnx
-0 /kernel/drv/amd64/dld
-0 /kernel/drv/amd64/smbios
-0 /kernel/drv/amd64/sol_ucma
-0 /kernel/drv/amd64/rge
-0 /kernel/drv/amd64/bl
-0 /kernel/drv/amd64/bscbus
-0 /kernel/drv/amd64/mc-amd
-0 /kernel/drv/amd64/conskbd
-0 /kernel/drv/amd64/bscv
-0 /kernel/drv/amd64/amd64_gart
-0 /kernel/drv/amd64/usbecm
-0 /kernel/drv/amd64/ata
-0 /kernel/drv/amd64/e1000g
-0 /kernel/drv/amd64/smp
-0 /kernel/drv/amd64/hxge
-0 /kernel/drv/amd64/fasttrap
-0 /kernel/drv/amd64/physmem
-0 /kernel/drv/amd64/rts
-0 /kernel/drv/amd64/ptc
-0 /kernel/drv/amd64/ehci
-0 /kernel/drv/amd64/pppt
-0 /kernel/drv/amd64/yge
-0 /kernel/drv/amd64/rdsv3
-0 /kernel/drv/amd64/fct
-0 /kernel/drv/amd64/marvell88sx
-0 /kernel/drv/amd64/vgatext
-0 /kernel/drv/amd64/ucode
-0 /kernel/drv/amd64/qlc
-0 /kernel/drv/amd64/rtls
-0 /kernel/drv/amd64/ip
-0 /kernel/drv/amd64/fcp
-0 /kernel/drv/amd64/fdc
-0 /kernel/drv/amd64/ahci
-0 /kernel/drv/amd64/tcp6
-0 /kernel/drv/amd64/ntxn
-0 /kernel/drv/amd64/atge
-0 /kernel/drv/amd64/poll
-0 /kernel/drv/amd64/fm
-0 /kernel/drv/amd64/bcm_sata
-0 /kernel/drv/amd64/pcs
-0 /kernel/drv/amd64/radeon
-0 /kernel/drv/amd64/bridge
-0 /kernel/drv/amd64/ramdisk
-0 /kernel/drv/amd64/usbser_edge
-0 /kernel/drv/amd64/audiots
-0 /kernel/drv/amd64/cpuid
-0 /kernel/drv/amd64/audiopci
-0 /kernel/drv/amd64/options
-0 /kernel/drv/amd64/blkdev
-0 /kernel/drv/amd64/wc
-0 /kernel/drv/amd64/nge
-0 /kernel/drv/amd64/dtrace
-0 /kernel/drv/amd64/vnic
-0 /kernel/drv/amd64/kb8042
-0 /kernel/drv/amd64/nxge
-0 /kernel/drv/amd64/fcsm
-0 /kernel/drv/amd64/hermon
-0 /kernel/drv/amd64/agptarget
-0 /kernel/drv/amd64/hme
-0 /kernel/drv/amd64/dlpistub
-0 /kernel/drv/amd64/scsi_vhci
-0 /kernel/drv/amd64/pcieb
-0 /kernel/drv/amd64/sdp
-0 /kernel/drv/amd64/tl
-0 /kernel/drv/amd64/fbt
-0 /kernel/drv/amd64/aac
-0 /kernel/drv/amd64/myri10ge
-0 /kernel/drv/amd64/emlxs
-0 /kernel/drv/amd64/mouse8042
-0 /kernel/drv/amd64/amr
-0 /kernel/drv/amd64/lsimega
-0 /kernel/drv/amd64/iptun
-0 /kernel/drv/amd64/cmdk
-0 /kernel/drv/amd64/acpi_drv
-0 /kernel/drv/amd64/scsa1394
-0 /kernel/drv/amd64/sfe
-0 /kernel/drv/amd64/tavor
-0 /kernel/drv/amd64/tpm
-0 /kernel/drv/amd64/pci_pci
-0 /kernel/drv/amd64/usb_as
-0 /kernel/drv/amd64/ses
-0 /kernel/drv/amd64/ipsecah
-0 /kernel/drv/amd64/qlt
-0 /kernel/drv/amd64/audio1575
-0 /kernel/drv/amd64/simnet
-0 /kernel/drv/amd64/uhci
-0 /kernel/drv/amd64/xhci
-0 /kernel/drv/amd64/rpcib
-0 /kernel/drv/amd64/intel_nhm
-0 /kernel/drv/amd64/cn
-0 /kernel/drv/amd64/pcic
-0 /kernel/drv/amd64/eoib
-0 /kernel/drv/amd64/dnet
-0 /kernel/drv/amd64/kssl
-0 /kernel/drv/amd64/sdhost
-0 /kernel/drv/amd64/arp
-0 /kernel/drv/amd64/sdpib
-0 /kernel/drv/amd64/usbsprl
-0 /kernel/drv/amd64/keysock
-0 /kernel/drv/amd64/crypto
-0 /kernel/drv/amd64/rdsib
-0 /kernel/drv/amd64/sol_uverbs
-0 /kernel/drv/amd64/agpgart
-0 /kernel/drv/amd64/chxge
-0 /kernel/drv/amd64/asy
-0 /kernel/drv/amd64/aggr
-0 /kernel/drv/amd64/bfe
-0 /kernel/drv/amd64/bnxe
-0 /kernel/drv/amd64/hubd
-0 /kernel/drv/amd64/sd
-0 /kernel/drv/amd64/mr_sas
-0 /kernel/drv/amd64/usbsacm
-0 /kernel/drv/amd64/ip6
-0 /kernel/drv/amd64/oce
-0 /kernel/drv/amd64/i40e
-0 /kernel/drv/amd64/ixgbe
-0 /kernel/drv/amd64/sfxge
-0 /kernel/drv/amd64/vmxnet3s
-0 /kernel/drv/amd64/mega_sas
-0 /kernel/drv/amd64/cpunex
-0 /kernel/drv/amd64/pmcs
-0 /kernel/drv/amd64/acpi_toshiba
-0 /kernel/drv/amd64/ipsecesp
-0 /kernel/drv/amd64/i915
-0 /kernel/drv/amd64/openeepr
-0 /kernel/drv/amd64/power
-0 /kernel/drv/amd64/nv_sata
-0 /kernel/drv/amd64/sgen
-0 /kernel/drv/amd64/ib
-0 /kernel/drv/amd64/audioens
-0 /kernel/drv/amd64/qlge
-0 /kernel/drv/amd64/si3124
-0 /kernel/drv/amd64/mm
-0 /kernel/drv/amd64/fcip
-0 /kernel/drv/amd64/ptsl
-0 /kernel/drv/amd64/ibp
-0 /kernel/drv/amd64/icmp
-0 /kernel/drv/amd64/nulldriver
-0 /kernel/drv/amd64/stmf
-0 /kernel/drv/amd64/amd8111s
-0 /kernel/drv/amd64/lockstat
-0 /kernel/drv/amd64/log
-0 /kernel/drv/amd64/vr
-0 /kernel/drv/amd64/usb_mid
-0 /kernel/drv/amd64/elxl
-0 /kernel/drv/amd64/bge
-0 /kernel/drv/amd64/bnx
-0 /kernel/drv/amd64/clone
-0 /kernel/drv/amd64/mpt
-0 /kernel/drv/amd64/iwscn
-0 /kernel/drv/amd64/iprb
-0 /kernel/drv/amd64/systrace
-0 /kernel/drv/amd64/llc1
-0 /kernel/drv/amd64/zfs
-0 /kernel/drv/amd64/arcmsr
-0 /kernel/drv/amd64/usbftdi
-0 /kernel/drv/amd64/usbsksp
-0 /kernel/drv/amd64/dcpc
-0 /kernel/drv/amd64/igb
-0 /kernel/drv/amd64/st
-0 /kernel/drv/amd64/afe
-0 /kernel/drv/amd64/intel_nb5000
-0 /kernel/drv/amd64/kmdb
-0 /kernel/drv/amd64/audio
-0 /kernel/drv/amd64/usb_ia
-0 /kernel/drv/amd64/sy
-0 /kernel/drv/amd64/sysevent
-0 /kernel/drv/amd64/icmp6
-0 /kernel/drv/amd64/ohci
-0 /kernel/drv/amd64/udp6
-0 /kernel/drv/amd64/tcp
-0 /kernel/drv/amd64/lofi
-0 /kernel/drv/amd64/udp
-0 /kernel/drv/amd64/ipnet
-0 /kernel/drv/amd64/sol_umad
-0 /kernel/drv/amd64/mpt_sas
-0 /kernel/drv/amd64/spdsock
-0 /kernel/drv/amd64/hci1394
-0 /kernel/drv/amd64/dca
-0 /kernel/drv/amd64/i8042
-0 /kernel/drv/amd64/softmac
-0 /kernel/drv/amd64/dmfe
-0 /kernel/drv/amd64/random
-0 /kernel/drv/amd64/sad
-0 /kernel/drv/amd64/ippctl
-0 /kernel/drv/amd64/tzmon
-0 /kernel/drv/amd64/ecpp
-0 /kernel/drv/amd64/ugen
-0 /kernel/drv/amd64/devinfo
-0 /kernel/drv/amd64/vioblk
-0 /kernel/drv/amd64/vioif
-0 /kernel/drv/amd64/nvme
-0 /kernel/drv/cmdk.conf
-0 /kernel/drv/tavor.conf
-0 /kernel/drv/aggr.conf
-0 /kernel/drv/ipsecah.conf
-0 /kernel/drv/rdsv3.conf
-0 /kernel/drv/hxge.conf
-0 /kernel/drv/lofi.conf
-0 /kernel/drv/random.conf
-0 /kernel/drv/power.conf
-0 /kernel/drv/rdsib.conf
-0 /kernel/drv/pseudo.conf
-0 /kernel/drv/ata.conf
-0 /kernel/drv/stmf.conf
-0 /kernel/drv/mpt_sas.conf
-0 /kernel/drv/fcip.conf
-0 /kernel/drv/openeepr.conf
-0 /kernel/drv/mm.conf
-0 /kernel/drv/qlc.conf
-0 /kernel/drv/dcpc.conf
-0 /kernel/drv/mpt.conf
-0 /kernel/drv/amd64_gart
-0 /kernel/drv/tcp.conf
-0 /kernel/drv/sol_umad.conf
-0 /kernel/drv/fasttrap.conf
-0 /kernel/drv/ntxn.conf
-0 /kernel/drv/scsi_vhci.conf
-0 /kernel/drv/profile.conf
-0 /kernel/drv/bl.conf
-0 /kernel/drv/ib.conf
-0 /kernel/drv/ucode.conf
-0 /kernel/drv/usb_ac.conf
-0 /kernel/drv/ehci.conf
-0 /kernel/drv/uhci.conf
-0 /kernel/drv/xhci.conf
-0 /kernel/drv/mc-amd.conf
-0 /kernel/drv/icmp.conf
-0 /kernel/drv/udp6.conf
-0 /kernel/drv/kmdb.conf
-0 /kernel/drv/rds.conf
-0 /kernel/drv/smbios.conf
-0 /kernel/drv/arcmsr.conf
-0 /kernel/drv/intel_nhm.conf
-0 /kernel/drv/pcic.conf
-0 /kernel/drv/hci1394.conf
-0 /kernel/drv/udp.conf
-0 /kernel/drv/glm.conf
-0 /kernel/drv/lsimega.conf
-0 /kernel/drv/ptc.conf
-0 /kernel/drv/cpuid.conf
-0 /kernel/drv/usbftdi.conf
-0 /kernel/drv/devinfo.conf
-0 /kernel/drv/ippctl.conf
-0 /kernel/drv/bnx.conf
-0 /kernel/drv/scsa2usb.conf
-0 /kernel/drv/st.conf
-0 /kernel/drv/sol_uverbs.conf
-0 /kernel/drv/poll.conf
-0 /kernel/drv/log.conf
-0 /kernel/drv/rpcib.conf
-0 /kernel/drv/ses.conf
-0 /kernel/drv/ohci.conf
-0 /kernel/drv/ipnet.conf
-0 /kernel/drv/sdpib.conf
-0 /kernel/drv/asy.conf
-0 /kernel/drv/qlt.conf
-0 /kernel/drv/fm.conf
-0 /kernel/drv/iptun.conf
-0 /kernel/drv/keysock.conf
-0 /kernel/drv/fp.conf
-0 /kernel/drv/ptsl.conf
-0 /kernel/drv/cn.conf
-0 /kernel/drv/spdsock.conf
-0 /kernel/drv/tcp6.conf
-0 /kernel/drv/smp.conf
-0 /kernel/drv/zfs.conf
-0 /kernel/drv/vnic.conf
-0 /kernel/drv/options.conf
-0 /kernel/drv/intel_nhmex.conf
-0 /kernel/drv/kssl.conf
-0 /kernel/drv/audio.conf
-0 /kernel/drv/systrace.conf
-0 /kernel/drv/lockstat.conf
-0 /kernel/drv/bscbus.conf
-0 /kernel/drv/agpgart.conf
-0 /kernel/drv/simnet.conf
-0 /kernel/drv/sol_ucma.conf
-0 /kernel/drv/ip.conf
-0 /kernel/drv/fcp.conf
-0 /kernel/drv/aac.conf
-0 /kernel/drv/sgen.conf
-0 /kernel/drv/conskbd.conf
-0 /kernel/drv/dld.conf
-0 /kernel/drv/arp.conf
-0 /kernel/drv/ibp.conf
-0 /kernel/drv/ecpp.conf
-0 /kernel/drv/sy.conf
-0 /kernel/drv/bnxe.conf
-0 /kernel/drv/dca.conf
-0 /kernel/drv/intel_nb5000.conf
-0 /kernel/drv/fct.conf
-0 /kernel/drv/stmf_sbd.conf
-0 /kernel/drv/hermon.conf
-0 /kernel/drv/sd.conf
-0 /kernel/drv/e1000g.conf
-0 /kernel/drv/llc1.conf
-0 /kernel/drv/fdc.conf
-0 /kernel/drv/iwscn.conf
-0 /kernel/drv/nv_sata.conf
-0 /kernel/drv/wc.conf
-0 /kernel/drv/crypto.conf
-0 /kernel/drv/dtrace.conf
-0 /kernel/drv/ramdisk.conf
-0 /kernel/drv/nxge.conf
-0 /kernel/drv/mr_sas.conf
-0 /kernel/drv/sysevent.conf
-0 /kernel/drv/fd.conf
-0 /kernel/drv/icmp6.conf
-0 /kernel/drv/nge.conf
-0 /kernel/drv/igb.conf
-0 /kernel/drv/rts.conf
-0 /kernel/drv/fbt.conf
-0 /kernel/drv/amr.conf
-0 /kernel/drv/adpu320.conf
-0 /kernel/drv/bscv.conf
-0 /kernel/drv/sad.conf
-0 /kernel/drv/pppt.conf
-0 /kernel/drv/nvme.conf
-0 /kernel/dtrace/amd64
-0 /kernel/dtrace/amd64/sdt
-0 /kernel/dtrace/amd64/lockstat
-0 /kernel/dtrace/amd64/systrace
-0 /kernel/dtrace/amd64/profile
-0 /kernel/dtrace/amd64/fbt
-0 /kernel/dtrace/amd64/fasttrap
-0 /kernel/dtrace/amd64/dcpc
-0 /kernel/strmod/amd64
-0 /kernel/strmod/amd64/timod
-0 /kernel/strmod/amd64/icmp
-0 /kernel/strmod/amd64/connld
-0 /kernel/strmod/amd64/ipsecah
-0 /kernel/strmod/amd64/sdpib
-0 /kernel/strmod/amd64/dedump
-0 /kernel/strmod/amd64/vuid3ps2
-0 /kernel/strmod/amd64/vuid2ps2
-0 /kernel/strmod/amd64/drcompat
-0 /kernel/strmod/amd64/tirdwr
-0 /kernel/strmod/amd64/ip
-0 /kernel/strmod/amd64/ttcompat
-0 /kernel/strmod/amd64/pfmod
-0 /kernel/strmod/amd64/bufmod
-0 /kernel/strmod/amd64/ptem
-0 /kernel/strmod/amd64/ldterm
-0 /kernel/strmod/amd64/ipsecesp
-0 /kernel/strmod/amd64/arp
-0 /kernel/strmod/amd64/vuidm4p
-0 /kernel/strmod/amd64/vuidm3p
-0 /kernel/strmod/amd64/pckt
-0 /kernel/strmod/amd64/pipemod
-0 /kernel/strmod/amd64/vuidm5p
-0 /kernel/strmod/amd64/usb_ah
-0 /kernel/strmod/amd64/keysock
-0 /kernel/strmod/amd64/usbwcm
-0 /kernel/strmod/amd64/redirmod
-0 /kernel/strmod/amd64/rpcmod
-0 /kernel/strmod/amd64/tcp
-0 /kernel/strmod/amd64/udp
-0 /kernel/strmod/amd64/usbms
-0 /kernel/strmod/amd64/usbkbm
-0 /kernel/fs/amd64
-0 /kernel/fs/amd64/fifofs
-0 /kernel/fs/amd64/tmpfs
-0 /kernel/fs/amd64/hsfs
-0 /kernel/fs/amd64/lofs
-0 /kernel/fs/amd64/bootfs
-0 /kernel/fs/amd64/ufs
-0 /kernel/fs/amd64/specfs
-0 /kernel/fs/amd64/dcfs
-0 /kernel/fs/amd64/ctfs
-0 /kernel/fs/amd64/mntfs
-0 /kernel/fs/amd64/objfs
-0 /kernel/fs/amd64/namefs
-0 /kernel/fs/amd64/udfs
-0 /kernel/fs/amd64/devfs
-0 /kernel/fs/amd64/nfs
-0 /kernel/fs/amd64/sharefs
-0 /kernel/fs/amd64/autofs
-0 /kernel/fs/amd64/sockfs
-0 /kernel/fs/amd64/dev
-0 /kernel/fs/amd64/procfs
-0 /kernel/fs/amd64/zfs
-0 /kernel/sys/amd64
-0 /kernel/sys/amd64/inst_sync
-0 /kernel/sys/amd64/nfs
-0 /kernel/sys/amd64/portfs
-0 /kernel/sys/amd64/pipe
-0 /kernel/sys/amd64/doorfs
-0 /kernel/sys/amd64/semsys
-0 /kernel/sys/amd64/c2audit
-0 /kernel/sys/amd64/shmsys
-0 /kernel/sys/amd64/rpcmod
-0 /kernel/sys/amd64/autofs
-0 /kernel/sys/amd64/pset
-0 /kernel/sys/amd64/msgsys
-0 /kernel/sys/amd64/kaio
-0 /kernel/misc/pci_autoconfig
-0 /kernel/misc/consconfig
-0 /kernel/drv/i40e.conf
-0 /kernel/drv/ixgbe.conf
-0 /kernel/drv/sdt.conf
-0 /kernel/drv/eibnx.conf
-0 /kernel/drv/sysmsg.conf
-0 /kernel/drv/physmem.conf
-0 /kernel/drv/dlpistub.conf
-0 /kernel/drv/usbser_edge.conf
-0 /kernel/drv/cryptoadm.conf
-0 /kernel/drv/clone.conf
-0 /kernel/drv/cpqary3.conf
-0 /kernel/drv/pmcs.conf
-0 /kernel/drv/acpi_drv.conf
-0 /kernel/drv/bridge.conf
-0 /kernel/drv/sdp.conf
-0 /kernel/drv/fcsm.conf
-0 /kernel/drv/ip6.conf
-0 /kernel/drv/tl.conf
-0 /kernel/drv/softmac.conf
-0 /kernel/drv/consms.conf
-0 /kernel/drv/tzmon.conf
-0 /kernel/drv/pcieb.conf
-0 /kernel/drv/mega_sas.conf
-0 /kernel/drv/emlxs.conf
-0 /kernel/drv/bge.conf
-0 /kernel/drv/ipsecesp.conf
-0 /kernel/drv/amd64/hv_heartbeat
-0 /kernel/drv/amd64/hv_kvp
-0 /kernel/drv/amd64/hv_netvsc
-0 /kernel/drv/amd64/hv_shutdown
-0 /kernel/drv/amd64/hv_storvsc
-0 /kernel/drv/amd64/hv_timesync
-0 /kernel/drv/amd64/hv_vmbus
-0 /kernel/misc/amd64/hyperv
-0 /kernel/drv/hv_netvsc.conf
-0 /kernel/drv/hv_vmbus.conf
-0 /kernel/misc/amd64/cc
-0 /kernel/cc/amd64/cc_sunreno
+/kernel
+/kernel/amd64
+/kernel/amd64/genunix
+/kernel/cc/amd64/cc_sunreno
+/kernel/crypto
+/kernel/crypto/amd64
+/kernel/crypto/amd64/aes
+/kernel/crypto/amd64/arcfour
+/kernel/crypto/amd64/blowfish
+/kernel/crypto/amd64/des
+/kernel/crypto/amd64/ecc
+/kernel/crypto/amd64/edonr
+/kernel/crypto/amd64/md4
+/kernel/crypto/amd64/md5
+/kernel/crypto/amd64/rsa
+/kernel/crypto/amd64/sha1
+/kernel/crypto/amd64/sha2
+/kernel/crypto/amd64/skein
+/kernel/crypto/amd64/swrand
+/kernel/dacf
+/kernel/dacf/amd64
+/kernel/dacf/amd64/net_dacf
+/kernel/drv
+/kernel/drv/aac.conf
+/kernel/drv/acpi_drv.conf
+/kernel/drv/adpu320.conf
+/kernel/drv/aggr.conf
+/kernel/drv/agpgart.conf
+/kernel/drv/amd64
+/kernel/drv/amd64/aac
+/kernel/drv/amd64/acpi_drv
+/kernel/drv/amd64/acpi_toshiba
+/kernel/drv/amd64/adpu320
+/kernel/drv/amd64/afe
+/kernel/drv/amd64/aggr
+/kernel/drv/amd64/agpgart
+/kernel/drv/amd64/agptarget
+/kernel/drv/amd64/ahci
+/kernel/drv/amd64/amd64_gart
+/kernel/drv/amd64/amd8111s
+/kernel/drv/amd64/amr
+/kernel/drv/amd64/arcmsr
+/kernel/drv/amd64/arp
+/kernel/drv/amd64/asy
+/kernel/drv/amd64/ata
+/kernel/drv/amd64/atge
+/kernel/drv/amd64/atiatom
+/kernel/drv/amd64/audio
+/kernel/drv/amd64/audio1575
+/kernel/drv/amd64/audioens
+/kernel/drv/amd64/audiopci
+/kernel/drv/amd64/audiots
+/kernel/drv/amd64/bcm_sata
+/kernel/drv/amd64/bfe
+/kernel/drv/amd64/bge
+/kernel/drv/amd64/bl
+/kernel/drv/amd64/blkdev
+/kernel/drv/amd64/bnx
+/kernel/drv/amd64/bnxe
+/kernel/drv/amd64/bridge
+/kernel/drv/amd64/bscbus
+/kernel/drv/amd64/bscv
+/kernel/drv/amd64/chxge
+/kernel/drv/amd64/clone
+/kernel/drv/amd64/cmdk
+/kernel/drv/amd64/cn
+/kernel/drv/amd64/conskbd
+/kernel/drv/amd64/consms
+/kernel/drv/amd64/cpqary3
+/kernel/drv/amd64/cpuid
+/kernel/drv/amd64/cpunex
+/kernel/drv/amd64/crypto
+/kernel/drv/amd64/cryptoadm
+/kernel/drv/amd64/dca
+/kernel/drv/amd64/dcpc
+/kernel/drv/amd64/devinfo
+/kernel/drv/amd64/dld
+/kernel/drv/amd64/dlpistub
+/kernel/drv/amd64/dmfe
+/kernel/drv/amd64/dnet
+/kernel/drv/amd64/dtrace
+/kernel/drv/amd64/e1000g
+/kernel/drv/amd64/ecpp
+/kernel/drv/amd64/ehci
+/kernel/drv/amd64/eibnx
+/kernel/drv/amd64/elxl
+/kernel/drv/amd64/emlxs
+/kernel/drv/amd64/eoib
+/kernel/drv/amd64/fasttrap
+/kernel/drv/amd64/fbt
+/kernel/drv/amd64/fcip
+/kernel/drv/amd64/fcp
+/kernel/drv/amd64/fcsm
+/kernel/drv/amd64/fct
+/kernel/drv/amd64/fd
+/kernel/drv/amd64/fdc
+/kernel/drv/amd64/fm
+/kernel/drv/amd64/fp
+/kernel/drv/amd64/glm
+/kernel/drv/amd64/hci1394
+/kernel/drv/amd64/hermon
+/kernel/drv/amd64/hid
+/kernel/drv/amd64/hme
+/kernel/drv/amd64/hubd
+/kernel/drv/amd64/hv_heartbeat
+/kernel/drv/amd64/hv_kvp
+/kernel/drv/amd64/hv_netvsc
+/kernel/drv/amd64/hv_shutdown
+/kernel/drv/amd64/hv_storvsc
+/kernel/drv/amd64/hv_timesync
+/kernel/drv/amd64/hv_vmbus
+/kernel/drv/amd64/hxge
+/kernel/drv/amd64/i40e
+/kernel/drv/amd64/i8042
+/kernel/drv/amd64/i915
+/kernel/drv/amd64/ib
+/kernel/drv/amd64/ibp
+/kernel/drv/amd64/icmp
+/kernel/drv/amd64/icmp6
+/kernel/drv/amd64/igb
+/kernel/drv/amd64/intel_nb5000
+/kernel/drv/amd64/intel_nhm
+/kernel/drv/amd64/intel_nhmex
+/kernel/drv/amd64/ip
+/kernel/drv/amd64/ip6
+/kernel/drv/amd64/ipnet
+/kernel/drv/amd64/ippctl
+/kernel/drv/amd64/iprb
+/kernel/drv/amd64/ipsecah
+/kernel/drv/amd64/ipsecesp
+/kernel/drv/amd64/iptun
+/kernel/drv/amd64/iwscn
+/kernel/drv/amd64/ixgb
+/kernel/drv/amd64/ixgbe
+/kernel/drv/amd64/kb8042
+/kernel/drv/amd64/keysock
+/kernel/drv/amd64/kmdb
+/kernel/drv/amd64/kssl
+/kernel/drv/amd64/llc1
+/kernel/drv/amd64/lockstat
+/kernel/drv/amd64/lofi
+/kernel/drv/amd64/log
+/kernel/drv/amd64/lsimega
+/kernel/drv/amd64/marvell88sx
+/kernel/drv/amd64/mc-amd
+/kernel/drv/amd64/mega_sas
+/kernel/drv/amd64/mm
+/kernel/drv/amd64/mouse8042
+/kernel/drv/amd64/mpt
+/kernel/drv/amd64/mpt_sas
+/kernel/drv/amd64/mr_sas
+/kernel/drv/amd64/mxfe
+/kernel/drv/amd64/myri10ge
+/kernel/drv/amd64/nge
+/kernel/drv/amd64/ntxn
+/kernel/drv/amd64/nulldriver
+/kernel/drv/amd64/nv_sata
+/kernel/drv/amd64/nvme
+/kernel/drv/amd64/nxge
+/kernel/drv/amd64/oce
+/kernel/drv/amd64/ohci
+/kernel/drv/amd64/openeepr
+/kernel/drv/amd64/options
+/kernel/drv/amd64/pci_pci
+/kernel/drv/amd64/pcic
+/kernel/drv/amd64/pcieb
+/kernel/drv/amd64/pcn
+/kernel/drv/amd64/pcs
+/kernel/drv/amd64/physmem
+/kernel/drv/amd64/pmcs
+/kernel/drv/amd64/poll
+/kernel/drv/amd64/power
+/kernel/drv/amd64/pppt
+/kernel/drv/amd64/profile
+/kernel/drv/amd64/pseudo
+/kernel/drv/amd64/ptc
+/kernel/drv/amd64/ptsl
+/kernel/drv/amd64/qlc
+/kernel/drv/amd64/qlge
+/kernel/drv/amd64/qlt
+/kernel/drv/amd64/radeon
+/kernel/drv/amd64/ramdisk
+/kernel/drv/amd64/random
+/kernel/drv/amd64/rds
+/kernel/drv/amd64/rdsib
+/kernel/drv/amd64/rdsv3
+/kernel/drv/amd64/rge
+/kernel/drv/amd64/rpcib
+/kernel/drv/amd64/rtls
+/kernel/drv/amd64/rts
+/kernel/drv/amd64/sad
+/kernel/drv/amd64/scsa1394
+/kernel/drv/amd64/scsa2usb
+/kernel/drv/amd64/scsi_vhci
+/kernel/drv/amd64/sd
+/kernel/drv/amd64/sdhost
+/kernel/drv/amd64/sdp
+/kernel/drv/amd64/sdpib
+/kernel/drv/amd64/sdt
+/kernel/drv/amd64/ses
+/kernel/drv/amd64/sfe
+/kernel/drv/amd64/sfxge
+/kernel/drv/amd64/sgen
+/kernel/drv/amd64/si3124
+/kernel/drv/amd64/simnet
+/kernel/drv/amd64/smbios
+/kernel/drv/amd64/smp
+/kernel/drv/amd64/softmac
+/kernel/drv/amd64/sol_ucma
+/kernel/drv/amd64/sol_umad
+/kernel/drv/amd64/sol_uverbs
+/kernel/drv/amd64/spdsock
+/kernel/drv/amd64/st
+/kernel/drv/amd64/stmf
+/kernel/drv/amd64/stmf_sbd
+/kernel/drv/amd64/sy
+/kernel/drv/amd64/sysevent
+/kernel/drv/amd64/sysmsg
+/kernel/drv/amd64/systrace
+/kernel/drv/amd64/tavor
+/kernel/drv/amd64/tcp
+/kernel/drv/amd64/tcp6
+/kernel/drv/amd64/tl
+/kernel/drv/amd64/tpm
+/kernel/drv/amd64/tzmon
+/kernel/drv/amd64/ucode
+/kernel/drv/amd64/udp
+/kernel/drv/amd64/udp6
+/kernel/drv/amd64/ugen
+/kernel/drv/amd64/uhci
+/kernel/drv/amd64/usb_ac
+/kernel/drv/amd64/usb_as
+/kernel/drv/amd64/usb_ia
+/kernel/drv/amd64/usb_mid
+/kernel/drv/amd64/usbecm
+/kernel/drv/amd64/usbftdi
+/kernel/drv/amd64/usbprn
+/kernel/drv/amd64/usbsacm
+/kernel/drv/amd64/usbser_edge
+/kernel/drv/amd64/usbsksp
+/kernel/drv/amd64/usbsprl
+/kernel/drv/amd64/vgatext
+/kernel/drv/amd64/vioblk
+/kernel/drv/amd64/vioif
+/kernel/drv/amd64/vmxnet3s
+/kernel/drv/amd64/vnic
+/kernel/drv/amd64/vr
+/kernel/drv/amd64/wc
+/kernel/drv/amd64/xge
+/kernel/drv/amd64/xhci
+/kernel/drv/amd64/yge
+/kernel/drv/amd64/zfs
+/kernel/drv/amd64_gart
+/kernel/drv/amr.conf
+/kernel/drv/arcmsr.conf
+/kernel/drv/arp.conf
+/kernel/drv/asy.conf
+/kernel/drv/ata.conf
+/kernel/drv/audio.conf
+/kernel/drv/bge.conf
+/kernel/drv/bl.conf
+/kernel/drv/bnx.conf
+/kernel/drv/bnxe.conf
+/kernel/drv/bridge.conf
+/kernel/drv/bscbus.conf
+/kernel/drv/bscv.conf
+/kernel/drv/clone.conf
+/kernel/drv/cmdk.conf
+/kernel/drv/cn.conf
+/kernel/drv/conskbd.conf
+/kernel/drv/consms.conf
+/kernel/drv/cpqary3.conf
+/kernel/drv/cpuid.conf
+/kernel/drv/crypto.conf
+/kernel/drv/cryptoadm.conf
+/kernel/drv/dca.conf
+/kernel/drv/dcpc.conf
+/kernel/drv/devinfo.conf
+/kernel/drv/dld.conf
+/kernel/drv/dlpistub.conf
+/kernel/drv/dtrace.conf
+/kernel/drv/e1000g.conf
+/kernel/drv/ecpp.conf
+/kernel/drv/ehci.conf
+/kernel/drv/eibnx.conf
+/kernel/drv/emlxs.conf
+/kernel/drv/fasttrap.conf
+/kernel/drv/fbt.conf
+/kernel/drv/fcip.conf
+/kernel/drv/fcp.conf
+/kernel/drv/fcsm.conf
+/kernel/drv/fct.conf
+/kernel/drv/fd.conf
+/kernel/drv/fdc.conf
+/kernel/drv/fm.conf
+/kernel/drv/fp.conf
+/kernel/drv/glm.conf
+/kernel/drv/hci1394.conf
+/kernel/drv/hermon.conf
+/kernel/drv/hv_netvsc.conf
+/kernel/drv/hv_vmbus.conf
+/kernel/drv/hxge.conf
+/kernel/drv/i40e.conf
+/kernel/drv/ib.conf
+/kernel/drv/ibp.conf
+/kernel/drv/icmp.conf
+/kernel/drv/icmp6.conf
+/kernel/drv/igb.conf
+/kernel/drv/intel_nb5000.conf
+/kernel/drv/intel_nhm.conf
+/kernel/drv/intel_nhmex.conf
+/kernel/drv/ip.conf
+/kernel/drv/ip6.conf
+/kernel/drv/ipnet.conf
+/kernel/drv/ippctl.conf
+/kernel/drv/ipsecah.conf
+/kernel/drv/ipsecesp.conf
+/kernel/drv/iptun.conf
+/kernel/drv/iwscn.conf
+/kernel/drv/ixgbe.conf
+/kernel/drv/keysock.conf
+/kernel/drv/kmdb.conf
+/kernel/drv/kssl.conf
+/kernel/drv/llc1.conf
+/kernel/drv/lockstat.conf
+/kernel/drv/lofi.conf
+/kernel/drv/log.conf
+/kernel/drv/lsimega.conf
+/kernel/drv/mc-amd.conf
+/kernel/drv/mega_sas.conf
+/kernel/drv/mm.conf
+/kernel/drv/mpt.conf
+/kernel/drv/mpt_sas.conf
+/kernel/drv/mr_sas.conf
+/kernel/drv/nge.conf
+/kernel/drv/ntxn.conf
+/kernel/drv/nv_sata.conf
+/kernel/drv/nvme.conf
+/kernel/drv/nxge.conf
+/kernel/drv/ohci.conf
+/kernel/drv/openeepr.conf
+/kernel/drv/options.conf
+/kernel/drv/pcic.conf
+/kernel/drv/pcieb.conf
+/kernel/drv/physmem.conf
+/kernel/drv/pmcs.conf
+/kernel/drv/poll.conf
+/kernel/drv/power.conf
+/kernel/drv/pppt.conf
+/kernel/drv/profile.conf
+/kernel/drv/pseudo.conf
+/kernel/drv/ptc.conf
+/kernel/drv/ptsl.conf
+/kernel/drv/qlc.conf
+/kernel/drv/qlt.conf
+/kernel/drv/ramdisk.conf
+/kernel/drv/random.conf
+/kernel/drv/rds.conf
+/kernel/drv/rdsib.conf
+/kernel/drv/rdsv3.conf
+/kernel/drv/rpcib.conf
+/kernel/drv/rts.conf
+/kernel/drv/sad.conf
+/kernel/drv/scsa2usb.conf
+/kernel/drv/scsi_vhci.conf
+/kernel/drv/sd.conf
+/kernel/drv/sdp.conf
+/kernel/drv/sdpib.conf
+/kernel/drv/sdt.conf
+/kernel/drv/ses.conf
+/kernel/drv/sgen.conf
+/kernel/drv/simnet.conf
+/kernel/drv/smbios.conf
+/kernel/drv/smp.conf
+/kernel/drv/softmac.conf
+/kernel/drv/sol_ucma.conf
+/kernel/drv/sol_umad.conf
+/kernel/drv/sol_uverbs.conf
+/kernel/drv/spdsock.conf
+/kernel/drv/st.conf
+/kernel/drv/stmf.conf
+/kernel/drv/stmf_sbd.conf
+/kernel/drv/sy.conf
+/kernel/drv/sysevent.conf
+/kernel/drv/sysmsg.conf
+/kernel/drv/systrace.conf
+/kernel/drv/tavor.conf
+/kernel/drv/tcp.conf
+/kernel/drv/tcp6.conf
+/kernel/drv/tl.conf
+/kernel/drv/tzmon.conf
+/kernel/drv/ucode.conf
+/kernel/drv/udp.conf
+/kernel/drv/udp6.conf
+/kernel/drv/uhci.conf
+/kernel/drv/usb_ac.conf
+/kernel/drv/usbftdi.conf
+/kernel/drv/usbser_edge.conf
+/kernel/drv/vnic.conf
+/kernel/drv/wc.conf
+/kernel/drv/xhci.conf
+/kernel/drv/zfs.conf
+/kernel/dtrace
+/kernel/dtrace/amd64
+/kernel/dtrace/amd64/dcpc
+/kernel/dtrace/amd64/fasttrap
+/kernel/dtrace/amd64/fbt
+/kernel/dtrace/amd64/lockstat
+/kernel/dtrace/amd64/profile
+/kernel/dtrace/amd64/sdt
+/kernel/dtrace/amd64/systrace
+/kernel/exec
+/kernel/exec/amd64
+/kernel/exec/amd64/elfexec
+/kernel/exec/amd64/intpexec
+/kernel/fs
+/kernel/fs/amd64
+/kernel/fs/amd64/autofs
+/kernel/fs/amd64/bootfs
+/kernel/fs/amd64/ctfs
+/kernel/fs/amd64/dcfs
+/kernel/fs/amd64/dev
+/kernel/fs/amd64/devfs
+/kernel/fs/amd64/fifofs
+/kernel/fs/amd64/hsfs
+/kernel/fs/amd64/lofs
+/kernel/fs/amd64/mntfs
+/kernel/fs/amd64/namefs
+/kernel/fs/amd64/nfs
+/kernel/fs/amd64/objfs
+/kernel/fs/amd64/procfs
+/kernel/fs/amd64/sharefs
+/kernel/fs/amd64/sockfs
+/kernel/fs/amd64/specfs
+/kernel/fs/amd64/tmpfs
+/kernel/fs/amd64/udfs
+/kernel/fs/amd64/ufs
+/kernel/fs/amd64/zfs
+/kernel/ipp
+/kernel/ipp/amd64
+/kernel/ipp/amd64/ipgpc
+/kernel/kiconv
+/kernel/kiconv/amd64
+/kernel/kiconv/amd64/kiconv_emea
+/kernel/kiconv/amd64/kiconv_ja
+/kernel/kiconv/amd64/kiconv_ko
+/kernel/kiconv/amd64/kiconv_sc
+/kernel/kiconv/amd64/kiconv_tc
+/kernel/kmdb
+/kernel/kmdb/amd64
+/kernel/kmdb/amd64/arp
+/kernel/kmdb/amd64/cpc
+/kernel/kmdb/amd64/cpu.generic
+/kernel/kmdb/amd64/cpu_ms.AuthenticAMD.15
+/kernel/kmdb/amd64/crypto
+/kernel/kmdb/amd64/emlxs
+/kernel/kmdb/amd64/genunix
+/kernel/kmdb/amd64/hook
+/kernel/kmdb/amd64/ip
+/kernel/kmdb/amd64/ipc
+/kernel/kmdb/amd64/ipp
+/kernel/kmdb/amd64/krtld
+/kernel/kmdb/amd64/lofs
+/kernel/kmdb/amd64/logindmux
+/kernel/kmdb/amd64/mac
+/kernel/kmdb/amd64/mpt
+/kernel/kmdb/amd64/mpt_sas
+/kernel/kmdb/amd64/mr_sas
+/kernel/kmdb/amd64/nca
+/kernel/kmdb/amd64/neti
+/kernel/kmdb/amd64/nfs
+/kernel/kmdb/amd64/pmcs
+/kernel/kmdb/amd64/ptm
+/kernel/kmdb/amd64/random
+/kernel/kmdb/amd64/s1394
+/kernel/kmdb/amd64/sata
+/kernel/kmdb/amd64/scsi_vhci
+/kernel/kmdb/amd64/sctp
+/kernel/kmdb/amd64/sd
+/kernel/kmdb/amd64/sockfs
+/kernel/kmdb/amd64/specfs
+/kernel/kmdb/amd64/sppp
+/kernel/kmdb/amd64/stmf
+/kernel/kmdb/amd64/stmf_sbd
+/kernel/kmdb/amd64/ufs
+/kernel/kmdb/amd64/uhci
+/kernel/kmdb/amd64/usba
+/kernel/kmdb/amd64/xhci
+/kernel/kmdb/amd64/zfs
+/kernel/mac
+/kernel/mac/amd64
+/kernel/mac/amd64/mac_6to4
+/kernel/mac/amd64/mac_ether
+/kernel/mac/amd64/mac_ib
+/kernel/mac/amd64/mac_ipv4
+/kernel/mac/amd64/mac_ipv6
+/kernel/mac/amd64/mac_wifi
+/kernel/misc
+/kernel/misc/amd64
+/kernel/misc/amd64/ac97
+/kernel/misc/amd64/acpica
+/kernel/misc/amd64/agpmaster
+/kernel/misc/amd64/bignum
+/kernel/misc/amd64/bootdev
+/kernel/misc/amd64/busra
+/kernel/misc/amd64/cardbus
+/kernel/misc/amd64/cc
+/kernel/misc/amd64/cmlb
+/kernel/misc/amd64/consconfig
+/kernel/misc/amd64/ctf
+/kernel/misc/amd64/dadk
+/kernel/misc/amd64/dcopy
+/kernel/misc/amd64/des
+/kernel/misc/amd64/dls
+/kernel/misc/amd64/drm
+/kernel/misc/amd64/edonr
+/kernel/misc/amd64/fctl
+/kernel/misc/amd64/fssnap_if
+/kernel/misc/amd64/gda
+/kernel/misc/amd64/gld
+/kernel/misc/amd64/hidparser
+/kernel/misc/amd64/hook
+/kernel/misc/amd64/hpcsvc
+/kernel/misc/amd64/hyperv
+/kernel/misc/amd64/ibcm
+/kernel/misc/amd64/ibdm
+/kernel/misc/amd64/ibdma
+/kernel/misc/amd64/ibmf
+/kernel/misc/amd64/ibtl
+/kernel/misc/amd64/idmap
+/kernel/misc/amd64/iommulib
+/kernel/misc/amd64/ipc
+/kernel/misc/amd64/kbtrans
+/kernel/misc/amd64/kcf
+/kernel/misc/amd64/kgssapi
+/kernel/misc/amd64/klmmod
+/kernel/misc/amd64/klmops
+/kernel/misc/amd64/kmdbmod
+/kernel/misc/amd64/ksocket
+/kernel/misc/amd64/mac
+/kernel/misc/amd64/md5
+/kernel/misc/amd64/mii
+/kernel/misc/amd64/net80211
+/kernel/misc/amd64/neti
+/kernel/misc/amd64/nfs_dlboot
+/kernel/misc/amd64/pci_autoconfig
+/kernel/misc/amd64/pcicfg
+/kernel/misc/amd64/pcie
+/kernel/misc/amd64/pcihp
+/kernel/misc/amd64/pcmcia
+/kernel/misc/amd64/rpcsec
+/kernel/misc/amd64/rpcsec_gss
+/kernel/misc/amd64/s1394
+/kernel/misc/amd64/sata
+/kernel/misc/amd64/sbp2
+/kernel/misc/amd64/scsi
+/kernel/misc/amd64/sda
+/kernel/misc/amd64/sha1
+/kernel/misc/amd64/sha2
+/kernel/misc/amd64/skein
+/kernel/misc/amd64/sol_ofs
+/kernel/misc/amd64/strategy
+/kernel/misc/amd64/strplumb
+/kernel/misc/amd64/tem
+/kernel/misc/amd64/tlimod
+/kernel/misc/amd64/usba
+/kernel/misc/amd64/usba10
+/kernel/misc/amd64/usbs49_fw
+/kernel/misc/amd64/usbser
+/kernel/misc/amd64/virtio
+/kernel/misc/consconfig
+/kernel/misc/emlxs
+/kernel/misc/emlxs/amd64
+/kernel/misc/emlxs/amd64/emlxs_fw
+/kernel/misc/kgss
+/kernel/misc/kgss/amd64
+/kernel/misc/kgss/amd64/kmech_krb5
+/kernel/misc/pci_autoconfig
+/kernel/misc/pmcs
+/kernel/misc/pmcs/amd64
+/kernel/misc/pmcs/amd64/pmcs8001fw
+/kernel/misc/qlc
+/kernel/misc/qlc/amd64
+/kernel/misc/qlc/amd64/qlc_fw_2200
+/kernel/misc/qlc/amd64/qlc_fw_2300
+/kernel/misc/qlc/amd64/qlc_fw_2400
+/kernel/misc/qlc/amd64/qlc_fw_2500
+/kernel/misc/qlc/amd64/qlc_fw_6322
+/kernel/misc/qlc/amd64/qlc_fw_8100
+/kernel/misc/scsi_vhci
+/kernel/misc/scsi_vhci/amd64
+/kernel/misc/scsi_vhci/amd64/scsi_vhci_f_asym_emc
+/kernel/misc/scsi_vhci/amd64/scsi_vhci_f_asym_lsi
+/kernel/misc/scsi_vhci/amd64/scsi_vhci_f_asym_sun
+/kernel/misc/scsi_vhci/amd64/scsi_vhci_f_sym
+/kernel/misc/scsi_vhci/amd64/scsi_vhci_f_sym_emc
+/kernel/misc/scsi_vhci/amd64/scsi_vhci_f_sym_hds
+/kernel/misc/scsi_vhci/amd64/scsi_vhci_f_tape
+/kernel/misc/scsi_vhci/amd64/scsi_vhci_f_tpgs
+/kernel/misc/scsi_vhci/amd64/scsi_vhci_f_tpgs_tape
+/kernel/sched
+/kernel/sched/amd64
+/kernel/sched/amd64/SDC
+/kernel/sched/amd64/TS
+/kernel/sched/amd64/TS_DPTBL
+/kernel/socketmod
+/kernel/socketmod/amd64
+/kernel/socketmod/amd64/icmp
+/kernel/socketmod/amd64/ksslf
+/kernel/socketmod/amd64/rts
+/kernel/socketmod/amd64/sockrds
+/kernel/socketmod/amd64/socksctp
+/kernel/socketmod/amd64/socksdp
+/kernel/socketmod/amd64/tcp
+/kernel/socketmod/amd64/trill
+/kernel/socketmod/amd64/udp
+/kernel/strmod
+/kernel/strmod/amd64
+/kernel/strmod/amd64/arp
+/kernel/strmod/amd64/bufmod
+/kernel/strmod/amd64/connld
+/kernel/strmod/amd64/dedump
+/kernel/strmod/amd64/drcompat
+/kernel/strmod/amd64/icmp
+/kernel/strmod/amd64/ip
+/kernel/strmod/amd64/ipsecah
+/kernel/strmod/amd64/ipsecesp
+/kernel/strmod/amd64/keysock
+/kernel/strmod/amd64/ldterm
+/kernel/strmod/amd64/pckt
+/kernel/strmod/amd64/pfmod
+/kernel/strmod/amd64/pipemod
+/kernel/strmod/amd64/ptem
+/kernel/strmod/amd64/redirmod
+/kernel/strmod/amd64/rpcmod
+/kernel/strmod/amd64/sdpib
+/kernel/strmod/amd64/tcp
+/kernel/strmod/amd64/timod
+/kernel/strmod/amd64/tirdwr
+/kernel/strmod/amd64/ttcompat
+/kernel/strmod/amd64/udp
+/kernel/strmod/amd64/usb_ah
+/kernel/strmod/amd64/usbkbm
+/kernel/strmod/amd64/usbms
+/kernel/strmod/amd64/usbwcm
+/kernel/strmod/amd64/vuid2ps2
+/kernel/strmod/amd64/vuid3ps2
+/kernel/strmod/amd64/vuidm3p
+/kernel/strmod/amd64/vuidm4p
+/kernel/strmod/amd64/vuidm5p
+/kernel/sys
+/kernel/sys/amd64
+/kernel/sys/amd64/autofs
+/kernel/sys/amd64/c2audit
+/kernel/sys/amd64/doorfs
+/kernel/sys/amd64/inst_sync
+/kernel/sys/amd64/kaio
+/kernel/sys/amd64/msgsys
+/kernel/sys/amd64/nfs
+/kernel/sys/amd64/pipe
+/kernel/sys/amd64/portfs
+/kernel/sys/amd64/pset
+/kernel/sys/amd64/rpcmod
+/kernel/sys/amd64/semsys
+/kernel/sys/amd64/shmsys
