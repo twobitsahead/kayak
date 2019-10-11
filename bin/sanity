@@ -73,11 +73,15 @@ for obj, ei in elfs(['so', 'exe']):
         rp.append(p)
 
     try:
-        deps = [ e[0] for e in ed['deps'] ]
+        deps = ed['deps']
     except KeyError:
         continue
 
-    for dep in deps:
+    for deplist in deps:
+        dep = deplist[0]
+        # deplist[1] is the list of required versions
+        flags = deplist[2]
+
         if dep in ['genunix', 'dtracestubs']:
             continue
 
@@ -103,7 +107,8 @@ for obj, ei in elfs(['so', 'exe']):
             if debug:
                 print("Dependency for {} - {}".format(obj, path))
         else:
-            print("Missing dependency for {} - {}".format(obj, dep))
+            print("Missing dependency for {} - {}{}".format(obj, dep,
+                " [LAZY]" if flags & elf.DYNFLAG_LAZY else ""))
 
 for l, c in libraries.items():
     if not c:
