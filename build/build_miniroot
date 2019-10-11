@@ -379,24 +379,7 @@ EOM
   "sanity")
 
     of=`mktemp`
-    pushd $ROOTDIR >/dev/null
-    for f in usr/bin/* sbin/* usr/sbin/* lib/*.so.* usr/lib/*.so.*; do
-        LD_LIBRARY_PATH=./lib:./usr/lib \
-        LD_LIBRARY_PATH_32=./lib:./usr/lib \
-        LD_LIBRARY_PATH_64=./lib/amd64:./usr/lib/amd64 \
-            ldd $f 2>/dev/null | \
-            nawk -v file="$f" '
-                $3 !~ /^\./ {
-                    if ($0 ~ /file not found/)
-                        f = $1
-                    else
-                        f = $3
-                    print "Missing library", file, "requires", f
-                }
-            '
-    done | sort > $of
-    popd >/dev/null
-
+    $SRCDIR/bin/sanity $ROOTDIR | sort > $of
     diff -U0 $SRCDIR/data/baseline $of
     if [ $? -gt 0 ]; then
         echo
