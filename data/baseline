@@ -2,20 +2,11 @@ Missing dependency for etc/fs/nfs/mount - librpcsvc.so.1
 Missing dependency for lib/amd64/ld.so.1 - libld.so.4
 Missing dependency for lib/amd64/ld.so.1 - liblddbg.so.4
 Missing dependency for lib/amd64/ld.so.1 - librtld.so.1
-Missing dependency for lib/amd64/libdladm.so.1 - libkstat.so.1
-Missing dependency for lib/amd64/libdladm.so.1 - librcm.so.1
-Missing dependency for lib/amd64/libuuid.so.1 - libdlpi.so.1
-Missing dependency for lib/amd64/libzfs.so.1 - libadm.so.1
-Missing dependency for lib/amd64/libzfs.so.1 - libcryptoutil.so.1
-Missing dependency for lib/amd64/libzfs.so.1 - libefi.so.1
-Missing dependency for lib/amd64/libzfs.so.1 - libpkcs11.so.1
 Missing dependency for lib/fm/amd64/libfmevent.so.1 - libtopo.so.1
 Missing dependency for lib/inet/in.mpathd - libipmp.so.1
 Missing dependency for lib/ld.so.1 - libld.so.4
 Missing dependency for lib/ld.so.1 - liblddbg.so.4
 Missing dependency for lib/ld.so.1 - librtld.so.1
-Missing dependency for lib/svc/method/svc-fcoei - libfcoe.so.1
-Missing dependency for lib/svc/method/svc-fcoet - libfcoe.so.1
 Missing dependency for lib/svc/method/svc-stmf - libstmf.so.1
 Missing dependency for sbin/bootadm - libficl-sys.so.4.1.0
 Missing dependency for sbin/dladm - librstp.so.1
@@ -28,43 +19,17 @@ Missing dependency for usr/bin/amd64/mdb - libdemangle-sys.so.1
 Missing dependency for usr/bin/amd64/mdb - libvmm.so.1
 Missing dependency for usr/bin/i86/truss - libc_db.so.1
 Missing dependency for usr/lib/amd64/libcmd.so.1 - libsum.so.1
-Missing dependency for usr/lib/amd64/libdiskmgt.so.1 - libadm.so.1
-Missing dependency for usr/lib/amd64/libdiskmgt.so.1 - libefi.so.1
-Missing dependency for usr/lib/amd64/libdiskmgt.so.1 - libfdisk.so.1
-Missing dependency for usr/lib/amd64/libdiskmgt.so.1 - libkstat.so.1
 Missing dependency for usr/lib/amd64/libshell.so.1 - libdll.so.1
 Missing dependency for usr/lib/fs/smbfs/libshare_smbfs.so.1 - libsmbfs.so.1
 Missing dependency for usr/lib/libbe.so.1 - libficl-sys.so.4.1.0
 Missing dependency for usr/platform/i86pc/lib/fm/topo/plugins/chip.so - libfmd_agent.so.1
 Missing dependency for usr/sbin/rpcbind - libwrap.so.1
 Unused library lib/amd64/ld.so.1
-Unused library lib/amd64/libcontract.so.1
-Unused library lib/amd64/libdladm.so.1
-Unused library lib/amd64/libmd5.so.1
-Unused library lib/amd64/libssl.so.1.0.0
-Unused library lib/amd64/libthread.so.1
-Unused library lib/amd64/libuuid.so.1
-Unused library lib/amd64/libzfs.so.1
 Unused library lib/amd64/nss_files.so.1
 Unused library lib/fm/amd64/libfmevent.so.1
 Unused library lib/ld.so.1
-Unused library lib/libcrypto.so.1.0.0
-Unused library lib/libcrypto.so.1.1
 Unused library lib/libdl.so.1
-Unused library lib/libgrubmgmt.so.1
-Unused library lib/libintl.so.1
-Unused library lib/libm.so.1
-Unused library lib/libresolv.so.1
-Unused library lib/libthread.so.1
 Unused library lib/nss_files.so.1
-Unused library usr/lib/amd64/libbrand.so.1
-Unused library usr/lib/amd64/libdiskmgt.so.1
-Unused library usr/lib/amd64/libidn.so.11.6.18
-Unused library usr/lib/amd64/libidn.so.12.6.0
-Unused library usr/lib/amd64/libipmi.so.1
-Unused library usr/lib/amd64/libncurses.so.5.9
-Unused library usr/lib/amd64/libproject.so.1
-Unused library usr/lib/amd64/libtecla.so.1
 Unused library usr/lib/devfsadm/linkmod/SUNW_audio_link.so
 Unused library usr/lib/devfsadm/linkmod/SUNW_cfg_link.so
 Unused library usr/lib/devfsadm/linkmod/SUNW_disk_link.so
@@ -93,16 +58,6 @@ Unused library usr/lib/fs/zfs/fstyp.so.1
 Unused library usr/lib/libc/libc_hwcap1.so.1
 Unused library usr/lib/libc/libc_hwcap2.so.1
 Unused library usr/lib/libc/libc_hwcap3.so.1
-Unused library usr/lib/libdisasm.so.1
-Unused library usr/lib/libgss.so.1
-Unused library usr/lib/libhistory.so.8
-Unused library usr/lib/libidn.so.11.6.18
-Unused library usr/lib/libidn.so.12.6.0
-Unused library usr/lib/libkvm.so.1
-Unused library usr/lib/libncurses.so.5.9
-Unused library usr/lib/libncurses.so.6.1
-Unused library usr/lib/libreadline.so.8
-Unused library usr/lib/libsasl.so.1
 Unused library usr/lib/mdb/kvm/amd64/arp.so
 Unused library usr/lib/mdb/kvm/amd64/cpc.so
 Unused library usr/lib/mdb/kvm/amd64/cpu.generic.so
