@@ -1,0 +1,16 @@
+/var
+/var/adm
+/var/adm/sulog
+/var/adm/utmpx
+/var/adm/wtmpx
+/var/ld
+/var/ld/64
+/var/ld/amd64
+/var/run
+/var/spool
+/var/spool/cron
+/var/spool/cron/atjobs
+/var/svc
+/var/svc/log
+/var/svc/profile
+/var/tmp
