@@ -67,8 +67,8 @@ prompt_timezone() {
 
 runpkg() {
 	LD_LIBRARY_PATH=$ALTROOT/usr/lib/amd64 \
-	    PYTHONPATH=$ALTROOT/usr/lib/python3.5/vendor-packages \
-	    $ALTROOT/usr/bin/python3.5 \
+	    PYTHONPATH=$ALTROOT/usr/lib/python3.7/vendor-packages \
+	    $ALTROOT/usr/bin/python3.7 \
 	    $ALTROOT/usr/bin/pkg -R $ALTROOT "$@"
 	sed -i '/^last_uuid/d' $ALTROOT/var/pkg/pkg5.image
 }
