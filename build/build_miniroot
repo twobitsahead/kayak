@@ -381,7 +381,7 @@ EOM
   "sanity")
 
     of=`mktemp`
-    $SRCDIR/bin/sanity $ROOTDIR | sort > $of
+    $SRCDIR/bin/sanity $ROOTDIR | LC_ALL=C sort > $of
     diff -U0 $SRCDIR/data/baseline $of
     if [ $? -gt 0 ]; then
         echo
