@@ -1205,7 +1205,7 @@ save_console()
 	else
 		echo -h > $ALTROOT/boot/config
 		cat <<- EOM > $ALTROOT/boot/conf.d/serial
-		console="$con_sconsole,text"
+		console="$con_sconsole"
 		os_console="$con_sconsole"
 		ttya-mode="$con_baud,$con_dbits,${con_parity:0:1},$con_sbits,-"
 		EOM
