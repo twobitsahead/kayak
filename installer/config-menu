@@ -198,6 +198,21 @@ function remove_config {
 ##############################################################################
 # Networking
 
+reset_dma()
+{
+	sed -i '/^MAILNAME /d' $ALTROOT/etc/dma/dma.conf
+}
+
+set_dma()
+{
+	typeset domain="$net_domain"
+	[ -z "$domain" ] && domain=local
+
+	sed -i "/^#MAILNAME/a\\
+MAILNAME $domain
+	" $ALTROOT/etc/dma/dma.conf
+}
+
 reset_hosts()
 {
 	sed -i '/^[^#]/d' $ALTROOT/etc/inet/hosts
@@ -232,9 +247,11 @@ save_networking()
 {
 	remove_config NETWORK
 	reset_hosts
+	reset_dma
 	[ -n "$net_if" ] || return
 	[ "$net_ifmode" = "static" -a -z "$net_ip" ] && return
 	set_hosts
+	set_dma
 	(
 		echo '### BEGIN_NETWORK'
 		echo "/sbin/ipadm create-if $net_if"
