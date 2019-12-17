@@ -163,6 +163,7 @@ pi_menu_items=( \
     (menu_str="Configure the installed OmniOS system"			\
 	cmds=("/kayak/installer/config-menu")				\
 	dcmds=("/kayak/installer/config-menu -dialog")			\
+	default="true"							\
 	do_subprocess="true")						\
     (menu_str="Shell (for post-install ops on /mnt)"			\
 	cmds=("/usr/bin/bash")						\
@@ -177,7 +178,6 @@ pi_menu_items=( \
 	cmds=("/sbin/beadm umount /mnt" "/sbin/uadmin 2 6")		\
 	do_subprocess="true"						\
 	noreturn="true"							\
-	default="true"							\
 	msg_str="Halting system, please wait...")			\
 )
 
