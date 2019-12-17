@@ -463,7 +463,7 @@ function dcfg_ip {
 			"$_lab_ip"	1 1 "$_net_ip_ip"     1 22 20 0 \
 			"$_lab_prefix"	2 1 "$_net_ip_prefix" 2 22 20 0 \
 			"$_lab_gw"	3 1 "$_net_gw"        3 22 20 0 \
-			"$_lab_domain"	4 1 "$_net_domain"    4 22 20 0 \
+			"$_lab_domain"	4 1 "$_net_domain"    4 22 20 255 \
 			"$_lab_dns"	5 1 "$_net_dns"       5 22 20 0 \
 		    2> $tmpf
 		stat=$?
