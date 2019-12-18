@@ -198,6 +198,21 @@ function remove_config {
 ##############################################################################
 # Networking
 
+reset_dma()
+{
+	sed -i '/^MAILNAME /d' $ALTROOT/etc/dma/dma.conf
+}
+
+set_dma()
+{
+	typeset domain="$net_domain"
+	[ -z "$domain" ] && domain=local
+
+	sed -i "/^#MAILNAME/a\\
+MAILNAME $domain
+	" $ALTROOT/etc/dma/dma.conf
+}
+
 reset_hosts()
 {
 	sed -i '/^[^#]/d' $ALTROOT/etc/inet/hosts
@@ -232,9 +247,11 @@ save_networking()
 {
 	remove_config NETWORK
 	reset_hosts
+	reset_dma
 	[ -n "$net_if" ] || return
 	[ "$net_ifmode" = "static" -a -z "$net_ip" ] && return
 	set_hosts
+	set_dma
 	(
 		echo '### BEGIN_NETWORK'
 		echo "/sbin/ipadm create-if $net_if"
@@ -463,7 +480,7 @@ function dcfg_ip {
 			"$_lab_ip"	1 1 "$_net_ip_ip"     1 22 20 0 \
 			"$_lab_prefix"	2 1 "$_net_ip_prefix" 2 22 20 0 \
 			"$_lab_gw"	3 1 "$_net_gw"        3 22 20 0 \
-			"$_lab_domain"	4 1 "$_net_domain"    4 22 20 0 \
+			"$_lab_domain"	4 1 "$_net_domain"    4 22 20 255 \
 			"$_lab_dns"	5 1 "$_net_dns"       5 22 20 0 \
 		    2> $tmpf
 		stat=$?
