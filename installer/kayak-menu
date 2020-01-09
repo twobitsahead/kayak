@@ -38,6 +38,7 @@ export TERM=sun-color
 
 export VERSION=`head -1 /etc/release | awk '{print $3}'`
 
+. /kayak/lib/install_help.sh
 . /kayak/lib/dialog.sh
 
 if [ $debug -eq 0 ]; then
@@ -53,6 +54,7 @@ if [ ! -f /.cdrom/.volsetid ]; then
 	echo "!!! Could not mount installation media !!!"
 	echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
 	echo
+	read a
 fi
 
 # If dialogue is supported, offer the user a choice.

@@ -1,5 +1,6 @@
 #!/usr/bin/bash
 
+# {{{ CDDL HEADER
 #
 # This file and its contents are supplied under the terms of the
 # Common Development and Distribution License ("CDDL"), version 1.0.
@@ -7,19 +8,19 @@
 # 1.0 of the CDDL.
 #
 # A full copy of the text of the CDDL should have accompanied this
-# source.  A copy of the CDDL is also available via the Internet at
+# source. A copy of the CDDL is also available via the Internet at
 # http://www.illumos.org/license/CDDL.
-#
+# }}}
 
 #
 # Copyright 2017 OmniTI Computer Consulting, Inc. All rights reserved.
-# Copyright 2019 OmniOS Community Edition (OmniOSce) Association.
+# Copyright 2020 OmniOS Community Edition (OmniOSce) Association.
 #
 
+. /kayak/lib/install_help.sh
 . /kayak/lib/dialog.sh
 . /kayak/lib/utils.sh
 . /kayak/lib/vm.sh
-. /kayak/lib/install_help.sh
 . /kayak/lib/disk_help.sh
 
 SetupLog /tmp/kayak.log
@@ -30,6 +31,8 @@ tmpf=`mktemp`
 
 ##########################################################################
 # Disk selection
+
+log "installer: disk selection"
 
 # Under KVM, the disks don't show up on the first invocation of diskinfo.
 # More investigation required but, for now, run it twice.
@@ -54,6 +57,8 @@ if [ ! -s $tmpf.disks ]; then
 	d_msg "No disks found."
 	exit 0
 fi
+
+logcmd cat $tmpf.disks
 
 declare -a args=()
 # SCSI    c0t0d1  SEAGATE ST300MP0005      279.40 GiB     no      no
@@ -89,6 +94,8 @@ while :; do
 	break
 done
 
+log "installer: selected disks '$DISKLIST'"
+
 # Check if any selected disks are part of an existing zpool. This can happen
 # if the installer is re-run.
 flag=0
@@ -101,19 +108,20 @@ done
 [ $flag -eq 1 ] && exit 0
 
 test_rpool() {
-	mkfile 64m /tmp/test.$$
+	log "Testing rpool"
+	logcmd mkfile 64m /tmp/test.$$
 	if [ $? != 0 ]; then
 		[ -f /tmp/test.$$ ] && rm -f /tmp/test.$$
 		d_msg "WARNING: Insufficient space in /tmp for installation..."
 		return 1
 	fi
-	zpool create "$1" /tmp/test.$$
+	logcmd zpool create "$1" /tmp/test.$$
 	if [ $? != 0 ]; then
 		d_msg "Can't test zpool create $1"
 		rm -f /tmp/test.$$
 		return 1
 	fi
-	zpool destroy "$1" > /dev/null 2>&1
+	logcmd zpool destroy "$1"
 	rm -f /tmp/test.$$
 	return 0
 }
@@ -145,6 +153,8 @@ if [ "$ndisks" -gt 1 ]; then
 	ztype="`cat $tmpf`"
 	rm -f $tmpf
 fi
+
+log "installer: selected RAID level '$ztype'"
 [ "$ztype" = "stripe" ] && ztype=
 
 ##########################################################################
@@ -167,6 +177,7 @@ get_rpool_name()
 		d_msg "Invalid pool name, $NRPOOL"
 	done
 	RPOOL="$NRPOOL"
+	log "installer: RPOOL name '$RPOOL'"
 }
 
 ##########################################################################
@@ -256,7 +267,7 @@ while :; do
 			    "\nConfirm destruction of existing pool?" 7 50
 			[ $? = 0 ] || continue
 			d_info "Destroying pool..."
-			zpool destroy "$RPOOL" >/dev/null 2>&1
+			logcmd zpool destroy "$RPOOL"
 		fi
 		d_info "Checking system..."
 		test_rpool "$RPOOL" && break
@@ -269,12 +280,17 @@ while :; do
 		PSCHEME="`cycle PSCHEMES[@] "$PSCHEME"`"
 		PSCHEME_HELP="`cycle PSCHEMES_HELP[@] "$PSCHEME_HELP"`"
 		pscheme_help="`d_centre "$PSCHEME_HELP"`"
+		log "Selected partitioning scheme: $PSCHEME"
 		;;
-	    "$compression_label") COMPRESSION="`toggle "$COMPRESSION"`" ;;
+	    "$compression_label")
+		COMPRESSION="`toggle "$COMPRESSION"`"
+		log "Selected compression: $COMPRESSION"
+		;;
 	    "$sforce_label")
 		SFORCE="`cycle SFORCES[@] "$SFORCE"`"
 		SFORCE_HELP="`cycle SFORCES_HELP[@] "$SFORCE_HELP"`"
 		sforce_help="`d_centre "$SFORCE_HELP"`"
+		log "Selected block size: $SFORCE"
 		;;
 	esac
 done
@@ -306,14 +322,14 @@ case "$PSCHEME" in
 		# The zpool slice will now be slice 1 but slice 0 may have a
 		# pool label from a previous installation. Clear it out.
 		for disk in $DISKLIST; do
-			zpool labelclear -f ${disk}s0 >/dev/null 2>&1
+			logcmd zpool labelclear -f ${disk}s0
 		done
 		;;
 	MBR)
 		_DISKLIST=
 		for disk in $DISKLIST; do
 			# Single Solaris2 partition
-			if ! fdisk -B ${disk}p0; then
+			if ! logcmd fdisk -B ${disk}p0; then
 				d_msg "Failed to partition $disk"
 				exit 0
 			fi
@@ -324,7 +340,7 @@ case "$PSCHEME" in
 			# with s0 and s8 overlapping.
 
 			# Fix this by first removing slice 0
-			fmthard -d 0:0:0:0:0 /dev/rdsk/${disk}p0
+			logcmd fmthard -d 0:0:0:0:0 /dev/rdsk/${disk}p0
 
 			# Create slice 0 covering all of the non-reserved space
 			OIFS="$IFS"; IFS=" ="
@@ -332,46 +348,50 @@ case "$PSCHEME" in
 			IFS="$OIFS"
 			# FREE_START=16065 FREE_SIZE=196608 FREE_COUNT=1...
 			start=$2; size=$4
-			fmthard -d 0:2:01:$start:$size /dev/rdsk/${disk}p0
+			logcmd fmthard -d 0:2:01:$start:$size \
+			    /dev/rdsk/${disk}p0
 
 			_DISKLIST+="${disk}s0 "
 		done
 		;;
 esac
 
-if ! zpool create -$_FLAGS $_OPTS "$RPOOL" $ztype $_DISKLIST || \
-   ! zpool list $RPOOL >& /dev/null; then
+if ! logcmd zpool create -$_FLAGS $_OPTS "$RPOOL" $ztype $_DISKLIST || \
+   ! logcmd zpool list $RPOOL; then
 	d_msg "Failed to create root pool"
 	exit 0
 fi
 
 pool_guid="`zpool list -H -o guid $RPOOL`"
+log "installer: pool GUID '$pool_guid'"
 
 # These options work around BIOS bugs on some systems.
 
 fixdb=
 case $PSCHEME in
     GPT+Active)
-	zpool export $RPOOL >/dev/null 2>&1
+	log "Adjusting pool for $PSCHEME"
+	logcmd zpool export $RPOOL
 	for disk in $DISKLIST; do
 		# Set first entry in PMBR active
-		fdisk -E 0:1 ${disk}p0
+		logcmd fdisk -E 0:1 ${disk}p0
 	done
-	zpool import $pool_guid
+	logcmd zpool import $pool_guid
 	fixdb="pmbr_active=1"
 	;;
     GPT+Slot1)
-	zpool export $RPOOL >/dev/null 2>&1
+	log "Adjusting pool for $PSCHEME"
+	logcmd zpool export $RPOOL
 	for disk in $DISKLIST; do
 		# Move first PMBR entry to slot 1
-		fdisk -E 1:0 ${disk}p0
+		logcmd fdisk -E 1:0 ${disk}p0
 	done
-	zpool import $pool_guid
+	logcmd zpool import $pool_guid
 	fixdb="pmbr_slot=1"
 	;;
 esac
 
-if zpool list $RPOOL >& /dev/null; then
+if logcmd zpool list $RPOOL; then
 	d_info "Successfully created $RPOOL..."
 else
 	d_msg "Problem creating pool..."
@@ -390,28 +410,21 @@ d_info "Preparing to install..."
 # Because of kayak's small miniroot, just use C as the language for now.
 LANG=C
 
-panic()
-{
-	echo
-	echo "An error has occurred, press return to continue:\\c"
-	read a
-	exit 0
-}
-
 bename=omnios
 ver=`head -1 /etc/release | awk '{print $3}'`
 [ -n "$ver" ] && bename+="-$ver"
 
 BuildBE $RPOOL $ZFS_IMAGE $bename
-ApplyChanges $HOSTNAME $TZ $LANG $keyboard_layout || panic
-MakeBootable $RPOOL $bename || panic
+ApplyChanges $HOSTNAME $TZ $LANG $keyboard_layout \
+    || bomb "Could not apply changes."
+MakeBootable $RPOOL $bename || bomb "Could not make bootable"
 
 ######################################################################
 # Apply some additional settings for interactive installations.
 
 # Disable SSH
 [ -f /kayak/etc/nossh.xml ] && \
-    cp /kayak/etc/nossh.xml $ALTROOT/etc/svc/profile/site/
+    logcmd cp /kayak/etc/nossh.xml $ALTROOT/etc/svc/profile/site/
 
 # Add extra repo (can be disabled in the configuration menu)
 extrarepo -on
@@ -439,7 +452,13 @@ if [ -n "$fixdb" -a -f $efifixdb ]; then
 	) >> $efifixdb
 fi
 
-if beadm list -H $bename 2>/dev/null; then
+log "Installation complete"
+
+CopyInstallLog
+
+if [ -f /tmp/INSTALLATION_FAILED ]; then
+	d_msg "`cat /tmp/INSTALLATION_FAILED`"
+elif beadm list -H $bename 2>/dev/null; then
 	dialog \
 		--colors \
 		--title "Installation Complete" \
@@ -453,4 +472,6 @@ reboot, or enter the shell to modify your new BE before its first boot.\\n\\Zn\
 else
 	d_msg "Boot environment does not appear to be present, something went wrong.\\nCheck 'beadm list' output under shell."
 fi
+
+exit 0
 

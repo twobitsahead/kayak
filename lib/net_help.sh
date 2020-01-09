@@ -1,62 +1,69 @@
 #!/usr/bin/bash
 #
-# CDDL HEADER START
+# {{{ CDDL HEADER
 #
-# The contents of this file are subject to the terms of the
-# Common Development and Distribution License, Version 1.0 only
-# (the "License").  You may not use this file except in compliance
-# with the License.
+# This file and its contents are supplied under the terms of the
+# Common Development and Distribution License ("CDDL"), version 1.0.
+# You may only use this file in accordance with the terms of version
+# 1.0 of the CDDL.
 #
-# You can obtain a copy of the license at usr/src/OPENSOLARIS.LICENSE
-# or http://www.opensolaris.org/os/licensing.
-# See the License for the specific language governing permissions
-# and limitations under the License.
-#
-# When distributing Covered Code, include this CDDL HEADER in each
-# file and include the License file at usr/src/OPENSOLARIS.LICENSE.
-# If applicable, add the following below this CDDL HEADER, with the
-# fields enclosed by brackets "[]" replaced with your own identifying
-# information: Portions Copyright [yyyy] [name of copyright owner]
-#
-# CDDL HEADER END
-#
+# A full copy of the text of the CDDL should have accompanied this
+# source. A copy of the CDDL is also available via the Internet at
+# http://www.illumos.org/license/CDDL.
+# }}}
 #
 # Copyright 2012 OmniTI Computer Consulting, Inc.  All rights reserved.
-# Use is subject to license terms.
+# Copyright 2020 OmniOS Community Edition (OmniOSce) Association.
 #
 
-Ether(){
-  /sbin/ifconfig -a | \
-    /usr/bin/awk '/UP/{if($2 !~ /LOOPBACK/){iface=$1;}} /ether/{if(iface){print $2; exit;}}' | \
-    /bin/tr '[:lower:]' '[:upper:]' | \
-    /bin/sed -e 's/^/ 0/g;s/:/ 0/g; s/0\([0-9A-F][0-9A-F]\)/\1/g; s/ //g;'
+# Returns a mac address as 12 hex characters, upper-case, from the first
+# non-loopback interface in the system.
+Ether() {
+    local mac="`dladm show-phys -m -p -o ADDRESS | \
+        /bin/tr '[:lower:]' '[:upper:]' | \
+        sed '
+            s/^/ 0/g
+            s/:/ 0/g
+            s/0\([0-9A-F][0-9A-F]\)/\1/g
+            s/ //g
+            q
+        '`"
+
+    log "Ether() = $mac"
+    echo $mac
 }
 
 UseDNS() {
-  server=$1; shift
-  domain=$1
-  EnableDNS $domain $*
-  SetDNS $server
+    log "UseDNS: $*"
+
+    server=$1; shift
+    domain=$1
+    EnableDNS $domain $*
+    SetDNS $server
 }
 
 EnableDNS() {
-  domain=$1
-  if [ ! -z $domain ]; then
-    cat <<EOF > $ALTROOT/etc/resolv.conf
+    log "EnableDNS: $*"
+
+    domain=$1
+    if [ -n "$domain" ]; then
+        cat <<EOF > $ALTROOT/etc/resolv.conf
 domain $domain
 search $*
 EOF
-  fi
-  sed -I -e 's/^hosts:.*/hosts: files dns/;' $ALTROOT/etc/nsswitch.conf
-  sed -I -e 's/^ipnodes:.*/ipnodes: files dns/;' $ALTROOT/etc/nsswitch.conf
+    fi
+    logcmd cp $ALTROOT/etc/nsswitch.{dns,conf}
 }
 
 SetDNS() {
-# NOTE: If the nsswitch.conf file specifies DNS in a manner other than:
-# "files dns", setting EnableDNS will have to become more sophisticated.
-  /usr/bin/grep -c 'files dns' $ALTROOT/etc/nsswitch.conf 2> /dev/null > /dev/null || EnableDNS
+    log "SetDNS: $*"
 
-  for srv in $*; do
-    echo nameserver $srv >> $ALTROOT/etc/resolv.conf
-  done
+    /usr/bin/egrep -s 'files dns' $ALTROOT/etc/nsswitch.conf || EnableDNS
+
+    for srv in $*; do
+        echo nameserver $srv >> $ALTROOT/etc/resolv.conf
+    done
 }
+
+# Vim hints
+# vim:ts=4:sw=4:et:fdm=marker
