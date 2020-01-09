@@ -10,32 +10,34 @@
 # http://www.illumos.org/license/CDDL.
 # }}}
 
-# Copyright 2019 OmniOS Community Edition (OmniOSce) Association.
+# Copyright 2020 OmniOS Community Edition (OmniOSce) Association.
 
 hypervisor() {
-	cpuid | grep '^Hypervisor vendor string:' | cut -d"'" -f2
+    cpuid | grep '^Hypervisor vendor string:' | cut -d"'" -f2
 }
 
 vm_vmware() {
-	echo "Installing open-vm-tools package..."
-	runpkg install --no-refresh --no-index \
-	    -g /.cdrom/image/p5p/vmware.p5p open-vm-tools
-	cp /kayak/etc/vmware.xml $ALTROOT/etc/svc/profile/site/
+    log "Installing open-vm-tools package..."
+    runpkg install --no-refresh --no-index \
+        -g /.cdrom/image/p5p/vmware.p5p open-vm-tools
+    cp /kayak/etc/vmware.xml $ALTROOT/etc/svc/profile/site/
 }
 
 vm_azure() {
-	echo "Installing azure package..."
-	runpkg install --no-refresh --no-index \
-	    -g /.cdrom/image/p5p/azure.p5p azure-agent
-	cp /kayak/etc/azure.xml $ALTROOT/etc/svc/profile/site/
+    log "Installing azure package..."
+    runpkg install --no-refresh --no-index \
+        -g /.cdrom/image/p5p/azure.p5p azure-agent
+    cp /kayak/etc/azure.xml $ALTROOT/etc/svc/profile/site/
 }
 
 setupvm() {
-	case `hypervisor` in
-		bhyve*)		;;
-		KVM*)		;;
-		VMware*)	vm_vmware ;;
-		Microsoft*)	;;
-	esac
+    case `hypervisor` in
+        bhyve*)     ;;
+        KVM*)       ;;
+        VMware*)    vm_vmware ;;
+        Microsoft*) ;;
+    esac
 }
 
+# Vim hints
+# vim:ts=4:sw=4:et:fdm=marker
