@@ -101,6 +101,7 @@
 /lib/libzfs.so.1
 /lib/libzfs_core.so
 /lib/libzfs_core.so.1
+/lib/libzutil.so.1
 /lib/nss_files.so.1
 /lib/svc
 /lib/svc/bin
