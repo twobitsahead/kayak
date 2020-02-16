@@ -63,6 +63,7 @@
 /lib/libdwarf.so.1
 /lib/libefi.so.1
 /lib/libelf.so.1
+/lib/libfakekernel.so.1
 /lib/libfdisk.so.1
 /lib/libgen.so.1
 /lib/libinetutil.so.1
@@ -331,6 +332,7 @@
 /usr/lib/libz.so
 /usr/lib/libz.so.*
 /usr/lib/libzonecfg.so.1
+/usr/lib/libzpool.so.1
 /usr/lib/locale
 /usr/lib/locale/C
 /usr/lib/locale/C/LC_MESSAGES
