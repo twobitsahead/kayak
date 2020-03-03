@@ -309,11 +309,14 @@ step() {
         -d ${ROOTDIR}/lib/svc/manifest
     /bin/rm -f /tmp/manifest-import.$$
 
-    echo " --- neutering boot-archive"
-    ${SVCCFG} -s 'system/boot-archive' setprop 'start/exec=:true'
+    for s in system/boot-archive \
+        system/manifest-import \
+        network/varpd
+    do
+        echo " --- neutering $s"
+        ${SVCCFG} -s "$s" setprop 'start/exec=:true'
+    done
 
-    echo " --- neutering the manifest import"
-    ${SVCCFG} -s 'system/manifest-import' setprop 'start/exec=:true'
     echo "#!/bin/ksh" > ${ROOTDIR}/lib/svc/method/manifest-import
     echo "exit 0" >> ${ROOTDIR}/lib/svc/method/manifest-import
     chmod 555 ${ROOTDIR}/lib/svc/method/manifest-import
@@ -388,6 +391,7 @@ EOM
         echo "-- SANITY CHECK FAILED, see above"
         echo
         mv $of $WORKDIR/sanity.baseline
+        chmod go+r $WORKDIR/sanity.baseline
         exit 1
     fi
     rm -f $of
