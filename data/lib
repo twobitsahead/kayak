@@ -297,6 +297,7 @@
 /usr/lib/libast.so.1
 /usr/lib/libbe.so.1
 /usr/lib/libbrand.so.1
+/usr/lib/libbunyan.so.1
 /usr/lib/libc
 /usr/lib/libc/libc_hwcap1.so.1
 /usr/lib/libc/libc_hwcap2.so.1
@@ -308,6 +309,7 @@
 /usr/lib/libfstyp.so.1
 /usr/lib/libgcc_s.so.1
 /usr/lib/libidmap.so.1
+/usr/lib/libidspace.so.1
 /usr/lib/libinstzones.so.1
 /usr/lib/libipmi.so.1
 /usr/lib/libjedec.so.1
@@ -320,6 +322,7 @@
 /usr/lib/libpkcs11.so.1
 /usr/lib/libpool.so.1
 /usr/lib/libproject.so.1
+/usr/lib/librename.so.1
 /usr/lib/libresolv.so.1
 /usr/lib/libresolv.so.2
 /usr/lib/libshare.so.1
@@ -329,6 +332,7 @@
 /usr/lib/libssp.so.*
 /usr/lib/libsum.so.1
 /usr/lib/libtecla.so.1
+/usr/lib/libvarpd.so.1
 /usr/lib/libz.so
 /usr/lib/libz.so.*
 /usr/lib/libzonecfg.so.1
