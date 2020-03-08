@@ -38,6 +38,8 @@ echo "Installing from ZFS image $ZFS_IMAGE"
 . /kayak/lib/disk_help.sh
 . /kayak/lib/install_help.sh
 
+SetupLog /tmp/kayak.log
+
 prompt_hostname omniosce
 prompt_timezone
 
