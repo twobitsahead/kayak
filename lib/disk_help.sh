@@ -78,7 +78,7 @@ ListDisks() {
 }
 
 ListDisksAnd() {
-    num=`echo $1 | sed sed -e 's/[^,]//g;' | wc -c`
+    num=`echo $1 | sed -e 's/[^,]//g;' | wc -c`
     ((EXPECT = num + 0))
     for part in `echo $1 | sed -e 's/,/ /g;'`; do
         ListDisks $part

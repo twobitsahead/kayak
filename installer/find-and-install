@@ -121,6 +121,7 @@ done
 
 . /kayak/lib/install_help.sh
 . /kayak/lib/disk_help.sh
+SetupLog /tmp/kayak.log
 BuildRpoolOnly $DISKLIST
 
 rm -f $SCRATCH
