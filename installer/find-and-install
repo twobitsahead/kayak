@@ -21,8 +21,11 @@ keyboard_layout=${1:-US-English}
 SCRATCH=/tmp/di.$$
 # In a KVM, the disks don't show up on the first invocation of diskinfo.
 # More investigation required so, for now, run it twice.
+echo
+echo "Detecting hard disks..."
+echo
 diskinfo
-diskinfo > $SCRATCH
+diskinfo | sed 's/      //' > $SCRATCH
 numdisks=`wc -l $SCRATCH | awk '{print $1}'`
 numdisks=$(($numdisks - 1))
 
