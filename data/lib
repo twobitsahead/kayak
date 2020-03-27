@@ -79,7 +79,6 @@
 /lib/libofmt.so.1
 /lib/libproc.so
 /lib/libproc.so.1
-/lib/libpthread.so.1
 /lib/librcm.so.1
 /lib/libresolv.so.2
 /lib/librestart.so.1
