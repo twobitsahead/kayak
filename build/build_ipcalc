@@ -25,7 +25,7 @@ dir=`/usr/gnu/bin/mktemp -d`
 		LIBS="-lsocket -lnsl -lresolv" \
 		USE_GEOIP=no \
 		USE_DYN_GEOIP=no \
-		CFLAGS=-D_KERNEL
+		CFLAGS="-m32 -D_KERNEL"
 )
 
 cp $dir/$PROG-$VER/$PROG ./bin/$PROG
