@@ -144,13 +144,13 @@ BINS=bin/takeover-console bin/ipcalc bin/dialog bin/passutil bin/mount_media \
 	 etc/kbd.list bin/zpool_patch
 
 bin/takeover-console:	src/takeover-console.c
-	gcc -o $@ $<
+	gcc -m32 -o $@ $<
 
 bin/passutil:	src/passutil.c
-	gcc -o $@ $<
+	gcc -m32 -o $@ $<
 
 bin/mount_media:	src/mount_media.c
-	gcc -o $@ $< -ldevinfo
+	gcc -m32 -o $@ $< -ldevinfo
 
 bin/zpool_patch:	src/zpool_patch.c
 	gcc -m64 -g -Wall -Wunused -g -Isrc/include -o $@ $< -lnvpair
