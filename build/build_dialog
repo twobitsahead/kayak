@@ -27,7 +27,7 @@ dir=`/usr/gnu/bin/mktemp -d`
 	wget $URL
 	gtar -zxf $FILE
 	cd $PROG-$VER
-	./configure
+	./configure CFLAGS=-m32
 	gmake
 )
 
