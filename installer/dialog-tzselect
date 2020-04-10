@@ -1,7 +1,7 @@
 #!/usr/bin/ksh
 #
 # Copyright 2005 Sun Microsystems, Inc.  All rights reserved.
-# Copyright 2019 OmniOS Community Edition (OmniOSce) Association.
+# Copyright 2020 OmniOS Community Edition (OmniOSce) Association.
 #
 # Ask the user about the time zone, and place the resulting TZ in a file
 # whose name is specified in the first argument.
@@ -43,6 +43,7 @@ INFO_TZ="Therefore TZ='%s' will be used."
 INFO_OK="Is the above information OK?"
 
 # Make sure the tables are readable.
+TZ_CONTINENT_TABLE=$TZDIR/tab/continent.tab
 TZ_COUNTRY_TABLE=$TZDIR/tab/country.tab
 TZ_ZONE_TABLE=$TZDIR/tab/zone_sun.tab
 for f in $TZ_COUNTRY_TABLE $TZ_ZONE_TABLE; do
@@ -142,7 +143,7 @@ get_country()
 				print country
 			}
 		}
-	' <$TZ_ZONE_TABLE | $SORT -f)
+	' < $TZ_ZONE_TABLE | $SORT -f)
 
 	# i18n country names
 	c=0
@@ -187,14 +188,19 @@ get_region()
 		BEGIN {
 			cc = country
 			while (getline <TZ_COUNTRY_TABLE) {
-				if ($0 !~ /^#/  &&  country == $2) {
+				if ($0 !~ /^#/ && country == $2) {
 					cc = $1
 					break
 				}
 			}
 		}
-		$1 == cc { print $5 }
-	' <$TZ_ZONE_TABLE)
+		$1 == cc {
+			if (NF > 4)
+				print $5
+			else
+				print $3
+		}
+	' < $TZ_ZONE_TABLE)
 
 	# I18n region names
 	c=0
@@ -247,16 +253,15 @@ build_tz()
 			}
 		}
 
-		$1 == cc && $5 == region {
+		$1 == cc && ((NF > 4 && $5 == region) || $3 == region) {
 			# Check if tzname mapped to
 			# backward compatible tzname
-			if ($4 == "-") {
+			if ($4 == "-")
 				print $3
-			} else {
+			else
 				print $4
-			}
 		}
-	' <$TZ_ZONE_TABLE)
+	' < $TZ_ZONE_TABLE)
 
 	# Make sure the corresponding zoneinfo file exists.
 	TZ_for_date=$TZDIR/$TZ
