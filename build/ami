@@ -1,0 +1,94 @@
+#!/bin/bash
+#
+# {{{ CDDL HEADER
+#
+# This file and its contents are supplied under the terms of the
+# Common Development and Distribution License ("CDDL"), version 1.0.
+# You may only use this file in accordance with the terms of version
+# 1.0 of the CDDL.
+#
+# A full copy of the text of the CDDL should have accompanied this
+# source. A copy of the CDDL is also available via the Internet at
+# http://www.illumos.org/license/CDDL.
+# }}}
+#
+# Copyright 2020 OmniOS Community Edition (OmniOSce) Association.
+#
+
+SRCDIR=`dirname $0`
+[ ${SRCDIR:0:1} = "/" ] || SRCDIR=`pwd`/$SRCDIR
+
+. $SRCDIR/../lib/hvm_help.sh
+
+[ -z "$BUILDSEND_MP" ] && BUILDSEND_MP=/kayak_image
+
+find_zfssend
+[ ! -f $ZFSSEND ] && echo "ZFS Image ($ZFSSEND) missing" && exit
+
+set -e
+
+customise() {
+    # In case we are preparing a pre-release, temporarily add staging
+    lVERSION="`echo $VERSION | sed 's/[a-z]//g'`"
+    pkg -R $ALTROOT set-publisher \
+        -g https://pkg.omniosce.org/r$lVERSION/staging omnios || true
+
+    # Allow root to ssh in
+    log "...setting PermitRootLogin=yes in sshd_config"
+    sed -i -e 's%^PermitRootLogin.*%PermitRootLogin without-password%' \
+        $ALTROOT/etc/ssh/sshd_config
+
+    # Set up to use DNS
+    log "...enabling DNS resolution"
+    SetDNS 1.1.1.1 80.80.80.80
+
+    # Install ec2-credential package
+    # rsync needed for vagrant
+    log "...installing EC2 and rsync packages"
+    pkg -R $ALTROOT install network/rsync ec2-credential
+
+    # Decrease boot delay
+    cat << EOM > $ALTROOT/boot/loader.conf.local
+autoboot_delay=1
+EOM
+
+    pkg -R $ALTROOT set-publisher \
+        -G https://pkg.omniosce.org/r$lVERSION/staging omnios || true
+
+    Postboot '/sbin/ipadm create-if xnf0'
+    Postboot '/sbin/ipadm create-addr -T dhcp xnf0/v4'
+    Postboot 'for i in $(seq 0 9); do curl -f http://169.254.169.254/ >/dev/null 2>&1 && break; sleep 1; done'
+    Postboot 'HOSTNAME=$(curl http://169.254.169.254/latest/meta-data/hostname)'
+    Postboot '[ -z "$HOSTNAME" ] || (hostname $HOSTNAME && echo $HOSTNAME >/etc/nodename)'
+    Postboot '/usr/sbin/svcadm restart network/service'
+}
+
+HVM_Image_Init 8G rpool ami omnios-r$VERSION
+HVM_Image_Build "-fd -o ashift=12" $ZFSSEND omnios customise
+HVM_Image_Finalise 0 "/dev/dsk/c1t0d0s0" "/xpvd/xdf@51712:a" \
+    "id1,kdev@AQM00001~~~~~~~~~~~~~/a" -keeplofi
+
+echo "Creating raw disk image"
+
+rm -f /kayak-image/xen-$VERSION.raw
+dd if=$HVMlofi of=$BUILDSEND_MP/xen-$VERSION.raw bs=2048
+lofiadm -d $HVMlofi
+zfs destroy -r $HVMdataset
+
+echo "Creating VMDK"
+vmdkver=0.2
+dir=VMDK-stream-converter-$vmdkver
+file=$dir.tar.gz
+if [ ! -d $dir ]; then
+    wget -O /tmp/$file https://mirrors.omniosce.org/vmdk/$file
+    gtar zxf /tmp/$file
+fi
+
+rm -f /kayak-image/xen-$VERSION.vmdk
+./$dir/VMDKstream.py $BUILDSEND_MP/xen-$VERSION.raw \
+    $BUILDSEND_MP/xen-$VERSION.vmdk
+rm -rf $dir
+ls -lh $BUILDSEND_MP/xen-$VERSION.vmdk
+
+# Vim hints
+# vim:ts=4:sw=4:et:fdm=marker
