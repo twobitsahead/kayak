@@ -12,105 +12,41 @@
 # http://www.illumos.org/license/CDDL.
 # }}}
 #
-# Copyright 2018 OmniOS Community Edition (OmniOSce) Association.
+# Copyright 2020 OmniOS Community Edition (OmniOSce) Association.
 #
-
-[ "$UID" != 0 ] && echo Run this script as root && exit 1
 
 SRCDIR=`dirname $0`
 [ ${SRCDIR:0:1} = "/" ] || SRCDIR=`pwd`/$SRCDIR
 
-. $SRCDIR/../lib/install_help.sh 2>/dev/null
-. $SRCDIR/../lib/disk_help.sh
-. $SRCDIR/../lib/net_help.sh
 . $SRCDIR/../lib/hvm_help.sh
 
-[ -z "$VERSION" ] && \
-    VERSION="`awk 'NR == 1 {print $3}' /etc/release | sed 's/^r//'`"
-: ${ZFSSEND:=/kayak_image/kayak_r$VERSION.zfs.xz}
-[ -f "$ZFSSEND" ] || ZFSSEND="omniosce-r$VERSION.zfs.xz"
+[ -z "$BUILDSEND_MP" ] && BUILDSEND_MP=/kayak_image
+
+find_zfssend
 [ ! -f $ZFSSEND ] && echo "ZFS Image ($ZFSSEND) missing" && exit
 
-RPOOL=syspool
-BENAME=omnios-r$VERSION
-ALTROOT=/mnt
+set -e
 
-dev=`HVM_Create_Diskvol 8G bhyve` || exit 1
-dataset=${dev%:*}
-lofi=${dev#*:}
-DISK=${lofi/p0/}
-
-# Begin
-
-SetupLog /tmp/kayak-bhyve.log
-
-echo "Clearing any old pool"
-zpool destroy -f $RPOOL 2>/dev/null || true
-
-zpool create -fdB -o ashift=13 $RPOOL ${DISK} || exit 1
-
-BE_Create_Root $RPOOL
-BE_Receive_Image cat "xz -dc" $RPOOL $BENAME $ZFSSEND
-BE_Mount $RPOOL $BENAME $ALTROOT raw
-BE_SetUUID $RPOOL $BENAME $ALTROOT
-BE_LinkMsglog $ALTROOT
-MakeBootable $RPOOL $BENAME
-ApplyChanges
-
-#pkg -R $ALTROOT update -g \
-#    /data/omnios-build/omniosorg/bloody/illumos/packages/i386/nightly-nd/repo.redist/ \
-#    system/kernel system/kernel/platform system/file-system/zfs
-
-echo "-h" > $ALTROOT/boot/config
-cat << EOM > $ALTROOT/boot/conf.d/serial
-console="ttya,text"
+customise() {
+    echo "-h" > $ALTROOT/boot/config
+    cat << EOM > $ALTROOT/boot/conf.d/serial
+console="ttya"
 os_console="ttya"
 ttya-mode="115200,8,n,1,-"
 EOM
+}
 
-cat << EOM > $ALTROOT/boot/conf.d/kmdb
-boot_kmdb=YES
-boot_debug=YES
-EOM
-
-SetTimezone UTC
-# Pools are deliberately created with no features enabled and then updated
-# on first boot to add all features supported on the target system.
-Postboot 'zpool upgrade -a'
-# Give the pool a unique GUID
-Postboot "zpool reguid $RPOOL"
-Postboot 'exit $SMF_EXIT_OK'
-
-# Force new IPS UUID on first pkg invocation.
-sed -i '/^last_uuid/d' $ALTROOT/var/pkg/pkg5.image
-
-# Move disk links so they will be correctly generated on first boot.
-rm -f $ALTROOT/dev/dsk/* $ALTROOT/dev/rdsk/*
-
-cat << EOM > $ALTROOT/etc/path_to_inst
-"/pci@0,0/pci1af4,2@4" 0 "vioblk"
-"/pci@0,0/pci1af4,2@4/blkdev@0,0" 0 "blkdev"
-EOM
-# It's important that we do a reconfigure boot if removing the magic
-# string from path_to_inst
-touch $ALTROOT/reconfigure
-
-echo "Unmount"
-BE_Umount $BENAME $ALTROOT raw
-
-echo "Export"
-zpool export $RPOOL
-
-$SRCDIR/../bin/zpool_patch -v ${DISK}s1 /dev/dsk/c1t0d0s1 \
-	/pci@0,0/pci1af4,2@4/blkdev@0,0:b ''
-
-lofiadm -d $lofi
+HVM_Image_Init 8G rpool bhyve omnios-r$VERSION
+HVM_Image_Build "-fdB -o ashift=12" $ZFSSEND omnios customise
+HVM_Image_Finalise 1 "/dev/dsk/c1t0d0s1" "/pci@0,0/pci1af4,2@4/blkdev@0,0:b" ""
 
 echo "Creating stream file"
-zfs snapshot $dataset@final
-zfs send $dataset@final | pv | xz -9c - > /kayak_image/r$VERSION.bhyve.xz
+zfs snapshot $HVMdataset@final
+zfs send $HVMdataset@final | pv > $BUILDSEND_MP/r$VERSION.bhyve
+zfs destroy -r $HVMdataset
 
-zfs destroy -r $dataset
+rm -f $BUILDSEND_MP/r$VERSION.bhyve.xz
+xz -9v $BUILDSEND_MP/r$VERSION.bhyve
 
 # Vim hints
 # vim:ts=4:sw=4:et:fdm=marker
