@@ -11,7 +11,7 @@
 
 #
 # Copyright 2017 OmniTI Computer Consulting, Inc.  All rights reserved.
-# Copyright 2018 OmniOS Community Edition (OmniOSce) Association.
+# Copyright 2020 OmniOS Community Edition (OmniOSce) Association.
 #
 
 ifeq ($(shell zonename),global)
@@ -194,9 +194,13 @@ build-usb:
 	./build/build_usb $(BUILDSEND_MP)/$(VERSION).iso \
 	    $(BUILDSEND_MP)/$(VERSION).usb-dd
 
+build-bhyve: bins
+	@banner .BHYVE
+	BUILDSEND_MP=$(BUILDSEND_MP) ./build/bhyve
+
 install-iso:	check-mkisofs bins install-tftp install-web build-iso
 install-usb:	install-iso build-usb
-all:		install-usb $(NGZ_ZFS_STREAM)
+all:		install-usb $(NGZ_ZFS_STREAM) build-bhyve
 
 # Used by omnios-build/kayak/ to create the kayak package
 
