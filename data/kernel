@@ -144,6 +144,7 @@
 /kernel/drv/amd64/marvell88sx
 /kernel/drv/amd64/mc-amd
 /kernel/drv/amd64/mega_sas
+/kernel/drv/amd64/mlxcx
 /kernel/drv/amd64/mm
 /kernel/drv/amd64/mouse8042
 /kernel/drv/amd64/mpt
@@ -328,6 +329,7 @@
 /kernel/drv/lsimega.conf
 /kernel/drv/mc-amd.conf
 /kernel/drv/mega_sas.conf
+/kernel/drv/mlxcx.conf
 /kernel/drv/mm.conf
 /kernel/drv/mpt.conf
 /kernel/drv/mpt_sas.conf
