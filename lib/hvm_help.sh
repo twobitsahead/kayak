@@ -122,8 +122,9 @@ HVM_Image_Build() {
 	BE_SetUUID $HVMtmprpool $HVMbename $HVMaltroot
 	BE_LinkMsglog $HVMaltroot
 	MakeBootable $HVMtmprpool $HVMbename
-	ApplyChanges "$hostname"
+	ApplyChanges
 	SetTimezone UTC
+	echo $hostname > $HVMaltroot/etc/nodename
 
 	# Any additional customisation
 	[ -n "$custom" ] && $custom
