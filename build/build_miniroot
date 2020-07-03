@@ -384,18 +384,20 @@ EOM
 
   "sanity")
 
-    of=`mktemp`
-    $SRCDIR/bin/sanity $ROOTDIR | LC_ALL=C sort > $of
-    diff -U0 $SRCDIR/data/baseline $of
-    if [ $? -gt 0 ]; then
-        echo
-        echo "-- SANITY CHECK FAILED, see above"
-        echo
-        mv $of $WORKDIR/sanity.baseline
-        chmod go+r $WORKDIR/sanity.baseline
-        exit 1
+    if [ -z "$BIGROOT" ]; then
+        of=`mktemp`
+        $SRCDIR/bin/sanity $ROOTDIR | LC_ALL=C sort > $of
+        diff -U0 $SRCDIR/data/baseline $of
+        if [ $? -gt 0 ]; then
+            echo
+            echo "-- SANITY CHECK FAILED, see above"
+            echo
+            mv $of $WORKDIR/sanity.baseline
+            chmod go+r $WORKDIR/sanity.baseline
+            exit 1
+        fi
+        rm -f $of
     fi
-    rm -f $of
 
     chkpt strip
     ;;
