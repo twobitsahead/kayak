@@ -55,12 +55,15 @@ EOM
     pkg -R $ALTROOT set-publisher \
         -G https://pkg.omniosce.org/r$lVERSION/staging omnios || true
 
-    Postboot '/sbin/ipadm create-if xnf0'
-    Postboot '/sbin/ipadm create-addr -T dhcp xnf0/v4'
+    Postboot '/sbin/dladm | tee /dev/msglog'
+    Postboot '/sbin/ipadm create-if xnf0 | tee /dev/msglog'
+    Postboot '/sbin/ipadm create-addr -T dhcp xnf0/v4 | tee /dev/msglog'
     Postboot 'for i in $(seq 0 9); do curl -f http://169.254.169.254/ >/dev/null 2>&1 && break; sleep 1; done'
     Postboot 'HOSTNAME=$(curl http://169.254.169.254/latest/meta-data/hostname)'
     Postboot '[ -z "$HOSTNAME" ] || (hostname $HOSTNAME && echo $HOSTNAME >/etc/nodename)'
     Postboot '/usr/sbin/svcadm restart network/service'
+    Postboot '/sbin/ipadm | tee /dev/msglog'
+    Postboot '/bin/netstat -rn | tee /dev/msglog'
 }
 
 HVM_Image_Init 8G rpool ami omnios-r$VERSION
