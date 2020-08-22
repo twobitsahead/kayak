@@ -225,6 +225,7 @@
 /usr/lib/amd64/libuutil.so.1
 /usr/lib/amd64/libz.so
 /usr/lib/amd64/libz.so.*
+/usr/lib/amd64/libzstd.so.*
 /usr/lib/devfsadm
 /usr/lib/devfsadm/devfsadmd
 /usr/lib/devfsadm/linkmod
