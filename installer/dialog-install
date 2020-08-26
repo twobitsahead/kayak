@@ -426,6 +426,10 @@ MakeBootable $RPOOL $bename || bomb "Could not make bootable"
 [ -f /kayak/etc/nossh.xml ] && \
     logcmd cp /kayak/etc/nossh.xml $ALTROOT/etc/svc/profile/site/
 
+# Use rsyslog as the default log daemon
+[ -f /kayak/etc/rsyslog.xml ] && \
+    logcmd cp /kayak/etc/rsyslog.xml $ALTROOT/etc/svc/profile/site/
+
 # Add extra repo (can be disabled in the configuration menu)
 extrarepo -on
 
