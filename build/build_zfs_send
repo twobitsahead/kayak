@@ -12,7 +12,7 @@
 # }}}
 
 # Copyright 2017 OmniTI Computer Consulting, Inc. All rights reserved.
-# Copyright 2019 OmniOS Community Edition (OmniOSce) Association.
+# Copyright 2020 OmniOS Community Edition (OmniOSce) Association.
 #
 
 fail() {
@@ -91,6 +91,9 @@ while read p v; do
         optlist+=($p)
 done < <(pkg -R $MP contents -H -a type=optional \
     -o fmri,variant.opensolaris.zone $entire_fmri)
+
+# Install system/rsyslog - it is the default log daemon from r151035
+optlist+=(system/rsyslog)
 
 pkg -R $MP install ${optlist[*]} || fail "install optional entire"
 
