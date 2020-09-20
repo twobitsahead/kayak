@@ -40,7 +40,7 @@ echo "Installing from ZFS image $ZFS_IMAGE"
 
 SetupLog /tmp/kayak.log
 
-prompt_hostname omniosce
+prompt_hostname omnios
 prompt_timezone
 
 # Because of kayak's small miniroot, just use C as the language for now.
