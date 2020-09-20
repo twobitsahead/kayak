@@ -401,7 +401,7 @@ fi
 ###########################################################################
 # Prompt for additional information
 
-prompt_hostname omniosce
+prompt_hostname omnios
 prompt_timezone
 
 ZFS_IMAGE=/.cdrom/image/*.zfs.xz
