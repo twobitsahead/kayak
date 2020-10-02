@@ -13,7 +13,7 @@
 # }}}
 
 #
-# Copyright 2019 OmniOS Community Edition (OmniOSce) Association.
+# Copyright 2020 OmniOS Community Edition (OmniOSce) Association.
 #
 
 ALTROOT=/mnt
@@ -35,6 +35,7 @@ fi
 echo "Reading system configuration..."
 
 [ "$1" = "-dialog" ] && . /kayak/lib/dialog.sh
+. /kayak/lib/install_help.sh
 . /kayak/lib/utils.sh
 
 dmsg()
