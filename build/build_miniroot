@@ -108,7 +108,7 @@ UNNEEDED_MANIFESTS="application/management/net-snmp.xml
     system/hostid.xml system/power.xml system/pfexecd.xml
     system/consadm.xml system/pools.xml system/console-login.xml
     system/stmf.xml system/fmd.xml system/utmp.xml
-    system/poold.xml system/dumpadm.xml"
+    system/poold.xml system/dumpadm.xml system/config-assemble.xml"
 
 SYSTEM="system/boot/real-mode system/boot/wanboot/internal
     system/boot/loader system/boot/wanboot system/data/hardware-registry
