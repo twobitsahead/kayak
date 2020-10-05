@@ -38,6 +38,8 @@ echo "Reading system configuration..."
 . /kayak/lib/install_help.sh
 . /kayak/lib/utils.sh
 
+SetupLog /tmp/kayak.log
+
 dmsg()
 {
 	[ $debug -eq 1 ] && echo "$@"
