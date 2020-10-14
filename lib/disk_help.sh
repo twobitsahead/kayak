@@ -204,5 +204,23 @@ MakeSwapDump() {
     return 0
 }
 
+MakeExportHome() {
+    local _rpool=$1
+
+    slog "Creating /export/home dataset"
+
+    logcmd /sbin/zfs create -o mountpoint=/export $_rpool/export
+    logcmd /sbin/zfs create $_rpool/export/home
+    logcmd $ALTROOT/usr/sbin/useradd -D -b /export/home
+    logcmd cp {,$ALTROOT}/usr/sadm/defadduser
+
+    cat <<- EOM > $ALTROOT/etc/auto_home
+		+auto_home
+		*   localhost:/export/home/&
+	EOM
+
+    return 0
+}
+
 # Vim hints
 # vim:ts=4:sw=4:et:fdm=marker
