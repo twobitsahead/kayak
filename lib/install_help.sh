@@ -263,6 +263,7 @@ BuildBE() {
     BE_SetUUID $RPOOL $_bename /mnt
     BE_LinkMsglog /mnt
     MakeSwapDump
+    MakeExportHome $RPOOL
     Postboot "zpool set cachefile=/etc/zfs/zpool.cache $RPOOL"
     logcmd zfs destroy $RPOOL/ROOT/$_bename@kayak
 }
@@ -312,11 +313,11 @@ SetHostname() {
     log "Setting hostname: $1"
     logcmd /bin/hostname "$1"
     echo "$1" > $ALTROOT/etc/nodename
-    sed -i '/^[^#]/d' $ALTROOT/etc/inet/hosts
-    cat << EOM >> $ALTROOT/etc/inet/hosts
-::1		localhost $1.local $1
-127.0.0.1	localhost loghost $1.local $1
-EOM
+    cat <<- EOM > $ALTROOT/etc/inet/hosts
+		# Host table
+		::1		localhost $1.local $1
+		127.0.0.1	localhost loghost $1.local $1
+	EOM
 }
 
 AutoHostname() {
