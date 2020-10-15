@@ -819,7 +819,7 @@ load_user()
 	user_sudo_nopw=
 	user_shell=
 	if [ -f $INITIALBOOT ]; then
-		user_uid=`grep useradd $INITIALBOOT | awk '{print $NF}'`
+		user_uid=`grep 'useradd -m' $INITIALBOOT | awk '{print $NF}'`
 		user_sudo=`grep groupadd $INITIALBOOT | cut -d\  -f2`
 		user_shell=`grep 'usermod -s' $INITIALBOOT | cut -d\  -f3`
 		egrep -s 'Primary Admin' $INITIALBOOT && user_pfexec=y
@@ -836,14 +836,19 @@ save_user()
 	(
 		# If creating a user from the installer, create a
 		# BE-independent filesystem for the home directory and do
-		# not use autofs.
+		# not use autofs. Configure useradd to automatically manage
+		# ZFS datasets for home directories.
 		[ -d $ALTROOT/etc/svc/profile/site ] \
 		    || mkdir -p $ALTROOT/etc/svc/profile/site
 		cp /kayak/etc/noautofs.xml $ALTROOT/etc/svc/profile/site/
 		echo '### BEGIN_USER'
+		echo "/sbin/zfs destroy -r $RPOOL/export"
 		echo "/sbin/zfs create -o mountpoint=/home $RPOOL/home"
 		echo "chmod 0555 /home"		# as per SUNWcs
-		echo "/usr/sbin/useradd -mz -d /home/$user_uid $user_uid"
+		echo "/usr/sbin/useradd -D -b /home"
+		echo "sed -i '/^MANAGE_ZFS=NO/s/^/#/' /etc/default/useradd"
+		echo "sed -i '/^#MANAGE_ZFS=YES/s/#//' /etc/default/useradd"
+		echo "/usr/sbin/useradd -mz $user_uid"
 		[ -n "$user_shell" ] \
 		    && echo "/usr/sbin/usermod -s $user_shell $user_uid"
 		hash=`$PASSUTIL -H "$user_pass"`
