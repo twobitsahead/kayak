@@ -337,6 +337,7 @@
 /usr/lib/libvarpd.so.1
 /usr/lib/libz.so
 /usr/lib/libz.so.*
+/usr/lib/libzfsbootenv.so.1
 /usr/lib/libzonecfg.so.1
 /usr/lib/libzpool.so.1
 /usr/lib/locale
