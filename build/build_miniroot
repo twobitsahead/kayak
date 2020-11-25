@@ -407,7 +407,12 @@ EOM
         while read bin; do
             file $ROOTDIR/$bin | egrep -s 'ELF.*stripped' || continue
             echo " --- stripping $bin"
+            MODE=`stat -c %a "$ROOTDIR/$bin"`
+            chmod u+w "$ROOTDIR/$bin"
             strip $ROOTDIR/$bin
+            # Remove the CTF data too
+            mcs -d -n .SUNW_ctf $ROOTDIR/$bin
+            chmod $MODE "$ROOTDIR/$bin"
         done < <(cd $ROOTDIR && find ./ -type f | cut -c3-)
     fi
 
