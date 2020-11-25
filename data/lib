@@ -191,6 +191,7 @@
 /usr/lib/amd64/libast.so.1
 /usr/lib/amd64/libbrotlicommon.so.*
 /usr/lib/amd64/libbrotlidec.so.*
+/usr/lib/amd64/libbz2.so.1.0
 /usr/lib/amd64/libc.so.1
 /usr/lib/amd64/libcmd.so.1
 /usr/lib/amd64/libcrypto.so.*
