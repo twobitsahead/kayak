@@ -119,7 +119,6 @@
 /etc/inet/protocols
 /etc/inet/secret
 /etc/inet/services
-/etc/inet/wanboot.conf.sample
 /etc/inetd.conf
 /etc/init
 /etc/init.d
