@@ -45,6 +45,7 @@ if [ $debug -eq 0 ]; then
 	echo
 	echo "Scanning for media..."
 	mkdir /.cdrom
+	mkdir /.usbdrive
 	/kayak/bin/mount_media $VERSION
 fi
 
