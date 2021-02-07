@@ -105,15 +105,8 @@ test_iso_file(const char *path, const char *volid)
 	return (ret);
 }
 
-/* Compare two files by name */
-static int
-fts_compare_files(const FTSENT **left, const FTSENT **right)
-{
-	return (strcmp((*left)->fts_name, (*right)->fts_name));
-}
-
 /*
- * Attempt to mount the path as pcfs. Then walk the file tree 
+ * Attempt to mount the path as pcfs. Then walk the file tree
  * and look for any iso files.
  * For every one found, mount it and check for volid
  * and umount if failed. return's 0 if the right iso is found
@@ -129,7 +122,7 @@ check_for_iso(const char *path, const char *volid)
 	if (verbose)
 		printf("%s: mount PCFS\n", path);
 	if (mount(path, "/.usbdrive", MS_RDONLY | MS_OPTIONSTR,
-		"pcfs", NULL, 0, opts, sizeof (opts)) != 0) {
+	    "pcfs", NULL, 0, opts, sizeof (opts)) != 0) {
 		return (ret); /* mount failed */
 	} else {
 		/* mount succeeded, look for iso files */
@@ -137,25 +130,26 @@ check_for_iso(const char *path, const char *volid)
 		FTSENT *f;
 		char *pathtowalk[] = { "/.usbdrive", NULL };
 
-		tree = fts_open(pathtowalk, FTS_LOGICAL | FTS_NOSTAT, fts_compare_files);
+		tree = fts_open(pathtowalk, FTS_LOGICAL | FTS_NOSTAT, NULL);
 		if (tree == 0) {
 			if (verbose)
 				printf("%s: fts_open failed\n", path);
 			return (ret); /* traverse failed */
 		}
 
-		while ((f = fts_read(tree)) != 0 ) {
-			if (f->fts_info == FTS_F) { /* regular file */
+		while ((f = fts_read(tree)) != 0) {
+			if (f->fts_info != FTS_F) /* regular file */
+				continue;
 
-				if ( f->fts_namelen > 4 &&
-					(strcasecmp(".iso", f->fts_name + f->fts_namelen - 4) == 0) ) {
-					if (verbose)
-						printf("iso found: %s\n", f->fts_name);
+			if (f->fts_namelen > 4 &&
+			    (strcasecmp(".iso",
+			    f->fts_name + f->fts_namelen - 4) == 0)) {
+				if (verbose)
+					printf("iso found: %s\n", f->fts_name);
 
-					ret = test_iso_file(f->fts_path, volid);
-					if (ret == 0)
-						break; /* correct iso found */
-				}
+				ret = test_iso_file(f->fts_path, volid);
+				if (ret == 0)
+					break; /* correct iso found */
 			}
 		}
 
@@ -180,8 +174,10 @@ mount_image(const char *path, const char *volid)
 	int ret = -1;
 	char opts[MAX_MNTOPT_STR];
 
-	/* First try mounting it as hsfs; if that fails, try ufs; if
-	that fails try check_for_iso() */
+	/*
+	 * First try mounting it as hsfs; if that fails, try ufs; if
+	 * that fails try check_for_iso()
+	 */
 	strcpy(opts, HSFS_OPTS);
 	if (verbose)
 		printf("%s: mount HSFS\n", path);
