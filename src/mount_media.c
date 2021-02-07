@@ -49,7 +49,7 @@
 
 #define	HSFS_OPTS	"ro"
 #define	UFS_OPTS	"ro,nologging,noatime"
-#define PCFS_OPTS	"ro"
+#define	PCFS_OPTS	"ro"
 
 static boolean_t mounted = B_FALSE;
 static boolean_t verbose = B_FALSE;
@@ -148,7 +148,7 @@ check_for_iso(const char *path, const char *volid)
 			if (f->fts_info == FTS_F) { /* regular file */
 
 				if ( f->fts_namelen > 4 &&
-					(strcmp(".iso", f->fts_name + f->fts_namelen - 4) == 0) ) {
+					(strcasecmp(".iso", f->fts_name + f->fts_namelen - 4) == 0) ) {
 					if (verbose)
 						printf("iso found: %s\n", f->fts_name);
 
