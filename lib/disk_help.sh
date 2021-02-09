@@ -38,11 +38,11 @@ ListDisks() {
         if [ -n "$disk" ]; then
             desc=`echo $diskline | sed -e 's/^[^\<]*//; s/[\<\>]//g;'`
             diskname+=([$disk]=$desc)
-            log "... found disk '$disk' = $diskname"
+            log "... found disk '$disk' = $desc"
             disk=
         else
             disk=$diskline
-    fi
+        fi
     done < <(format < /dev/null | nawk '/^ *[0-9]*\. /{print $2; print;}')
 
     for want in $*; do
