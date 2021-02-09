@@ -92,9 +92,6 @@ while read p v; do
 done < <(pkg -R $MP contents -H -a type=optional \
     -o fmri,variant.opensolaris.zone $entire_fmri)
 
-# Install system/rsyslog - it is the default log daemon from r151035
-optlist+=(system/rsyslog)
-
 pkg -R $MP install ${optlist[*]} || fail "install optional entire"
 
 if [ -n "$PROFILE" ]; then
