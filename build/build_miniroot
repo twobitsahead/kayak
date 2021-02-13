@@ -25,7 +25,7 @@ fail() {
 # Change "bloody" to whatever release the current branch is.
 PUBLISHER=omnios
 [ -x /opt/ooce/bin/pigz ] && GZIP=/opt/ooce/bin/pigz || GZIP=gzip
-: ${PKGURL:=https://pkg.omniosce.org/bloody/core}
+: ${PKGURL:=https://pkg.omnios.org/bloody/core}
 : ${GZIP_CMD:=$GZIP}
 SRCDIR=$(dirname $0)
 DIDWORK=0

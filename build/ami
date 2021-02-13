@@ -31,7 +31,7 @@ customise() {
     # In case we are preparing a pre-release, temporarily add staging
     lVERSION="`echo $VERSION | sed 's/[a-z]//g'`"
     pkg -R $ALTROOT set-publisher \
-        -g https://pkg.omniosce.org/r$lVERSION/staging omnios || true
+        -g https://pkg.omnios.org/r$lVERSION/staging omnios || true
 
     # Allow root to ssh in
     log "...setting PermitRootLogin=yes in sshd_config"
@@ -53,7 +53,7 @@ autoboot_delay=1
 EOM
 
     pkg -R $ALTROOT set-publisher \
-        -G https://pkg.omniosce.org/r$lVERSION/staging omnios || true
+        -G https://pkg.omnios.org/r$lVERSION/staging omnios || true
 
     Postboot '/sbin/dladm | tee /dev/msglog'
     Postboot '/sbin/ipadm create-if xnf0 | tee /dev/msglog'
@@ -83,7 +83,7 @@ vmdkver=0.2
 dir=VMDK-stream-converter-$vmdkver
 file=$dir.tar.gz
 if [ ! -d $dir ]; then
-    wget -O /tmp/$file https://mirrors.omniosce.org/vmdk/$file
+    wget -O /tmp/$file https://mirrors.omnios.org/vmdk/$file
     gtar zxf /tmp/$file
 fi
 
