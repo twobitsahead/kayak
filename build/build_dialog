@@ -14,7 +14,7 @@
 
 # Copyright 2018 OmniOS Community Edition (OmniOSce) Association.
 
-SITE=https://mirrors.omniosce.org/dialog
+SITE=https://mirrors.omnios.org/dialog
 VER=1.3-20170509
 FILE=dialog-$VER.tgz
 URL=$SITE/$FILE
