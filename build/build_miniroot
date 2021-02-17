@@ -257,17 +257,7 @@ step() {
     $PKG -R $ROOTDIR change-facet devel=false
     [ -n "$DEBUG_VARIANT" ] && \
         $PKG -R $ROOTDIR change-variant debug.illumos=true
-    # If a version was requested, respect it
-    if [ -n "$BUILDNUM" ]; then
-        $PKG -R $ROOTDIR install illumos-gate@11-$BUILDNUM \
-            omnios-userland@11-$BUILDNUM \
-            || fail "version constraint prep"
-    fi
     $PKG -R $ROOTDIR install $PKGS || fail "install"
-    if [ -n "$BUILDNUM" ]; then
-        $PKG -R $ROOTDIR uninstall illumos-gate omnios-userland \
-            || fail "version constraint cleanup"
-    fi
     chkpt fixup
     ;;
 
