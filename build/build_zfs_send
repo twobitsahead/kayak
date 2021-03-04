@@ -12,7 +12,7 @@
 # }}}
 
 # Copyright 2017 OmniTI Computer Consulting, Inc. All rights reserved.
-# Copyright 2020 OmniOS Community Edition (OmniOSce) Association.
+# Copyright 2021 OmniOS Community Edition (OmniOSce) Association.
 #
 
 fail() {
@@ -56,6 +56,10 @@ if [ -z "$name" ]; then
     echo "$0 [-cP] [-d zfsparent] [-p profile] [-o outputfile] <release_name>"
     exit
 fi
+
+# Setting this flag lets `pkg` know that this is an automatic install and
+# that the installed packages should not be marked as 'manually installed'
+export PKG_AUTOINSTALL=1
 
 MPR=`zfs get -H mountpoint $ZROOT | awk '{print $3}'`
 if [ -z "$OUT" ]; then
