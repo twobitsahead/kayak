@@ -217,6 +217,7 @@
 /usr/sbin/amd64/dtrace
 /usr/sbin/amd64/prtconf
 /usr/sbin/beadm
+/usr/sbin/bhhwcompat
 /usr/sbin/bootadm
 /usr/sbin/chroot
 /usr/sbin/clri

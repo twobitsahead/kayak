@@ -13,7 +13,7 @@
 
 #
 # Copyright 2017 OmniTI Computer Consulting, Inc.  All rights reserved.
-# Copyright 2020 OmniOS Community Edition (OmniOSce) Association.
+# Copyright 2021 OmniOS Community Edition (OmniOSce) Association.
 #
 
 fail() {
@@ -133,7 +133,8 @@ SYSTEM="system/boot/real-mode system/boot/loader
     system/library/storage/scsi-plugins
     system/library system/network
     system/prerequisite/gnu system/storage/luxadm
-    system/storage/fibre-channel/port-utility developer/debug/mdb"
+    system/storage/fibre-channel/port-utility developer/debug/mdb
+    system/bhyve"
 
 DEBUG_PKGS="system/dtrace developer/dtrace"
 
