@@ -10,22 +10,20 @@
 # http://www.illumos.org/license/CDDL.
 # }}}
 
-# Copyright 2020 OmniOS Community Edition (OmniOSce) Association.
+# Copyright 2021 OmniOS Community Edition (OmniOSce) Association.
 
 if [ -x /kayak/bin/dialog ]; then
     export USE_DIALOG=1
     export DIALOGRC=/kayak/etc/dialog.rc
     export DIALOGRELEASE="`head -1 /etc/release`"
 
-    dialog()
-    {
+    function dialog {
         /kayak/bin/dialog \
             --backtitle "$DIALOGRELEASE" \
             "$@"
     }
 
-    d_info()
-    {
+    function d_info {
         var="$*"
         typeset width=${#var}
         ((width += 5))
@@ -33,19 +31,17 @@ if [ -x /kayak/bin/dialog ]; then
         log "dialogue info: $@"
     }
 
-    d_msg()
-    {
+    function d_msg {
         var="$*"
         lines=5
-        [[ "$var" = *\\n* ]] && lines=6
+        [[ "$var" == *\\n* ]] && lines=6
         typeset width=${#var}
         ((width += 5))
         log "dialogue msg: $@"
         dialog --msgbox "$@" $lines $width
     }
 
-    d_centre()
-    {
+    function d_centre {
         line="$1"
         cols="${2:-79}"
 

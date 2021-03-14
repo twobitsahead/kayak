@@ -13,13 +13,13 @@
 
 #
 # Copyright 2017 OmniTI Computer Consulting, Inc.  All rights reserved.
-# Copyright 2020 OmniOS Community Edition (OmniOSce) Association.
+# Copyright 2021 OmniOS Community Edition (OmniOSce) Association.
 #
 
-ListDisks() {
+function ListDisks {
     log "ListDisks starting - want '$*'"
-    declare -A disksize
-    declare -A diskname
+    typeset -A disksize
+    typeset -A diskname
     for rdsk in `prtconf -v | nawk -F= '
         /dev_link=\/dev\/rdsk\/c.*p0/ { print $2 }'`; do
             disk="`echo $rdsk | sed -e 's/.*\///g; s/p0//;'`"
@@ -77,7 +77,7 @@ ListDisks() {
     log "ListDisks ending"
 }
 
-ListDisksAnd() {
+function ListDisksAnd {
     num=`echo $1 | sed -e 's/[^,]//g;' | wc -c`
     ((EXPECT = num + 0))
     for part in `echo $1 | sed -e 's/,/ /g;'`; do
@@ -91,7 +91,7 @@ ListDisksUnique(){
     done | sort | uniq | xargs
 }
 
-BuildRpoolOnly() {
+function BuildRpoolOnly {
     ztype=
     ztgt=
     disks="`ListDisksUnique $*`"
@@ -110,31 +110,31 @@ BuildRpoolOnly() {
         || bomb "Failed to create root pool $RPOOL"
 }
 
-BuildRpool() {
+function BuildRpool {
     BuildRpoolOnly $*
     BuildBE
 }
 
-GetTargetVolSize() {
+function GetTargetVolSize {
     # Aim for 25% of physical memory (minimum 1G)
     # prtconf always reports in megabytes
-    local mem=`/usr/sbin/prtconf -m`
-    local vsize=1
+    typeset mem=`/usr/sbin/prtconf -m`
+    typeset vsize=1
     if [ "$mem" -ge 4096 ]; then
-        local quart=`echo "scale=1;$mem/4096" | /bin/bc`
+        typeset quart=`echo "scale=1;$mem/4096" | /bin/bc`
         vsize=`printf %0.f $quart`
     fi
     log "GetTargetVolSize: $vsize"
     echo $vsize
 }
 
-GetRpoolFree() {
-    local zfsavail=`/sbin/zfs list -H -o avail $RPOOL`
-    local avail
+function GetRpoolFree {
+    typeset zfsavail=`/sbin/zfs list -H -o avail $RPOOL`
+    typeset avail
     if [ "${zfsavail:(-1)}" = "G" ]; then
         avail=`printf %0.f ${zfsavail::-1}`
     elif [ "${zfsavail:(-1)}" = "T" ]; then
-        local gigs=`echo "scale=1;${zfsavail::-1}*1024" | /bin/bc`
+        typeset gigs=`echo "scale=1;${zfsavail::-1}*1024" | /bin/bc`
         avail=`printf %0.f $gigs`
     else
         # If we get here, there's too little space left to be usable
@@ -144,12 +144,12 @@ GetRpoolFree() {
     echo $avail
 }
 
-MakeSwapDump() {
-    local size=`GetTargetVolSize`
-    local free=`GetRpoolFree`
-    local totalvols=
-    local usable=
-    local savecore=
+function MakeSwapDump {
+    typeset size=`GetTargetVolSize`
+    typeset free=`GetRpoolFree`
+    typeset totalvols=
+    typeset usable=
+    typeset savecore=
 
     slog "Creating swap and dump volumes"
 
@@ -204,8 +204,8 @@ MakeSwapDump() {
     return 0
 }
 
-MakeExportHome() {
-    local _rpool=$1
+function MakeExportHome {
+    typeset _rpool=$1
 
     slog "Creating /export/home dataset"
 
