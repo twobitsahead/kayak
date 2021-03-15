@@ -10,27 +10,27 @@
 # http://www.illumos.org/license/CDDL.
 # }}}
 
-# Copyright 2020 OmniOS Community Edition (OmniOSce) Association.
+# Copyright 2021 OmniOS Community Edition (OmniOSce) Association.
 
-hypervisor() {
+function hypervisor {
     cpuid | grep '^Hypervisor vendor string:' | cut -d"'" -f2
 }
 
-vm_vmware() {
+function vm_vmware {
     log "Installing open-vm-tools package..."
     runpkg install --no-refresh --no-index \
         -g /.cdrom/image/p5p/vmware.p5p open-vm-tools
     cp /kayak/etc/vmware.xml $ALTROOT/etc/svc/profile/site/
 }
 
-vm_azure() {
+function vm_azure {
     log "Installing azure package..."
     runpkg install --no-refresh --no-index \
         -g /.cdrom/image/p5p/azure.p5p azure-agent
     cp /kayak/etc/azure.xml $ALTROOT/etc/svc/profile/site/
 }
 
-setupvm() {
+function setupvm {
     case `hypervisor` in
         bhyve*)     ;;
         KVM*)       ;;

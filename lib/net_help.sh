@@ -13,13 +13,13 @@
 # }}}
 #
 # Copyright 2012 OmniTI Computer Consulting, Inc.  All rights reserved.
-# Copyright 2020 OmniOS Community Edition (OmniOSce) Association.
+# Copyright 2021 OmniOS Community Edition (OmniOSce) Association.
 #
 
 # Returns a mac address as 12 hex characters, upper-case, from the first
 # non-loopback interface in the system.
-Ether() {
-    local mac="`/sbin/dladm show-phys -m -p -o ADDRESS | \
+function Ether {
+    typeset mac="`/sbin/dladm show-phys -m -p -o ADDRESS | \
         /bin/tr '[:lower:]' '[:upper:]' | \
         sed '
             s/^/ 0/g
@@ -33,7 +33,7 @@ Ether() {
     echo $mac
 }
 
-UseDNS() {
+function UseDNS {
     log "UseDNS: $*"
 
     server=$1; shift
@@ -42,7 +42,7 @@ UseDNS() {
     SetDNS $server
 }
 
-EnableDNS() {
+function EnableDNS {
     log "EnableDNS: $*"
 
     domain=$1
@@ -55,7 +55,7 @@ EOF
     logcmd cp $ALTROOT/etc/nsswitch.{dns,conf}
 }
 
-SetDNS() {
+function SetDNS {
     log "SetDNS: $*"
 
     /usr/bin/egrep -s 'files dns' $ALTROOT/etc/nsswitch.conf || EnableDNS

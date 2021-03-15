@@ -21,7 +21,7 @@
 
 # Copyright (c) 2009, 2011, Oracle and/or its affiliates. All rights reserved.
 # Copyright 2017 OmniTI Computer Consulting, Inc. All rights reserved.
-# Copyright 2019 OmniOS Community Edition (OmniOSce) Association.
+# Copyright 2021 OmniOS Community Edition (OmniOSce) Association.
 
 # This started its life as the Caiman text-installer menu, hence the old
 # OpenSolaris CDDL statement.
@@ -79,15 +79,13 @@ if [ -n "$USE_DIALOG" ]; then
 fi
 
 # Print a message if in debug mode
-dmsg()
-{
+function dmsg {
 	[ $debug -eq 1 ] && echo "$@"
 }
 
 # If an installation has been completed, there will be a boot environment
 # and it will be mounted on /mnt
-installed()
-{
+function installed {
 	[ -d /mnt/lib ] || return 1
 	beadm list -H > /dev/null 2>&1
 }
@@ -130,8 +128,7 @@ dmsg "klang = $klang"
 
 # Define the menu of commands and prompts
 
-d_detecting()
-{
+function d_detecting {
 	d_info "Detecting disks, please wait..."
 }
 
@@ -184,12 +181,9 @@ pi_menu_items=( \
 	msg_str="Halting system, please wait...")			\
 )
 
-display_text_menu()
-{
+function display_text_menu {
 	# Display the menu.
 	stty sane
-	# Pick the right menu
-	installed && nameref menu=pi_menu_items || nameref menu=menu_items
 
 	clear
 	printf "Welcome to the OmniOS installation menu\n\n"
@@ -207,10 +201,7 @@ display_text_menu()
 	read input dummy 2>/dev/null
 }
 
-display_dialog_menu()
-{
-	installed && nameref menu=pi_menu_items || nameref menu=menu_items
-
+function display_dialog_menu {
 	typeset -a args=()
 	for i in "${!menu[@]}"; do
 		nameref item=menu[$i]
@@ -238,16 +229,15 @@ display_dialog_menu()
 	else
 		input=err
 	fi
+
 	rm -f $tmpf
 }
 
-display_menu()
-{
+function display_menu {
 	[ -n "$USE_DIALOG" ] && display_dialog_menu || display_text_menu
 }
 
-run_cmds()
-{
+function run_cmds {
 	if [ -n "$USE_DIALOG" -a -n "${item.dcmds}" ]; then
 		for j in "${!item.dcmds[@]}"; do
 			${item.dcmds[$j]}
@@ -260,6 +250,8 @@ run_cmds()
 }
 
 while :; do
+	# Pick the right menu
+	installed && nameref menu=pi_menu_items || nameref menu=menu_items
 	display_menu
 
 	# If no input was supplied, select the default option

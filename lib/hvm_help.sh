@@ -11,7 +11,7 @@
 # http://www.illumos.org/license/CDDL.
 # }}}
 #
-# Copyright 2020 OmniOS Community Edition (OmniOSce) Association.
+# Copyright 2021 OmniOS Community Edition (OmniOSce) Association.
 #
 
 . $SRCDIR/../lib/install_help.sh 2>/dev/null
@@ -19,12 +19,12 @@
 . $SRCDIR/../lib/net_help.sh
 
 # Override the log function
-log() {
+function log {
     [ "$1" = "-o" ] && shift
     echo "$*"
 }
 
-HVM_Create_Diskvol() {
+function HVM_Create_Diskvol {
     typeset size=${1:-"8G"}
     typeset tag=${2:-$$}
     typeset root=${3:-"rpool/hvm-"}
@@ -38,13 +38,13 @@ HVM_Create_Diskvol() {
     echo "$root$tag:$lofi"
 }
 
-HVM_Destroy_Diskvol() {
+function HVM_Destroy_Diskvol {
     typeset lofi=$1
 
     lofiadm -d $lofi
 }
 
-HVM_Build_Devtree() {
+function HVM_Build_Devtree {
     typeset root=$1
     typeset phys=$2
     typeset base=$3
@@ -72,7 +72,7 @@ HVM_Build_Devtree() {
 
 }
 
-find_zfssend() {
+function find_zfssend {
 	[ -z "$VERSION" ] && \
 	    VERSION="`nawk 'NR == 1 { sub(/^r/, "", $3); print $3 }' \
 	    /etc/release`"
@@ -80,7 +80,7 @@ find_zfssend() {
 	[ -f "$ZFSSEND" ] || ZFSSEND="omniosce-r$VERSION.zfs.xz"
 }
 
-HVM_Image_Init() {
+function HVM_Image_Init {
 	typeset size="${1:?size}"; shift
 	typeset rpool="${1:?rpool}"; shift
 	typeset tag="${1:?tag}"; shift
@@ -103,7 +103,7 @@ HVM_Image_Init() {
 	SetupLog /tmp/kayak-$tag.log
 }
 
-HVM_Image_Build() {
+function HVM_Image_Build {
 	typeset poolopts="${1:?poolopts}"; shift
 	typeset zfssend="${1:?zfssend}"; shift
 	typeset hostname="${1:-omnios}"; shift
@@ -150,7 +150,7 @@ HVM_Image_Build() {
 	Postboot "zpool reguid $RPOOL"
 }
 
-HVM_Image_Finalise() {
+function HVM_Image_Finalise {
     typeset slice="$1"; shift
 	typeset blk="$1"; shift
 	typeset phys="$1"; shift

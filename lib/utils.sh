@@ -10,13 +10,13 @@
 # http://www.illumos.org/license/CDDL.
 # }}}
 
-# Copyright 2019 OmniOS Community Edition (OmniOSce) Association.
+# Copyright 2021 OmniOS Community Edition (OmniOSce) Association.
 
-check_hostname() {
+function check_hostname {
     echo $1 | egrep -s '^[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9]$'
 }
 
-t_prompt_hostname() {
+function t_prompt_hostname {
     NEWHOST="$1"
     while [ -n "$NEWHOST" ]; do
         HOSTNAME="$NEWHOST"
@@ -29,7 +29,7 @@ t_prompt_hostname() {
     done
 }
 
-d_prompt_hostname() {
+function d_prompt_hostname {
     HOSTNAME="$1"
     while :; do
         dialog \
@@ -44,30 +44,30 @@ d_prompt_hostname() {
     done
 }
 
-prompt_hostname() {
+function prompt_hostname {
     [ -n "$USE_DIALOG" ] && d_prompt_hostname "$@" || t_prompt_hostname "$@"
     log "Selected hostname: $HOSTNAME"
 }
 
-t_prompt_timezone() {
+function t_prompt_timezone {
     tzselect |& tee /tmp/tz.$$
     TZ="`tail -1 /tmp/tz.$$`"
     rm -f /tmp/tz.$$
 }
 
-d_prompt_timezone() {
+function d_prompt_timezone {
     # Select a timezone.
     /kayak/installer/dialog-tzselect /tmp/tz.$$
     TZ="`tail -1 /tmp/tz.$$`"
     rm -f /tmp/tz.$$
 }
 
-prompt_timezone() {
+function prompt_timezone {
     [ -n "$USE_DIALOG" ] && d_prompt_timezone "$@" || t_prompt_timezone "$@"
     log "Selected timezone: $TZ"
 }
 
-runpkg() {
+function runpkg {
     log "runpkg: $*"
     LD_LIBRARY_PATH=$ALTROOT/usr/lib/amd64 \
         PYTHONPATH=$ALTROOT/usr/lib/python3.9/vendor-packages \
@@ -76,7 +76,7 @@ runpkg() {
     sed -i '/^last_uuid/d' $ALTROOT/var/pkg/pkg5.image
 }
 
-extrarepo() {
+function extrarepo {
     log "extrarepo $1"
     if [ "$1" = "-off" ]; then
         runpkg unset-publisher extra.omnios

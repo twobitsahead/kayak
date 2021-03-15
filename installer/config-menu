@@ -13,7 +13,7 @@
 # }}}
 
 #
-# Copyright 2020 OmniOS Community Edition (OmniOSce) Association.
+# Copyright 2021 OmniOS Community Edition (OmniOSce) Association.
 #
 
 ALTROOT=/mnt
@@ -40,13 +40,11 @@ echo "Reading system configuration..."
 
 SetupLog /tmp/kayak.log
 
-dmsg()
-{
+function dmsg {
 	[ $debug -eq 1 ] && echo "$@"
 }
 
-pause()
-{
+function pause {
 	echo
 	echo "$@"
 	echo
@@ -61,7 +59,7 @@ function ask {
 		echo "$* (y/n) \\c"
 		read a
 	done
-	[[ "$a" = [yY] ]]
+	[[ "$a" == [yY] ]]
 }
 
 function cycle {
@@ -156,8 +154,7 @@ function show_text_menu {
 	return 0
 }
 
-show_menu()
-{
+function show_menu {
 	nameref menu="$1"
 
 	if [ -n "$USE_DIALOG" ]; then
@@ -201,13 +198,11 @@ function remove_config {
 ##############################################################################
 # Networking
 
-reset_dma()
-{
+function reset_dma {
 	sed -i '/^MAILNAME /d' $ALTROOT/etc/dma/dma.conf
 }
 
-set_dma()
-{
+function set_dma {
 	typeset domain="$net_domain"
 	[ -z "$domain" ] && domain=local
 
@@ -216,8 +211,7 @@ MAILNAME $domain
 	" $ALTROOT/etc/dma/dma.conf
 }
 
-reset_hosts()
-{
+function reset_hosts {
 	sed -i '/^[^#]/d' $ALTROOT/etc/inet/hosts
 	cat <<- EOM >> $ALTROOT/etc/inet/hosts
 ::1		localhost $NODENAME.local $NODENAME
@@ -225,8 +219,7 @@ reset_hosts()
 	EOM
 }
 
-set_hosts()
-{
+function set_hosts {
 	typeset ip=${net_ip%/*}
 	typeset domain="$net_domain"
 	[ -z "$domain" ] && domain=local
@@ -246,8 +239,7 @@ $ip	$NODENAME.$domain $NODENAME
 	fi
 }
 
-save_networking()
-{
+function save_networking {
 	remove_config NETWORK
 	reset_hosts
 	reset_dma
@@ -283,8 +275,7 @@ save_networking()
 	) >> $INITIALBOOT
 }
 
-load_networking()
-{
+function load_networking {
 	net_if=
 	net_ifmode=
 	net_ip=
@@ -311,14 +302,12 @@ load_networking()
 	[ -z "$net_dns" ] && net_dns=1.1.1.1
 }
 
-clear_networking()
-{
+function clear_networking {
 	remove_config NETWORK
 	load_networking
 }
 
-show_networking()
-{
+function show_networking {
 	if [ ! -f $INITIALBOOT ]; then
 		echo '<Unconfigured>'
 	elif egrep -s -- '-T static' $INITIALBOOT; then
@@ -330,14 +319,13 @@ show_networking()
 	fi
 }
 
-mkiflist()
-{
+function mkiflist {
 	# LINK         MEDIA                STATE      SPEED  DUPLEX    DEVICE
 	# vioif0       Ethernet             up         1000   full      vioif0
 	iflist=()
 	i=0
 	/sbin/dladm show-phys | sed 1d | while read line; do
-		[[ $line = *Infiniband* ]] && continue
+		[[ $line == *Infiniband* ]] && continue
 		set -- $line
 		iflist[$i]=(link=$1 media=$2 state=$3 speed=$4 duplex=$5)
 		((i = i + 1))
@@ -370,8 +358,7 @@ function dcfg_interface {
 	rm -f $tmpf
 }
 
-cfg_interface()
-{
+function cfg_interface {
 	echo
 
 	cat <<- EOM
@@ -383,7 +370,7 @@ cfg_interface()
 
 	i=0
 	/sbin/dladm show-phys | while read line; do
-		[[ $line = *Infiniband* ]] && continue
+		[[ $line == *Infiniband* ]] && continue
 		if [ $i -eq 0 ]; then
 			printf "   $line\n"
 		else
@@ -410,13 +397,11 @@ cfg_interface()
 	done
 }
 
-show_interface()
-{
+function show_interface {
 	echo $net_if
 }
 
-cfg_ifmode()
-{
+function cfg_ifmode {
 	if [ "$net_ifmode" = "static" ]; then
 		net_ifmode=dhcp
 	else
@@ -424,8 +409,7 @@ cfg_ifmode()
 	fi
 }
 
-show_ifmode()
-{
+function show_ifmode {
 	if [ "$net_ifmode" = "dhcp" ]; then
 		echo "DHCP"
 	else
@@ -605,8 +589,7 @@ function dcfg_ip {
 	done
 }
 
-cfg_ipaddress()
-{
+function cfg_ipaddress {
 	if [ "$net_ifmode" != "static" ]; then
 		pause "IP address will be retrieved via DHCP"
 		return
@@ -647,13 +630,11 @@ cfg_ipaddress()
 	done
 }
 
-show_ipaddress()
-{
+function show_ipaddress {
 	[ "$net_ifmode" = "static" ] && echo $net_ip || echo "via DHCP"
 }
 
-cfg_gateway()
-{
+function cfg_gateway {
 	if [ "$net_ifmode" != "static" ]; then
 		pause "Gateway address will be retrieved via DHCP"
 		return
@@ -692,13 +673,11 @@ cfg_gateway()
 	done
 }
 
-show_gateway()
-{
+function show_gateway {
 	[ "$net_ifmode" = "static" ] && echo $net_gw || echo "via DHCP"
 }
 
-cfg_domain()
-{
+function cfg_domain {
 	if [ "$net_ifmode" != "static" ]; then
 		pause "Domain name will be retrieved via DHCP"
 		return
@@ -726,13 +705,11 @@ cfg_domain()
 	done
 }
 
-show_domain()
-{
+function show_domain {
 	[ "$net_ifmode" = "static" ] && echo $net_domain || echo "via DHCP"
 }
 
-cfg_dns()
-{
+function cfg_dns {
 	if [ "$net_ifmode" != "static" ]; then
 		pause "DNS servers will be retrieved via DHCP"
 		return
@@ -759,8 +736,7 @@ cfg_dns()
 	done
 }
 
-show_dns()
-{
+function show_dns {
 	[ "$net_ifmode" = "static" ] && echo $net_dns || echo "via DHCP"
 }
 
@@ -799,8 +775,7 @@ network_menu=( \
     )									\
 )
 
-cfg_networking()
-{
+function cfg_networking {
 	load_networking
 	while show_menu network_menu "network configuration"; do
 		:
@@ -810,8 +785,7 @@ cfg_networking()
 ##############################################################################
 # Create User
 
-load_user()
-{
+function load_user {
 	user_uid=
 	user_pass=
 	user_pfexec=
@@ -829,8 +803,7 @@ load_user()
 	[ -z "$user_shell" ] && user_shell=/bin/ksh
 }
 
-save_user()
-{
+function save_user {
 	remove_config USER
 	[ -z "$user_uid" ] && return
 	(
@@ -871,16 +844,14 @@ save_user()
 	) >> $INITIALBOOT
 }
 
-remove_user()
-{
+function remove_user {
 	user_uid=
 	remove_config USER
 	[ -f $ALTROOT/etc/svc/profile/site/noautofs.xml ] \
 	    && rm -f $ALTROOT/etc/svc/profile/site/noautofs.xml
 }
 
-dcfg_user()
-{
+function dcfg_user {
 	load_user
 
 	def=1
@@ -981,8 +952,7 @@ dcfg_user()
 	d_msg "User $user_uid created successfully."
 }
 
-cfg_user()
-{
+function cfg_user {
 	load_user
 
 	if [ -n "$user_uid" ]; then
@@ -1073,8 +1043,7 @@ cfg_user()
 	save_user
 }
 
-show_user()
-{
+function show_user {
 	load_user
 	tag='<none>'
 	if [ -n "$user_uid" ]; then
@@ -1088,8 +1057,7 @@ show_user()
 ##############################################################################
 # Set Root Password
 
-cfg_rootpw()
-{
+function cfg_rootpw {
 	while :; do
 		root_pass=
 		while [ -z "$root_pass" ]; do
@@ -1113,8 +1081,7 @@ cfg_rootpw()
 	pause "The root password has been set"
 }
 
-dcfg_rootpw()
-{
+function dcfg_rootpw {
 	while :; do
 
 		dialog \
@@ -1144,8 +1111,7 @@ dcfg_rootpw()
 	d_msg "The root password has been set."
 }
 
-store_rootpw()
-{
+function store_rootpw {
 	typeset arg="$1"
 
 	remove_config ROOTPW
@@ -1158,8 +1124,7 @@ store_rootpw()
 
 }
 
-show_rootpw()
-{
+function show_rootpw {
 	[ -f $INITIALBOOT ] && egrep -s ROOTPW $INITIALBOOT \
 	    && echo "********" || echo "<blank>"
 }
@@ -1167,8 +1132,7 @@ show_rootpw()
 ##############################################################################
 # Virtual Terminals
 
-cfg_vtdaemon()
-{
+function cfg_vtdaemon {
 	if [ -f $INITIALBOOT ] && egrep -s vtdaemon $INITIALBOOT; then
 		remove_config VTDAEMON
 	else
@@ -1188,8 +1152,7 @@ EOM
 	fi
 }
 
-show_vtdaemon()
-{
+function show_vtdaemon {
 	[ -f $INITIALBOOT ] && egrep -s VTDAEMON $INITIALBOOT \
 	    && echo "Enabled" || echo "Disabled"
 }
@@ -1197,8 +1160,7 @@ show_vtdaemon()
 ##############################################################################
 # Serial Console
 
-load_console()
-{
+function load_console {
 	con_sconsole=Disabled
 	con_baud=115200
 	con_dbits=8
@@ -1222,8 +1184,7 @@ load_console()
 	fi
 }
 
-save_console()
-{
+function save_console {
 	if [ "$con_sconsole" = "Disabled" ]; then
 		rm -f $ALTROOT/boot/config
 		rm -f $ALTROOT/boot/conf.d/serial
@@ -1238,41 +1199,36 @@ save_console()
 	return 0
 }
 
-show_sconsole() {
+function show_sconsole {
 	echo $con_sconsole
 }
 
-show_console_param() {
+function show_console_param {
 	nameref param="con_$1"
 	[ "$con_sconsole" != "Disabled" ] && echo $param || echo "---"
 }
-show_baud() { show_console_param baud; }
-show_dbits() { show_console_param dbits; }
-show_parity() { show_console_param parity; }
-show_sbits() { show_console_param sbits; }
+function show_baud { show_console_param baud; }
+function show_dbits { show_console_param dbits; }
+function show_parity { show_console_param parity; }
+function show_sbits { show_console_param sbits; }
 
-cfg_sconsole()
-{
+function cfg_sconsole {
 	con_sconsole="`cycle "$con_sconsole" Disabled ttya ttyb`"
 }
 
-cfg_baud()
-{
+function cfg_baud {
 	con_baud="`cycle "$con_baud" 9600 19200 38400 57600 115200`"
 }
 
-cfg_dbits()
-{
+function cfg_dbits {
 	con_dbits="`cycle "$con_dbits" 7 8`"
 }
 
-cfg_parity()
-{
+function cfg_parity {
 	con_parity="`cycle "$con_parity" none even odd`"
 }
 
-cfg_sbits()
-{
+function cfg_sbits {
 	con_sbits="`cycle "$con_sbits" 1 2`"
 }
 
@@ -1302,8 +1258,7 @@ console_menu=( \
     )									\
 )
 
-cfg_console()
-{
+function cfg_console {
 	load_console
 	input=
 	while show_menu console_menu "serial console configuration" $input; do
@@ -1311,8 +1266,7 @@ cfg_console()
 	done
 }
 
-show_console()
-{
+function show_console {
 	if [ -f $ALTROOT/boot/conf.d/serial ]; then
 		load_console
 		parity=${con_parity:0:1}
@@ -1325,8 +1279,7 @@ show_console()
 ##############################################################################
 # SSH Server
 
-cfg_sshd()
-{
+function cfg_sshd {
 	if [ -f $ALTROOT/etc/svc/profile/site/nossh.xml ]; then
 		rm -f $ALTROOT/etc/svc/profile/site/nossh.xml
 	else
@@ -1336,8 +1289,7 @@ cfg_sshd()
 	fi
 }
 
-show_sshd()
-{
+function show_sshd {
 	[ -f $ALTROOT/etc/svc/profile/site/nossh.xml ] \
 	    && echo "Disabled" || echo "Enabled"
 }
@@ -1345,8 +1297,7 @@ show_sshd()
 ##############################################################################
 # Extra Repo
 
-cfg_extrarepo()
-{
+function cfg_extrarepo {
 	if egrep -s extra.omnios $ALTROOT/var/pkg/pkg5.image; then
 		echo "Removing extra software repository..."
 		extrarepo -off
@@ -1356,8 +1307,7 @@ cfg_extrarepo()
 	fi
 }
 
-show_extrarepo()
-{
+function show_extrarepo {
 	egrep -s extra.omnios $ALTROOT/var/pkg/pkg5.image \
 	    && echo "Enabled" || echo "Disabled"
 }

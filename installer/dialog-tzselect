@@ -1,7 +1,7 @@
 #!/usr/bin/ksh
 #
 # Copyright 2005 Sun Microsystems, Inc.  All rights reserved.
-# Copyright 2020 OmniOS Community Edition (OmniOSce) Association.
+# Copyright 2021 OmniOS Community Edition (OmniOSce) Association.
 #
 # Ask the user about the time zone, and place the resulting TZ in a file
 # whose name is specified in the first argument.
@@ -57,8 +57,7 @@ newline='
 '
 IFS=$newline
 
-get_continent()
-{
+function get_continent {
 	dialog \
 		--colors \
 		--title "$INFO_LOCATION" \
@@ -89,8 +88,7 @@ get_continent()
 	return 0
 }
 
-get_posix_tz()
-{
+function get_posix_tz {
 	# Ask the user for a POSIX TZ string. Check that it conforms.
 	dialog \
 		--title "$INFO_ENTER_POSIX" \
@@ -120,8 +118,7 @@ get_posix_tz()
 	return 0
 }
 
-get_country()
-{
+function get_country {
 	# Get list of names of countries in the continent or ocean.
 	countries=$($AWK -F'\t' \
 	    -v continent="$continent" \
@@ -156,7 +153,7 @@ get_country()
 		((c = c + 1))
 	done
 
-	if [[ $countries = *"$newline"* ]]; then
+	if [[ $countries == *"$newline"* ]]; then
 		# If there's more than one country, ask the user which one.
 		dialog \
 			--colors \
@@ -178,8 +175,7 @@ get_country()
 	return 0
 }
 
-get_region()
-{
+function get_region {
 	# Get list of names of time zone rule regions in the country.
 	regions=$($AWK -F'\t' \
 	    -v country="$country" \
@@ -213,7 +209,7 @@ get_region()
 		((c = c + 1))
 	done
 
-	if [[ $regions = *"$newline"* ]]; then
+	if [[ $regions == *"$newline"* ]]; then
 		# If there's one or more region, ask the user which one.
 		dialog \
 			--colors \
@@ -235,8 +231,7 @@ get_region()
 	return 0
 }
 
-build_tz()
-{
+function build_tz {
 	# Determine TZ from country and region.
 	TZ=$($AWK -F'\t' \
 	    -v country="$country" \
@@ -271,8 +266,7 @@ build_tz()
 	return 0
 }
 
-check_tz()
-{
+function check_tz {
 	# Use the proposed TZ to output the current date relative to UTC.
 	# Loop until they agree in seconds.
 	# Give up after 8 unsuccessful tries.
