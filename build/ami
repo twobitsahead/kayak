@@ -12,7 +12,7 @@
 # http://www.illumos.org/license/CDDL.
 # }}}
 #
-# Copyright 2020 OmniOS Community Edition (OmniOSce) Association.
+# Copyright 2021 OmniOS Community Edition (OmniOSce) Association.
 #
 
 SRCDIR=`dirname $0`
@@ -28,15 +28,10 @@ find_zfssend
 set -e
 
 customise() {
-    # In case we are preparing a pre-release, temporarily add staging
-    lVERSION="`echo $VERSION | sed 's/[a-z]//g'`"
-    pkg -R $ALTROOT set-publisher \
-        -g https://pkg.omnios.org/r$lVERSION/staging omnios || true
+    typeset root="${1?altroot}"
 
-    # Allow root to ssh in
-    log "...setting PermitRootLogin=yes in sshd_config"
-    sed -i -e 's%^PermitRootLogin.*%PermitRootLogin without-password%' \
-        $ALTROOT/etc/ssh/sshd_config
+    img_permit_rootlogin $root without-password
+    img_dedicated_home $root
 
     # Set up to use DNS
     log "...enabling DNS resolution"
@@ -45,25 +40,29 @@ customise() {
     # Install ec2-credential package
     # rsync needed for vagrant
     log "...installing EC2 and rsync packages"
-    pkg -R $ALTROOT install network/rsync ec2-credential
+    img_install_pkg $root network/rsync ec2-credential
+
+    log "... installing noautofs profile"
+    img_install_profile $root $SRCDIR/../etc/noautofs.xml
+    img_install_profile $root $SRCDIR/../etc/rsyslog.xml
 
     # Decrease boot delay
-    cat << EOM > $ALTROOT/boot/loader.conf.local
+    cat << EOM > $root/boot/loader.conf.local
 autoboot_delay=1
 EOM
 
-    pkg -R $ALTROOT set-publisher \
-        -G https://pkg.omnios.org/r$lVERSION/staging omnios || true
-
-    Postboot '/sbin/dladm | tee /dev/msglog'
-    Postboot '/sbin/ipadm create-if xnf0 | tee /dev/msglog'
-    Postboot '/sbin/ipadm create-addr -T dhcp xnf0/v4 | tee /dev/msglog'
-    Postboot 'for i in $(seq 0 9); do curl -f http://169.254.169.254/ >/dev/null 2>&1 && break; sleep 1; done'
-    Postboot 'HOSTNAME=$(curl http://169.254.169.254/latest/meta-data/hostname)'
-    Postboot '[ -z "$HOSTNAME" ] || (hostname $HOSTNAME && echo $HOSTNAME >/etc/nodename)'
-    Postboot '/usr/sbin/svcadm restart network/service'
-    Postboot '/sbin/ipadm | tee /dev/msglog'
-    Postboot '/bin/netstat -rn | tee /dev/msglog'
+    img_postboot_block $root << EOM
+/bin/cp /etc/nsswitch.{dns,conf}
+/sbin/ipadm create-if xnf0 | tee /dev/msglog
+/sbin/ipadm create-addr -T dhcp xnf0/v4 | tee /dev/msglog
+for i in \$(seq 0 9); do
+    curl -f http://169.254.169.254/ >/dev/null 2>&1 && break
+    sleep 1
+done
+HOSTNAME=\$(curl http://169.254.169.254/latest/meta-data/hostname)
+[ -n "\$HOSTNAME" ] && uname -S \$HOSTNAME && echo \$HOSTNAME >/etc/nodename}
+/usr/sbin/svcadm restart network/service
+EOM
 }
 
 HVM_Image_Init 8G rpool ami omnios-r$VERSION

@@ -14,6 +14,9 @@
 # Copyright 2021 OmniOS Community Edition (OmniOSce) Association.
 #
 
+[ -n "$_KAYAK_LIB_HVM" ] && return
+_KAYAK_LIB_HVM=1
+
 . $SRCDIR/../lib/install_help.sh 2>/dev/null
 . $SRCDIR/../lib/disk_help.sh
 . $SRCDIR/../lib/net_help.sh
@@ -112,8 +115,8 @@ function HVM_Image_Build {
 	echo "Clearing any old pool"
 	zpool destroy -f $HVMtmprpool 2>/dev/null || true
 
-	zpool create $poolopts \
-	    -t $HVMtmprpool -m $HVMpoolmount $HVMrpool $HVMdisk
+	zpool create $poolopts -R $HVMpoolmount -t $HVMtmprpool \
+	    $HVMrpool $HVMdisk
 
 	BE_Create_Root $HVMtmprpool
 	BE_Receive_Image cat "xz -dc" $HVMtmprpool $HVMbename $zfssend
@@ -127,7 +130,7 @@ function HVM_Image_Build {
 	echo $hostname > $HVMaltroot/etc/nodename
 
 	# Any additional customisation
-	[ -n "$custom" ] && $custom
+	[ -n "$custom" ] && $custom "$HVMaltroot"
 
 	# Force new IPS UUID on first pkg invocation.
 	sed -i '/^last_uuid/d' $HVMaltroot/var/pkg/pkg5.image
@@ -142,7 +145,7 @@ function HVM_Image_Build {
 	# First boot configuration
 	#
 
-	# Pools are deliberately created with no features enabled and then
+	# Pools are sometimes created with no features enabled and then
 	# updated on first boot to add all features supported on the target
 	# system.
 	Postboot 'zpool upgrade -a'
@@ -172,6 +175,83 @@ function HVM_Image_Finalise {
 		*-keeplofi*)	;;
 		*)		HVM_Destroy_Diskvol $HVMlofi ;;
 	esac
+}
+
+function img_version {
+    typeset root="${1?altroot}"; shift
+
+    awk -F= '$1 == "VERSION" {
+        gsub(/[a-z]/, "")
+        print $2
+        }' $root/etc/os-release
+}
+
+function img_install_pkg {
+    typeset root="${1?altroot}"; shift
+
+    log "...installing packages: $*"
+
+    # In case we are preparing a pre-release, temporarily add staging
+    typeset ver=`img_version $root`
+    if (( ver % 2 == 0 )); then
+        pkg -R $root set-publisher \
+            -g https://pkg.omnios.org/$repo/staging omnios || true
+    fi
+    logcmd pkg -R $root install "$@"
+    if (( ver % 2 == 0 )); then
+        pkg -R $root set-publisher \
+            -G https://pkg.omnios.org/$repo/staging omnios || true
+    fi
+}
+
+function img_install_profile {
+    typeset root="${1?altroot}"; shift
+    typeset profile="${1?profile}"; shift
+
+    logcmd cp $profile $root/etc/svc/profile/site/
+}
+
+function img_permit_rootlogin {
+    typeset root="${1?altroot}"; shift
+    typeset type="${2:-without-password}"; shift
+
+    log "...setting PermitRootLogin=$type in sshd_config"
+
+    sed -i -e "s%^PermitRootLogin.*%PermitRootLogin $type%" \
+        $root/etc/ssh/sshd_config
+}
+
+function img_postboot_block {
+    typeset root="${1?altroot}"; shift
+
+    while read line; do
+        log "Postboot - '$line'"
+        echo "$line" >> $root/.initialboot
+    done
+}
+
+function img_serial_console {
+    typeset root="${1?altroot}"; shift
+
+    log "...enabling serial console"
+
+    cat << EOM > $root/boot/conf.d/serial
+console="ttya"
+os_console="ttya"
+ttya-mode="115200,8,n,1,-"
+EOM
+    printf "%s" "-h" > $root/boot/config
+}
+
+function img_dedicated_home {
+    typeset root="${1?altroot}"; shift
+
+    img_postboot_block $root << EOM
+/sbin/zfs destroy -r rpool/export
+/sbin/zfs create -o mountpoint=/home rpool/home
+/bin/chmod 0555 /home
+/usr/sbin/useradd -D -b /home
+EOM
 }
 
 # Vim hints
