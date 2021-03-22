@@ -5,4 +5,7 @@
   <service name='system/virtualization/waagent' version='1' type='service'>
     <instance name='default' enabled='true'/>
   </service>
+  <service name='system/filesystem/autofs' version='1' type='service'>
+    <instance name='default' enabled='false'/>
+  </service>
 </service_bundle>

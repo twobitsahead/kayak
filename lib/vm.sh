@@ -28,6 +28,14 @@ function vm_azure {
     runpkg install --no-refresh --no-index \
         -g /.cdrom/image/p5p/azure.p5p azure-agent
     cp /kayak/etc/azure.xml $ALTROOT/etc/svc/profile/site/
+    sed -i '/^MANAGE_ZFS=NO/s/^/#/' $ALTROOT/etc/default/useradd
+    sed -i '/^#MANAGE_ZFS=YES/s/#//' $ALTROOT/etc/default/useradd
+    {
+		echo "/sbin/zfs destroy -r $RPOOL/export"
+		echo "/sbin/zfs create -o mountpoint=/home $RPOOL/home"
+		echo "chmod 0555 /home"		# as per SUNWcs
+		echo "/usr/sbin/useradd -D -b /home"
+    } >> $ALTROOT/.initialboot
 }
 
 function setupvm {
