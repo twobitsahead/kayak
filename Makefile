@@ -194,13 +194,17 @@ build-usb:
 	./build/build_usb $(BUILDSEND_MP)/$(VERSION).iso \
 	    $(BUILDSEND_MP)/$(VERSION).usb-dd
 
-build-bhyve: bins
+build-bhyve: bins zfs
 	@banner .BHYVE
 	BUILDSEND_MP=$(BUILDSEND_MP) ./build/bhyve
 
+build-azure: bins zfs
+	@banner .azure
+	BUILDSEND_MP=$(BUILDSEND_MP) ./build/azure
+
 install-iso:	check-mkisofs bins install-tftp install-web build-iso
 install-usb:	install-iso build-usb
-all:		install-usb $(NGZ_ZFS_STREAM) build-bhyve
+all:		install-usb $(NGZ_ZFS_STREAM) build-bhyve build-azure
 
 # Used by omnios-build/kayak/ to create the kayak package
 
