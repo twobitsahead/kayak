@@ -56,18 +56,20 @@ HVM_Image_Finalise 1 "/dev/dsk/c1d0s1" "/pci@0,0/pci-ide@7,1/ide@0/cmdk@0,0:b" \
 
 echo "Creating raw disk image"
 
-rm -f $BUILDSEND_MP/azure-$VERSION.{raw,vhd}
-dd if=$HVMlofi of=$BUILDSEND_MP/azure-$VERSION.raw bs=2048
+rm -f $BUILDSEND_MP/r$VERSION.azure.raw
+dd if=$HVMlofi of=$BUILDSEND_MP/r$VERSION.azure.raw bs=2048
 lofiadm -d $HVMlofi
 zfs destroy -r $HVMdataset
 
 conv=`mktemp`
 wget -O $conv https://mirrors.omnios.org/vhd/raw2vhd.py
 echo "Creating vhd disk image"
-python2 $conv $BUILDSEND_MP/azure-$VERSION.{raw,vhd}
+python2 $conv $BUILDSEND_MP/r$VERSION.azure.{raw,vhd}
 rm -f $conv
-rm -f $BUILDSEND_MP/azure-$VERSION.raw
-ls -lh $BUILDSEND_MP/azure-$VERSION.vhd
+rm -f $BUILDSEND_MP/r$VERSION.azure.raw
+ls -lh $BUILDSEND_MP/r$VERSION.azure.vhd
+zstd -9fv --rm $BUILDSEND_MP/r$VERSION.azure.vhd
+ls -lh $BUILDSEND_MP/r$VERSION.azure.vhd.zst
 
 # Vim hints
 # vim:ts=4:sw=4:et:fdm=marker
