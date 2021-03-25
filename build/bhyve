@@ -52,10 +52,8 @@ zfs snapshot $HVMdataset@final
 zfs send $HVMdataset@final | pv > $BUILDSEND_MP/r$VERSION.bhyve
 zfs destroy -r $HVMdataset
 
-rm -f $BUILDSEND_MP/r$VERSION.bhyve.xz
-xz -9v $BUILDSEND_MP/r$VERSION.bhyve
-
-ls -lh $BUILDSEND_MP/r$VERSION.bhyve.xz
+zstd -9fv --rm $BUILDSEND_MP/r$VERSION.bhyve
+ls -lh $BUILDSEND_MP/r$VERSION.bhyve.zst
 
 # Vim hints
 # vim:ts=4:sw=4:et:fdm=marker
