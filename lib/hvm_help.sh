@@ -195,12 +195,12 @@ function img_install_pkg {
     typeset ver=`img_version $root`
     if (( ver % 2 == 0 )); then
         pkg -R $root set-publisher \
-            -g https://pkg.omnios.org/$repo/staging omnios || true
+            -g https://pkg.omnios.org/r$ver/staging omnios || true
     fi
     logcmd pkg -R $root install "$@"
     if (( ver % 2 == 0 )); then
         pkg -R $root set-publisher \
-            -G https://pkg.omnios.org/$repo/staging omnios || true
+            -G https://pkg.omnios.org/r$ver/staging omnios || true
     fi
 }
 
