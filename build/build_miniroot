@@ -132,7 +132,7 @@ SYSTEM="system/boot/real-mode system/boot/loader
     system/library system/network
     system/prerequisite/gnu system/storage/luxadm
     system/storage/fibre-channel/port-utility developer/debug/mdb
-    system/bhyve"
+    system/bhyve diagnostic/pci"
 
 DEBUG_PKGS="system/dtrace developer/dtrace"
 
@@ -337,6 +337,9 @@ EOM
     rm -f $ROOTDIR/usr/bin/dmesg
     cp $SRCDIR/bin/dmesg $ROOTDIR/usr/bin/dmesg
     chmod 0755 $ROOTDIR/usr/bin/dmesg
+
+    # Link the PCI utility to /usr/bin for the installer.
+    ln -s ../lib/pci/pcieadm $ROOTDIR/usr/bin/pcieadm
 
     chkpt cull
     ;;
