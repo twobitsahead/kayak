@@ -131,6 +131,7 @@
 /usr/bin/mv
 /usr/bin/nawk
 /usr/bin/nc
+/usr/bin/pcieadm
 /usr/bin/pfiles
 /usr/bin/pgrep
 /usr/bin/pkill
@@ -201,6 +202,7 @@
 /usr/kernel/fs/amd64/pcfs
 /usr/kernel/pcbe
 /usr/kernel/pcbe/amd64
+/usr/lib/pci/pcieadm
 /usr/platform/i86pc/lib/fm/topo/maps/chassis-hc-topology.xml
 /usr/platform/i86pc/lib/fm/topo/maps/chip-hc-topology.xml
 /usr/platform/i86pc/lib/fm/topo/maps/fan-hc-topology.xml
