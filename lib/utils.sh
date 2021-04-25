@@ -105,5 +105,13 @@ SUPATH=/usr/sbin:/sbin:/opt/ooce/sbin:/usr/bin:/opt/ooce/bin
     runpkg publisher
 }
 
+function logadm_rsyslog {
+    typeset altroot="${1:?altroot}"
+
+    sed -i '
+        s^/var/run/syslog.pid^/var/run/rsyslogd.pid^
+    ' $altroot/etc/logadm.conf
+}
+
 # Vim hints
 # vim:ts=4:sw=4:et:fdm=marker
