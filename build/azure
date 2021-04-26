@@ -19,6 +19,7 @@ SRCDIR=`dirname $0`
 [ ${SRCDIR:0:1} = "/" ] || SRCDIR=`pwd`/$SRCDIR
 
 . $SRCDIR/../lib/hvm_help.sh
+. $SRCDIR/../lib/utils.sh
 
 [ -z "$BUILDSEND_MP" ] && BUILDSEND_MP=/kayak_image
 
@@ -40,6 +41,7 @@ customise() {
     log "... installing azure profile"
     img_install_profile $root $SRCDIR/../etc/azure.xml
     img_install_profile $root $SRCDIR/../etc/rsyslog.xml
+    logadm_rsyslog $root
 
     img_postboot_block $root << EOM
 /sbin/ipadm create-if hv_netvsc0 | tee /dev/msglog
