@@ -6,10 +6,10 @@ bootfile="/boot/platform/i86pc/kernel/amd64/unix"
 # We need some install boot arguments...
 
 # Either use http[s]:/// to use the next-server option provided by DHCP...
-boot-args="-B install_media=http:///kayak/omniosce-@VERSION@.zfs.xz,install_config=http:///kayak"
+boot-args="-B install_media=http:///kayak/omnios-@VERSION@.zfs.xz,install_config=http:///kayak"
 
 # ... or specify an IP address
-#boot-args="-B install_media=http://x.y.z.a/kayak/omniosce-@VERSION@.zfs.xz,install_config=http://x.y.z.a/kayak"
+#boot-args="-B install_media=http://x.y.z.a/kayak/omnios-@VERSION@.zfs.xz,install_config=http://x.y.z.a/kayak"
 
 # Like the ISO, let people know we're in the PXE installer:
 loader_menu_title="Welcome to the OmniOS PXE Installer"

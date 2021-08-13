@@ -286,14 +286,21 @@ if [ -n "$UEFI_SIZE" ]; then
 
 	stage "Building ISO"
 
-	mkisofs -N -l -R -U -d -D \
-		-V "OmniOSce $VERSION" \
-		-o $DST_ISO \
-		-c .catalog \
+	mkisofs \
+		-omit-version-number \
+		-full-iso9660-filenames \
+		-rock \
+		-untranslated-filenames \
+		-omit-period \
+		-disable-deep-relocation \
 		-allow-multidot \
 		-no-iso-translate \
 		-cache-inodes \
 		\
+		-volid "OmniOS $VERSION" \
+		-output $DST_ISO \
+		\
+		-eltorito-catalog .catalog \
 		-eltorito-boot boot/cdboot -no-emul-boot -boot-info-table \
 		-eltorito-alt-boot \
 		-eltorito-platform efi \
@@ -337,15 +344,22 @@ if [ -n "$UEFI_SIZE" ]; then
 
 	lofiadm -d $LOFI_ISO
 else
-	mkisofs -N -l -R -U -d -D \
-		-V "OmniOSce $VERSION" \
-		-o $DST_ISO \
-		-c .catalog \
+	mkisofs \
+		-omit-version-number \
+		-full-iso9660-filenames \
+		-rock \
+		-untranslated-filenames \
+		-omit-period \
+		-disable-deep-relocation \
 		-allow-multidot \
 		-no-iso-translate \
 		-cache-inodes \
 		\
-		-b boot/cdboot -no-emul-boot -boot-load-size 4 \
+		-volid "OmniOS $VERSION" \
+		-output $DST_ISO \
+		\
+		-eltorito-catalog .catalog \
+		-eltorito-boot boot/cdboot -no-emul-boot -boot-load-size 4 \
 		-boot-info-table \
 		\
 		$ISO_ROOT
