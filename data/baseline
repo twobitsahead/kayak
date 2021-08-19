@@ -97,7 +97,6 @@ Unused library usr/lib/mdb/kvm/amd64/xhci.so
 Unused library usr/lib/mdb/proc/amd64/ld.so
 Unused library usr/lib/mdb/proc/amd64/libavl.so
 Unused library usr/lib/mdb/proc/amd64/libc.so
-Unused library usr/lib/mdb/proc/amd64/libcmdutils.so
 Unused library usr/lib/mdb/proc/amd64/libnvpair.so
 Unused library usr/lib/mdb/proc/amd64/libproc.so
 Unused library usr/lib/mdb/proc/amd64/libpython2.7.so
