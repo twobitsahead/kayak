@@ -197,6 +197,9 @@ function img_install_pkg {
         pkg -R $root set-publisher \
             -g https://pkg.omnios.org/r$ver/staging omnios || true
     fi
+    # Setting this flag lets `pkg` know that this is an automatic install and
+    # that the installed packages should not be marked as 'manually installed'
+    export PKG_AUTOINSTALL=1
     logcmd pkg -R $root install "$@"
     if (( ver % 2 == 0 )); then
         pkg -R $root set-publisher \
