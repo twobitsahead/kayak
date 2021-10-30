@@ -1,0 +1,120 @@
+#!/bin/bash
+#
+# {{{ CDDL HEADER
+#
+# This file and its contents are supplied under the terms of the
+# Common Development and Distribution License ("CDDL"), version 1.0.
+# You may only use this file in accordance with the terms of version
+# 1.0 of the CDDL.
+#
+# A full copy of the text of the CDDL should have accompanied this
+# source. A copy of the CDDL is also available via the Internet at
+# http://www.illumos.org/license/CDDL.
+# }}}
+#
+# Copyright 2021 OmniOS Community Edition (OmniOSce) Association.
+#
+
+SRCDIR=`dirname $0`
+[ ${SRCDIR:0:1} = "/" ] || SRCDIR=`pwd`/$SRCDIR
+
+. $SRCDIR/../lib/hvm_help.sh
+. $SRCDIR/../lib/utils.sh
+
+[ -z "$BUILDSEND_MP" ] && BUILDSEND_MP=/kayak_image
+
+find_zfssend
+[ ! -f $ZFSSEND ] && echo "ZFS Image ($ZFSSEND) missing" && exit
+
+note() {
+    tput setaf 6
+    echo "***"
+    echo "*** $*"
+    echo "***"
+    tput sgr0
+}
+
+set -e
+
+customise() {
+    typeset root="${1?altroot}"
+
+    img_permit_rootlogin $root without-password
+    img_dedicated_home $root
+    img_serial_console $root
+
+    # rsync needed for Vagrant
+    img_install_pkg $root network/rsync cloud-init
+
+    log "... installing noautofs profile"
+    img_install_profile $root $SRCDIR/../etc/noautofs.xml
+    img_install_profile $root $SRCDIR/../etc/rsyslog.xml
+    logadm_rsyslog $root
+
+    # Decrease boot delay
+    cat << EOM > $root/boot/loader.conf.local
+autoboot_delay=1
+EOM
+
+    img_postboot_block $root << EOM
+/bin/cp /etc/nsswitch.{dns,conf}
+EOM
+}
+
+HVM_Image_Init 8G rpool cloud omnios-r$VERSION
+HVM_Image_Build "-fdB -o ashift=12" $ZFSSEND omnios customise
+HVM_Image_Finalise 1 \
+    "/dev/dsk/c1t0d0s1" "/pci@0,0/pci1af4,2@4/blkdev@0,0:b" "" \
+    -keeplofi
+
+basef=$BUILDSEND_MP/cloud-$VERSION
+
+##############################################################################
+note "Creating ZFS stream file"
+
+zfs snapshot $HVMdataset@final
+zfs send $HVMdataset@final | pv > $basef.zfs
+
+##############################################################################
+note "Creating raw disk image"
+
+rm -f $basef.raw
+dd if=$HVMlofi of=$basef.raw bs=2048
+
+##############################################################################
+note "Creating VMDK"
+
+vmdkver=0.2
+dir=VMDK-stream-converter-$vmdkver
+file=$dir.tar.gz
+if [ ! -d $dir ]; then
+    wget -O /tmp/$file https://mirrors.omnios.org/vmdk/$file
+    gtar zxf /tmp/$file
+fi
+
+rm -f $basef.vmdk
+python2 ./$dir/VMDKstream.py $basef.{raw,vmdk}
+rm -rf $dir
+
+##############################################################################
+note "Creating VHD"
+
+conv=`mktemp`
+wget -O $conv https://mirrors.omnios.org/vhd/raw2vhd.py
+echo "Creating vhd disk image"
+python2 $conv $basef.{raw,vhd}
+rm -f $conv
+
+##############################################################################
+note "Cleaning up"
+
+lofiadm -d $HVMlofi
+zfs destroy -r $HVMdataset
+
+##############################################################################
+note "Compressing"
+
+zstd -9fv --rm $basef.{raw,zfs,vmdk,vhd}
+
+# Vim hints
+# vim:ts=4:sw=4:et:fdm=marker
