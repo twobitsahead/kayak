@@ -91,6 +91,7 @@
 /lib/libgen.so.1
 /lib/libinetutil.so.1
 /lib/libipadm.so.1
+/lib/libipmp.so.1
 /lib/libkstat.so.1
 /lib/libm.so.2
 /lib/libmd.so.1
