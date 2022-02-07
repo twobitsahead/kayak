@@ -206,6 +206,7 @@
 /kernel/drv/amd64/simnet
 /kernel/drv/amd64/smbios
 /kernel/drv/amd64/smp
+/kernel/drv/amd64/smrt
 /kernel/drv/amd64/softmac
 /kernel/drv/amd64/sol_ucma
 /kernel/drv/amd64/sol_umad
@@ -374,6 +375,7 @@
 /kernel/drv/simnet.conf
 /kernel/drv/smbios.conf
 /kernel/drv/smp.conf
+/kernel/drv/smrt.conf
 /kernel/drv/softmac.conf
 /kernel/drv/sol_ucma.conf
 /kernel/drv/sol_umad.conf
