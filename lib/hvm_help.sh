@@ -102,8 +102,29 @@ function HVM_Image_Init {
 	HVMdataset="${HVMdev%:*}"
 	HVMlofi="${HVMdev#*:}"
 	HVMdisk="${HVMlofi/p0/}"
+	HVMrlofi="${HVMlofi/dsk/rdsk}"
+	HVMrdisk="${HVMdisk/dsk/rdsk}"
 
 	SetupLog /tmp/kayak-$tag.log
+}
+
+function HVM_MBR_Init {
+	echo "Setting up disk volume for MBR"
+
+	# Create Solaris2 partition filling the entire disk
+	fdisk -B $HVMrlofi
+	fdisk -W - $HVMrlofi | tail -5 | head -2
+	echo
+
+	# Create slice 0 covering all of the non-reserved space
+	OIFS="$IFS"; IFS=" ="
+	set -- `prtvtoc -f $HVMrlofi`
+	IFS="$OIFS"
+	# FREE_START=2048 FREE_SIZE=196608 FREE_COUNT=1 FREE_PART=...
+	start=$2; size=$4
+	fmthard -d 0:2:01:$start:$size $HVMrlofi
+	prtvtoc -s $HVMrlofi
+	echo
 }
 
 function HVM_Image_Build {
@@ -154,7 +175,7 @@ function HVM_Image_Build {
 }
 
 function HVM_Image_Finalise {
-    typeset slice="$1"; shift
+	typeset slice="$1"; shift
 	typeset blk="$1"; shift
 	typeset phys="$1"; shift
 	typeset devid="$1"; shift
