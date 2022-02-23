@@ -65,6 +65,7 @@
 /platform/i86pc/kernel/misc/amd64/acpidev
 /platform/i86pc/kernel/misc/amd64/drmach_acpi
 /platform/i86pc/kernel/misc/amd64/gfx_private
+/platform/i86pc/kernel/misc/amd64/pci_prd
 /platform/i86pc/kernel/sys
 /platform/i86pc/kernel/sys/amd64
 /platform/i86pc/kernel/sys/amd64/cpc
