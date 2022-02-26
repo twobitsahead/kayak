@@ -246,6 +246,7 @@
 /usr/lib/amd64/libpcidb.so.1
 /usr/lib/amd64/libpcre2-8.so.*
 /usr/lib/amd64/libpool.so.1
+/usr/lib/amd64/libproject.so.1
 /usr/lib/amd64/libreadline.so.8
 /usr/lib/amd64/librename.so.1
 /usr/lib/amd64/libpkcs11.so.1
