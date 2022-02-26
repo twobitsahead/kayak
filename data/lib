@@ -217,7 +217,6 @@
 /usr/lib/amd64/libast.so.1
 /usr/lib/amd64/libbrotlicommon.so.*
 /usr/lib/amd64/libbrotlidec.so.*
-/usr/lib/amd64/libbunyan.so.1
 /usr/lib/amd64/libbz2.so.1.*
 /usr/lib/amd64/libc.so.1
 /usr/lib/amd64/libcmd.so.1
@@ -334,7 +333,6 @@
 /usr/lib/libast.so.1
 /usr/lib/libbe.so.1
 /usr/lib/libbrand.so.1
-/usr/lib/libbunyan.so.1
 /usr/lib/libc
 /usr/lib/libc/libc_hwcap1.so.1
 /usr/lib/libc/libc_hwcap2.so.1
