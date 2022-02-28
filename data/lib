@@ -48,6 +48,7 @@
 /lib/amd64/libumem.so.1
 /lib/amd64/libuuid.so.1
 /lib/amd64/libuutil.so.1
+/lib/amd64/libvarpd.so.1
 /lib/amd64/libxml2.so.*
 /lib/amd64/libz.so
 /lib/amd64/libz.so.*
@@ -117,6 +118,7 @@
 /lib/libumem.so.1
 /lib/libuuid.so.1
 /lib/libuutil.so.1
+/lib/libvarpd.so.1
 /lib/libxml2.so.*
 /lib/libxnet.so.1
 /lib/libz.so
@@ -215,7 +217,6 @@
 /usr/lib/amd64/libast.so.1
 /usr/lib/amd64/libbrotlicommon.so.*
 /usr/lib/amd64/libbrotlidec.so.*
-/usr/lib/amd64/libbunyan.so.1
 /usr/lib/amd64/libbz2.so.1.*
 /usr/lib/amd64/libc.so.1
 /usr/lib/amd64/libcmd.so.1
@@ -245,6 +246,7 @@
 /usr/lib/amd64/libpcidb.so.1
 /usr/lib/amd64/libpcre2-8.so.*
 /usr/lib/amd64/libpool.so.1
+/usr/lib/amd64/libproject.so.1
 /usr/lib/amd64/libreadline.so.8
 /usr/lib/amd64/librename.so.1
 /usr/lib/amd64/libpkcs11.so.1
@@ -257,7 +259,6 @@
 /usr/lib/amd64/libssp.so.*
 /usr/lib/amd64/libuutil.so
 /usr/lib/amd64/libuutil.so.1
-/usr/lib/amd64/libvarpd.so.1
 /usr/lib/amd64/libz.so
 /usr/lib/amd64/libz.so.*
 /usr/lib/amd64/libzpool.so.1
@@ -333,7 +334,6 @@
 /usr/lib/libast.so.1
 /usr/lib/libbe.so.1
 /usr/lib/libbrand.so.1
-/usr/lib/libbunyan.so.1
 /usr/lib/libc
 /usr/lib/libc/libc_hwcap1.so.1
 /usr/lib/libc/libc_hwcap2.so.1
@@ -368,7 +368,6 @@
 /usr/lib/libssp.so.*
 /usr/lib/libsum.so.1
 /usr/lib/libtecla.so.1
-/usr/lib/libvarpd.so.1
 /usr/lib/libz.so
 /usr/lib/libz.so.*
 /usr/lib/libzfsbootenv.so.1
