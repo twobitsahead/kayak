@@ -101,6 +101,7 @@ UNNEEDED_MANIFESTS="application/management/net-snmp.xml
     network/security/kadmin.xml network/network-install.xml
     network/bridge.xml network/network-initial.xml
     network/network-ipmgmt.xml network/routing/legacy-routing.xml
+    network/network-ipmp.xml
     network/network-service.xml network/network-physical.xml
     network/network-netmask.xml network/dlmgmt.xml
     network/network-location.xml network/ibd-post-upgrade.xml
