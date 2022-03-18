@@ -28,11 +28,18 @@ note() {
 
 MYDIR=$PWD/`dirname $BASH_SOURCE[0]`
 
+[ -z "$VERSION" ] && VERSION=`awk '$1 == "OmniOS" { print $3 }' /etc/release`
+RELVER=${VERSION//[a-z]/}
+
 PUBLISHER=omnios
-# NOTE --> The URL needs to be updated with every release.
-# Change "bloody" to whatever release the current branch is.
-OMNIOS_URL=https://pkg.omnios.org/bloody/core
+if (( RELVER % 2 == 0 )); then
+    OMNIOS_URL=https://pkg.omnios.org/r$RELVER/core
+else
+    OMNIOS_URL=https://pkg.omnios.org/bloody/core
+fi
+
 : ${PKGURL:=$OMNIOS_URL}
+
 ZROOT=rpool
 OUT=
 CLEANUP=0
