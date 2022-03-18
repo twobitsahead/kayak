@@ -12,8 +12,16 @@
 # }}}
 
 # Copyright 2017 OmniTI Computer Consulting, Inc. All rights reserved.
-# Copyright 2021 OmniOS Community Edition (OmniOSce) Association.
+# Copyright 2022 OmniOS Community Edition (OmniOSce) Association.
 #
+
+export PATH=/usr/bin:/usr/sbin:/sbin
+
+SRCDIR=`dirname $0`
+[ ${SRCDIR:0:1} = "/" ] || SRCDIR=`pwd`/$SRCDIR
+KYKDIR=$SRCDIR/..
+
+. $KYKDIR/lib/defs.sh
 
 fail() {
     echo $*
@@ -26,20 +34,7 @@ note() {
     echo "***"
 }
 
-MYDIR=$PWD/`dirname $BASH_SOURCE[0]`
-
-[ -z "$VERSION" ] && VERSION=`awk '$1 == "OmniOS" { print $3 }' /etc/release`
-RELVER=${VERSION//[a-z]/}
-
-PUBLISHER=omnios
-if (( RELVER % 2 == 0 )); then
-    OMNIOS_URL=https://pkg.omnios.org/r$RELVER/core
-else
-    OMNIOS_URL=https://pkg.omnios.org/bloody/core
-fi
-
-: ${PKGURL:=$OMNIOS_URL}
-
+: ${PKGURL:=$OOCEPUBURL}
 ZROOT=rpool
 OUT=
 CLEANUP=0
@@ -68,7 +63,10 @@ fi
 # that the installed packages should not be marked as 'manually installed'
 export PKG_AUTOINSTALL=1
 
-MPR=`zfs get -H mountpoint $ZROOT | awk '{print $3}'`
+entire_version=${name//[a-z]/}
+entire_fmri="entire@11-$entire_version"
+
+MPR=`zfs get -o value -H mountpoint $ZROOT`
 if [ -z "$OUT" ]; then
     OUT=$MPR/kayak_$name.zfs.xz
     [ $VARIANT = nonglobal ] && OUT=$MPR/kayak_$name.ngz.zfs.xz
@@ -76,23 +74,25 @@ fi
 
 if zfs list $ZROOT/$name@entire > /dev/null 2>&1; then
     note "Rolling back to last @entire"
-    zfs rollback -r $ZROOT/$name@entire
-    MP=`zfs get -H mountpoint $ZROOT/$name | awk '{print $3}'`
+    zfs rollback -r $ZROOT/$name@entire || fail "zfs rollback"
+    MP=`zfs get -o value -H mountpoint $ZROOT/$name`
+    [ -n "$MP" -a -d "$MP" ] || fail "$MP is not a directory"
+    export PKG_IMAGE=$MP
 else
     zfs create $ZROOT/$name || fail "zfs create"
-    MP=`zfs get -H mountpoint $ZROOT/$name | awk '{print $3}'`
+    MP=`zfs get -o value -H mountpoint $ZROOT/$name`
+    [ -n "$MP" -a -d "$MP" ] || fail "$MP is not a directory"
     note "Creating IPS image"
-    pkg image-create -F -p $PUBLISHER=$PKGURL $MP || fail "image-create"
-    [ -n "$DEBUG_VARIANT" ] && pkg -R $MP change-variant debug.illumos=true
-    entire_version=${name//[a-z]/}
-    entire_fmri="entire@11-$entire_version"
+    pkg image-create -F -p $OOCEPUB=$PKGURL $MP || fail "image-create"
+    export PKG_IMAGE=$MP
+    [ -n "$DEBUG_VARIANT" ] && pkg change-variant debug.illumos=true
     note "Installing $entire_fmri"
-    pkg -R $MP install $entire_fmri || fail "install entire"
+    pkg install $entire_fmri || fail "install entire"
     zfs snapshot $ZROOT/$name@entire
 fi
 
 note "Changing zone variant to $VARIANT"
-pkg -R $MP change-variant opensolaris.zone=$VARIANT
+pkg change-variant opensolaris.zone=$VARIANT
 
 note "Installing optional packages"
 typeset -a optlist=
@@ -100,10 +100,10 @@ while read p v; do
         [ -n "$v" -a "$v" != "$VARIANT" ] && continue
         echo "++++ $p"
         optlist+=($p)
-done < <(pkg -R $MP contents -H -a type=optional \
+done < <(pkg contents -rH -a type=optional \
     -o fmri,variant.opensolaris.zone $entire_fmri)
 
-pkg -R $MP install ${optlist[*]} || fail "install optional entire"
+pkg install ${optlist[*]} || fail "install optional entire"
 
 if [ -n "$PROFILE" ]; then
     note "Applying custom profile: $PROFILE"
@@ -113,34 +113,32 @@ if [ -n "$PROFILE" ]; then
         TMPURL=`echo $line | cut -f2 -d=`
         if [ -n "$TMPURL" -a "$TMPURL" != "$TMPPUB" ]; then
             note "Setting publisher: $TMPPUB / $TMPURL"
-            pkg -R $MP set-publisher -g $TMPURL $TMPPUB \
+            pkg set-publisher -g $TMPURL $TMPPUB \
                 || fail "set publisher $TMPPUB"
-            PUBLISHER=$TMPPUB
+            OOCEPUB=$TMPPUB
             PKGURL=$TMPURL
         else
             note "Installing additional package: $line"
-            pkg -R $MP install -g $PKGURL $line || fail "install $line"
+            pkg install -g $PKGURL $line || fail "install $line"
         fi
     done < <(grep . $PROFILE | grep -v '^ *#')
 fi
 
 if [ -n "$PUBLISHER_OVERRIDE" ]; then
-    OMNIOS_URL=$PKGURL
+    OOCEPUBURL=$PKGURL
 fi
-note "Setting omnios publisher to $OMNIOS_URL"
-pkg -R $MP unset-publisher omnios
-pkg -R $MP set-publisher -P --no-refresh -O $OMNIOS_URL omnios
+note "Setting omnios publisher to $OOCEPUBURL"
+pkg unset-publisher $OOCEPUB
+pkg set-publisher -P --no-refresh -O $OOCEPUBURL $OOCEPUB
 
 # Starting with r151014, require signatures for the omnios publishers.
-if [[ $OMNIOS_URL != */bloody/* ]]; then
+if [[ $OOCEPUBURL != */bloody/* ]]; then
     note "Setting signature policy to require."
-    for pub in omnios; do
-        pkg -R $MP set-publisher \
-            --set-property signature-policy=require-signatures $pub
-    done
+    pkg set-publisher \
+        --set-property signature-policy=require-signatures $OOCEPUB
 fi
 
-pkg -R $MP purge-history
+pkg purge-history
 
 function seed_smf
 {
@@ -189,7 +187,7 @@ xz -l $OUT
 # Also build .p5p files for various VM environments
 
 if [ $VARIANT = global ]; then
-    $MYDIR/build_extra_p5p -d $MPR -o $PKGURL
+    $SRCDIR/extra_p5p -d $MPR -o $PKGURL
 fi
 
 ############################################################################

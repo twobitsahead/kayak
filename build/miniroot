@@ -18,6 +18,12 @@
 
 export PATH=/usr/bin:/usr/sbin:/sbin
 
+SRCDIR=`dirname $0`
+[ ${SRCDIR:0:1} = "/" ] || SRCDIR=`pwd`/$SRCDIR
+KYKDIR=$SRCDIR/..
+
+. $KYKDIR/lib/defs.sh
+
 fail() {
     echo "ERROR: $*"
     exit 1
@@ -34,35 +40,20 @@ BASE="$1"; shift
 CHKPT="$1"; shift
 
 BASEDIR=`zfs get -o value -H mountpoint $BASE`
-[ -d "$BASEDIR" ] || fail "Cannot find directory for $BASE"
-
-[ -z "$VERSION" ] && VERSION=`awk '$1 == "OmniOS" { print $3 }' /etc/release`
-RELVER=${VERSION//[a-z]/}
-
-PUBLISHER=omnios
-if [ -z "$PKGURL" ]; then
-    if (( RELVER % 2 == 0 )); then
-        PKGURL=https://pkg.omnios.org/r$RELVER/core
-    else
-        PKGURL=https://pkg.omnios.org/bloody/core
-    fi
-fi
+[ -n "$BASEDIR" -a -d "$BASEDIR" ] || fail "Cannot find directory for $BASE"
 
 [ -x /opt/ooce/bin/pigz ] && GZIP=/opt/ooce/bin/pigz || GZIP=gzip
 : ${GZIP_CMD:=$GZIP}
 
-SRCDIR=$(dirname $0)
-[ ${SRCDIR:0:1} != "/" ] && SRCDIR="`pwd`/$SRCDIR"
-SRCDIR+=/..
-DATADIR=$SRCDIR/data
+DATADIR=$KYKDIR/data
 
 typeset -i DIDWORK=0
-
 MKFILEDIR=/tmp
 DATASET=miniroot
 WORKDIR=$BASEDIR
 ROOTDIR=$WORKDIR/$DATASET
 
+: ${PKGURL:=$OOCEPUBURL}
 export PKG_IMAGE=$ROOTDIR
 
 RMRF="
@@ -151,8 +142,8 @@ function step_pkg {
         pkglist+=($DEBUG_PKGS)
     fi
 
-    echo "Creating image of $PUBLISHER from $PKGURL"
-    pkg image-create -F -p $PUBLISHER=$PKGURL $ROOTDIR || fail "image-create"
+    echo "Creating image of $OOCEPUB from $PKGURL"
+    pkg image-create -F -p $OOCEPUB=$PKGURL $ROOTDIR || fail "image-create"
     # No need to install documentation or development files in the miniroot
     pkg change-facet doc.man=false
     pkg change-facet devel=false
@@ -192,14 +183,14 @@ function step_fixup {
     cat <<- EOM > $ROOTDIR/root/.bashrc
 		export PATH=/usr/bin:/usr/sbin:/sbin
 		export HOME=/root
-		export PS1='kayak-$VERSION# '
+		export PS1='kayak-$OOCEVER# '
 	EOM
 
     echo " --- installing dmesg"
     # Install a small dummy dmesg command that will work from the installer
     # shell.
     rm -f $ROOTDIR/usr/bin/dmesg
-    cp $SRCDIR/bin/dmesg $ROOTDIR/usr/bin/dmesg
+    cp $KYKDIR/bin/dmesg $ROOTDIR/usr/bin/dmesg
     chmod 0755 $ROOTDIR/usr/bin/dmesg
 
     # Link the PCI utility to /usr/bin for the installer.
@@ -272,6 +263,7 @@ function step_smf {
 
 function step_cull {
     if [ -z "$BIGROOT" ]; then
+        typeset -i cnt=0
         load_keep_list $DATADIR/keep.*
         while read file; do
             [ -z "$file" ] && continue
@@ -281,13 +273,15 @@ function step_cull {
             for x in ${match_list[@]}; do
                 [[ $file = $x ]] && continue 2
             done
+            ((cnt++))
             ((VERBOSE)) && echo "   - culling $file"
             rm -f "$ROOTDIR/$file"
         done < <(cd $ROOTDIR && find ./ | cut -c3-)
+        echo " --- removed $cnt file(s)"
         for path in $RMRF; do
             rm -rf ${ROOTDIR}$path && echo " --- discarding $path"
         done
-        typeset -i cnt=0
+        cnt=0
         while read link; do
             readlink -e "$link" >/dev/null && continue
             ((cnt++))
@@ -323,7 +317,7 @@ function step_strip {
 function step_sanity {
     if [ -z "$BIGROOT" ]; then
         of=`mktemp`
-        $SRCDIR/bin/sanity $ROOTDIR | LC_ALL=C sort > $of
+        $KYKDIR/bin/sanity $ROOTDIR | LC_ALL=C sort > $of
         diff -U0 $DATADIR/baseline $of
         if [ $? -gt 0 ]; then
             echo
@@ -366,7 +360,7 @@ function step_copy {
     mkdir $WORKDIR/mnt/kayak
     for dir in etc lib installer; do
         mkdir -p $WORKDIR/mnt/kayak/$dir
-        cp $SRCDIR/$dir/* $WORKDIR/mnt/kayak/$dir/
+        cp $KYKDIR/$dir/* $WORKDIR/mnt/kayak/$dir/
         chmod a+x $WORKDIR/mnt/kayak/$dir/*
     done
 
@@ -377,13 +371,13 @@ function step_copy {
     #
     # We don't want this in the boot filesystem, just the ramdisk hence it is
     # done here rather than under the 'fixup' stage.
-    cp $SRCDIR/bin/digest $WORKDIR/mnt/usr/bin/digest
+    cp $KYKDIR/bin/digest $WORKDIR/mnt/usr/bin/digest
     chmod 0755 $WORKDIR/mnt/usr/bin/digest
 
     make_initial_boot $WORKDIR/mnt/.initialboot
     if [ -n "$DEBUG" ]; then
-        cp $SRCDIR/etc/anon.system $WORKDIR/mnt/etc/system
-        cp $SRCDIR/etc/anon.dtrace.conf $WORKDIR/mnt/kernel/drv/dtrace.conf
+        cp $KYKDIR/etc/anon.system $WORKDIR/mnt/etc/system
+        cp $KYKDIR/etc/anon.dtrace.conf $WORKDIR/mnt/kernel/drv/dtrace.conf
     fi
 
     chkpt umount

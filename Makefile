@@ -84,17 +84,17 @@ $(DESTDIR)/tftpboot/kayak/miniroot.gz.hash:	$(BUILDSEND_MP)/miniroot.gz
 ######################################################################
 # More involved targets - creation of miniroot.gz & zfs image
 
-$(BUILDSEND_MP)/kayak_$(VERSION).zfs.xz:	build/build_zfs_send
+$(BUILDSEND_MP)/kayak_$(VERSION).zfs.xz:	build/zfs_send
 	@banner "ZFS GZ IMG"
 	@test -d "$(BUILDSEND_MP)" || (echo "$(BUILDSEND) missing" && false)
 	./$< -d $(BUILDSEND) $(VERSION)
 
-$(BUILDSEND_MP)/kayak_$(VERSION).ngz.zfs.xz:	build/build_zfs_send
+$(BUILDSEND_MP)/kayak_$(VERSION).ngz.zfs.xz:	build/zfs_send
 	@banner "ZFS NGZ IMG"
 	@test -d "$(BUILDSEND_MP)" || (echo "$(BUILDSEND) missing" && false)
 	./$< -d $(BUILDSEND) -V nonglobal $(VERSION)
 
-$(BUILDSEND_MP)/miniroot.gz:	build/build_miniroot
+$(BUILDSEND_MP)/miniroot.gz:	build/miniroot
 	@banner "MINIROOT"
 	if test -n "`zfs list -H -t snapshot $(BUILDSEND)/miniroot@fixup 2>/dev/null`"; then \
 	  VERSION=$(VERSION) DEBUG=$(DEBUG) ./$< $(BUILDSEND) fixup ; \
@@ -155,11 +155,11 @@ bin/mount_media:	src/mount_media.c
 bin/zpool_patch:	src/zpool_patch.c
 	gcc -m64 -g -Wall -Wunused -g -Isrc/include -o $@ $< -lnvpair
 
-bin/ipcalc:	build/build_ipcalc
-	./build/build_ipcalc
+bin/ipcalc:	build/ipcalc
+	./build/ipcalc
 
-bin/dialog:	build/build_dialog
-	./build/build_dialog
+bin/dialog:	build/dialog
+	./build/dialog
 
 # Not a binary but a data file generated from key tables
 etc/kbd.list: /usr/share/lib/keytables/type_6/kbd_layouts
@@ -187,11 +187,11 @@ check-mkisofs:
 
 build-iso:
 	@banner .ISO
-	BUILDSEND_MP=$(BUILDSEND_MP) VERSION=$(VERSION) ./build/build_iso
+	BUILDSEND_MP=$(BUILDSEND_MP) VERSION=$(VERSION) ./build/iso
 
 build-usb:
 	@banner .USB-DD
-	./build/build_usb $(BUILDSEND_MP)/$(VERSION).iso \
+	./build/usb $(BUILDSEND_MP)/$(VERSION).iso \
 	    $(BUILDSEND_MP)/$(VERSION).usb-dd
 
 build-bhyve: bins zfs

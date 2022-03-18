@@ -25,7 +25,7 @@
 #
 
 # An anonymous dtrace script to build a list of files which are accessed.
-# It is used along with a big miniroot (see BIGROOT in build/build_miniroot)
+# It is used along with a big miniroot (see BIGROOT in build/miniroot)
 # to determine the files which cannot be culled from the miniroot.
 # These days we tend to just add new files by hand as required.
 
