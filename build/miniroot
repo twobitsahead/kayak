@@ -1,0 +1,434 @@
+#!/bin/bash
+
+# {{{ CDDL HEADER
+# This file and its contents are supplied under the terms of the
+# Common Development and Distribution License ("CDDL"), version 1.0.
+# You may only use this file in accordance with the terms of version
+# 1.0 of the CDDL.
+#
+# A full copy of the text of the CDDL should have accompanied this
+# source.  A copy of the CDDL is also available via the Internet at
+# http://www.illumos.org/license/CDDL.
+# }}}
+
+#
+# Copyright 2017 OmniTI Computer Consulting, Inc.  All rights reserved.
+# Copyright 2022 OmniOS Community Edition (OmniOSce) Association.
+#
+
+export PATH=/usr/bin:/usr/sbin:/sbin
+
+SRCDIR=`dirname $0`
+[ ${SRCDIR:0:1} = "/" ] || SRCDIR=`pwd`/$SRCDIR
+KYKDIR=$SRCDIR/..
+
+. $KYKDIR/lib/defs.sh
+
+fail() {
+    echo "ERROR: $*"
+    exit 1
+}
+
+if [ -z "$1" ]; then
+    echo "$0 [-v] <zfs dataset> [checkpoint]"
+    exit 1
+fi
+
+typeset -i VERBOSE=0
+[ "$1" = "-v" ] && VERBOSE=1 && shift
+BASE="$1"; shift
+CHKPT="$1"; shift
+
+BASEDIR=`zfs get -o value -H mountpoint $BASE`
+[ -n "$BASEDIR" -a -d "$BASEDIR" ] || fail "Cannot find directory for $BASE"
+
+[ -x /opt/ooce/bin/pigz ] && GZIP=/opt/ooce/bin/pigz || GZIP=gzip
+: ${GZIP_CMD:=$GZIP}
+
+DATADIR=$KYKDIR/data
+
+typeset -i DIDWORK=0
+MKFILEDIR=/tmp
+DATASET=miniroot
+WORKDIR=$BASEDIR
+ROOTDIR=$WORKDIR/$DATASET
+
+: ${PKGURL:=$OOCEPUBURL}
+export PKG_IMAGE=$ROOTDIR
+
+RMRF="
+    /var/pkg /usr/share/man /usr/lib/iconv
+    /usr/lib/python2.7 /usr/lib/python3.10
+"
+
+DEBUG_PKGS="system/dtrace developer/dtrace"
+
+function load_file {
+    typeset varp="${1?var}"; shift
+    typeset file="${1?file}"; shift
+    typeset -i assoc=${1:-0}; shift
+
+    typeset -n var=$varp
+    typeset line=
+    typeset -i cnt=0
+
+    while read line; do
+        if ((assoc)); then
+            var+=([$line]="x")
+        else
+            var+=($line)
+        fi
+        ((cnt++))
+    done < <(grep -v '^#' $DATADIR/$file)
+    echo " --- loaded $cnt line(s) from $file"
+}
+
+declare -A keep_list
+declare -a match_list
+function load_keep_list {
+    typeset datafile=
+
+    for datafile in "$@"; do
+        typeset -i cnt=0
+        typeset file=
+        while read file; do
+            [ -z "$file" ] && continue
+            if [[ $file = *\** ]]; then
+                match_list+=($file)
+            else
+                keep_list+=([$file]="x")
+            fi
+            ((cnt++))
+        done < <(grep -v '^#' $datafile | cut -f2- -d/)
+        echo " --- keeping $cnt file(s) from ${datafile##*/}"
+    done
+}
+
+function chkpt {
+    typeset cp=${1?cp}
+    typeset snap=`zfs list -H -t snapshot $BASE/$DATASET@$cp 2> /dev/null`
+
+    if ((DIDWORK)); then
+        if [ -n "$snap" ]; then
+            zfs destroy $BASE/$DATASET@$cp || fail "zfs destroy $cp failed"
+        fi
+        zfs snapshot $BASE/$DATASET@$cp || fail "zfs snapshot $cp failed"
+    fi
+    if [ "$cp" != "begin" ]; then
+        echo " >>>>> Proceeding to phase $cp (zfs @$cp) <<<<<"
+        zfs rollback -r $BASE/$DATASET@$cp || fail "zfs rollback failed"
+    else
+        echo " >>>>> Proceeding to phase $cp <<<<<"
+    fi
+    CHKPT=$cp
+    DIDWORK=1
+}
+
+function step {
+    CHKPT=
+    step_$1
+}
+
+function step_begin {
+    zfs destroy -r $BASE/$DATASET 2> /dev/null
+    zfs create -o compression=off $BASE/$DATASET || fail "zfs create failed"
+    chkpt pkg
+}
+
+function step_pkg {
+    declare -a pkglist
+    load_file pkglist miniroot.pkglist
+    if [ -n "$DEBUG" ]; then
+        pkglist+=($DEBUG_PKGS)
+    fi
+
+    echo "Creating image of $OOCEPUB from $PKGURL"
+    pkg image-create -F -p $OOCEPUB=$PKGURL $ROOTDIR || fail "image-create"
+    # No need to install documentation or development files in the miniroot
+    pkg change-facet doc.man=false
+    pkg change-facet devel=false
+    [ -n "$DEBUG_VARIANT" ] && pkg change-variant debug.illumos=true
+    pkg install ${pkglist[@]} || fail "install"
+
+    chkpt fixup
+}
+
+function step_fixup {
+    echo "Fixing up install root"
+
+    echo " --- updating"
+    pkg update
+
+    echo " --- updating /etv/vfstab"
+    (
+        awk < $ROOTDIR/etc/vfstab > $WORKDIR/vfstab '
+            $3 != "/" { print }
+            END { print "/devices/ramdisk:a - / ufs - no nologging" }
+        ' && cp $WORKDIR/vfstab $ROOTDIR/etc/vfstab
+    ) || fail "vfstab / updated"
+    rm $WORKDIR/vfstab
+
+    echo " --- neutering hostname message on boot"
+    sed -i '/dev\/msglog/s/^/#/' ${ROOTDIR}/lib/svc/method/identity-node
+
+    echo " --- removing locale call from tzselect"
+    # The line in gettext is broken anyway. /bin/who is present
+    # in the miniroot and does not return any output. It will do.
+    sed -i '
+        /^LOCALE=/s^=.*^=/bin/who^
+        s/is_C=0/is_C=1/
+    ' ${ROOTDIR}/usr/bin/tzselect
+
+    echo " --- updating root environment"
+    cat <<- EOM > $ROOTDIR/root/.bashrc
+		export PATH=/usr/bin:/usr/sbin:/sbin
+		export HOME=/root
+		export PS1='kayak-$OOCEVER# '
+	EOM
+
+    echo " --- installing dmesg"
+    # Install a small dummy dmesg command that will work from the installer
+    # shell.
+    rm -f $ROOTDIR/usr/bin/dmesg
+    cp $KYKDIR/bin/dmesg $ROOTDIR/usr/bin/dmesg
+    chmod 0755 $ROOTDIR/usr/bin/dmesg
+
+    # Link the PCI utility to /usr/bin for the installer.
+    ln -s ../lib/pci/pcieadm $ROOTDIR/usr/bin/pcieadm
+
+    echo " --- allowing empty passwords"
+    sed -i 's,PASSREQ=YES,PASSREQ=NO,' $ROOTDIR/etc/default/login
+
+    chkpt smf
+}
+
+function step_smf {
+    echo " --- seeding SMF database"
+    cp $ROOTDIR/lib/svc/seed/global.db $ROOTDIR/etc/svc/repository.db
+
+    SVCCFG_DTD=${ROOTDIR}/usr/share/lib/xml/dtd/service_bundle.dtd.1
+    SVCCFG_REPOSITORY=${ROOTDIR}/etc/svc/repository.db
+    if [ -f "$PREBUILT_ILLUMOS/usr/src/cmd/svc/svccfg/svccfg-native" ]; then
+        SVCCFG="${PREBUILT_ILLUMOS}/usr/src/cmd/svc/svccfg/svccfg-native"
+    else
+        cat <<- EOM
+			WARNING -- Not using 'native' svccfg, may hang on build.
+				We recommend a pre-built illumos' svccfg-native.
+				Set PREBUILT_ILLUMOS in your environment to point
+				to a built illumos-omnios repository.
+		EOM
+        SVCCFG=/usr/sbin/svccfg
+    fi
+    export SVCCFG_DTD SVCCFG_REPOSITORY
+
+    echo " --- pruning manifests"
+    ${SVCCFG} import ${ROOTDIR}/lib/svc/manifest/milestone/sysconfig.xml
+    declare -A mfst
+    typeset file=
+    load_file mfst miniroot.services 1
+    typeset -i cnt=0
+    while read file; do
+            [ -n "${mfst[$file]}" ] && continue
+            ((cnt++))
+            ((VERBOSE)) && echo "   - discarding SMF $file"
+            rm -f "$ROOTDIR/lib/svc/manifest/$file"
+    done < <(cd $ROOTDIR/lib/svc/manifest && find ./ -name \*.xml | cut -c3-)
+    echo " --- discarded $cnt SMF manifest(s)"
+
+    echo " --- initial manifest import"
+    # Transform manifest-import to use the 'native' svccfg.
+    sed 's^/usr/sbin/svccfg^$SVCCFG^g' \
+        < ${ROOTDIR}/lib/svc/method/manifest-import \
+        > /tmp/manifest-import.$$
+    chmod 0755 /tmp/manifest-import.$$
+    export SVCCFG
+    /tmp/manifest-import.$$ -f ${ROOTDIR}/etc/svc/repository.db \
+        -d ${ROOTDIR}/lib/svc/manifest
+    /bin/rm -f /tmp/manifest-import.$$
+
+    for s in system/boot-archive system/manifest-import; do
+        echo " --- neutering $s"
+        ${SVCCFG} -s "$s" setprop 'start/exec=:true'
+    done
+
+    echo "#!/bin/ksh" > ${ROOTDIR}/lib/svc/method/manifest-import
+    echo "exit 0" >> ${ROOTDIR}/lib/svc/method/manifest-import
+    chmod 555 ${ROOTDIR}/lib/svc/method/manifest-import
+
+    echo " --- increasing initial-boot timeout"
+    ${SVCCFG} -s "system/initial-boot" setprop "start/timeout_seconds=86400"
+
+    chkpt cull
+}
+
+function step_cull {
+    if [ -z "$BIGROOT" ]; then
+        typeset -i cnt=0
+        load_keep_list $DATADIR/keep.*
+        while read file; do
+            [ -z "$file" ] && continue
+            [ -n "${keep_list[$file]}" ] && continue
+            [ -e "$ROOTDIR/$file" ] || continue
+            [ -d "$ROOTDIR/$file" ] && continue
+            for x in ${match_list[@]}; do
+                [[ $file = $x ]] && continue 2
+            done
+            ((cnt++))
+            ((VERBOSE)) && echo "   - culling $file"
+            rm -f "$ROOTDIR/$file"
+        done < <(cd $ROOTDIR && find ./ | cut -c3-)
+        echo " --- removed $cnt file(s)"
+        for path in $RMRF; do
+            rm -rf ${ROOTDIR}$path && echo " --- discarding $path"
+        done
+        cnt=0
+        while read link; do
+            readlink -e "$link" >/dev/null && continue
+            ((cnt++))
+            ((VERBOSE)) && echo "   - remove dangling $link"
+            rm -f "$link"
+        done < <(cd $ROOTDIR; find ./ -type l | cut -c3-)
+        echo " --- removed $cnt dangling link(s)"
+    fi
+
+    chkpt strip
+}
+
+function step_strip {
+    if [ -z "$NOSTRIP" ]; then
+        typeset -i cnt=0
+        while read bin; do
+            file $ROOTDIR/$bin | egrep -s 'ELF.*stripped' || continue
+            ((cnt++))
+            ((VERBOSE)) && echo "   - stripping $bin"
+            MODE=`stat -c %a "$ROOTDIR/$bin"`
+            chmod u+w "$ROOTDIR/$bin"
+            strip $ROOTDIR/$bin
+            # Remove the CTF data too
+            mcs -d -n .SUNW_ctf $ROOTDIR/$bin
+            chmod $MODE "$ROOTDIR/$bin"
+        done < <(cd $ROOTDIR && find ./ -type f | cut -c3-)
+        echo " --- stripped $cnt binaries"
+    fi
+
+    chkpt sanity
+}
+
+function step_sanity {
+    if [ -z "$BIGROOT" ]; then
+        of=`mktemp`
+        $KYKDIR/bin/sanity $ROOTDIR | LC_ALL=C sort > $of
+        diff -U0 $DATADIR/baseline $of
+        if [ $? -gt 0 ]; then
+            echo
+            echo "-- SANITY CHECK FAILED, see above"
+            echo
+            mv $of $WORKDIR/sanity.baseline
+            chmod go+r $WORKDIR/sanity.baseline
+            exit 1
+        fi
+        rm -f $of
+    fi
+
+    chkpt mkfs
+}
+
+function step_mkfs {
+    typeset size=`du -ks ${ROOTDIR} | awk '{print $1+10240}'`
+    echo " --- making image of size ${size}k"
+    mkfile ${size}k $MKFILEDIR/miniroot || fail "mkfile"
+    LOFIDEV=`lofiadm -a $MKFILEDIR/miniroot`
+    typeset rlofidev=${LOFIDEV/lofi/rlofi}
+    yes | newfs -m 0 $rlofidev 2> /dev/null > /dev/null || fail "newfs"
+
+    chkpt mount
+}
+
+function step_mount {
+    [ -z "$LOFIDEV" ] && fail "LOFIDEV is not set"
+    mkdir -p $WORKDIR/mnt
+    mount -o nologging $LOFIDEV $WORKDIR/mnt || fail "mount"
+
+    chkpt copy
+}
+
+function step_copy {
+    pushd $ROOTDIR >/dev/null
+    find . | cpio -pdum $WORKDIR/mnt 2>&1 >/dev/null || fail "populate root"
+    devfsadm -r $WORKDIR/mnt > /dev/null
+    popd >/dev/null
+    mkdir $WORKDIR/mnt/kayak
+    for dir in etc lib installer; do
+        mkdir -p $WORKDIR/mnt/kayak/$dir
+        cp $KYKDIR/$dir/* $WORKDIR/mnt/kayak/$dir/
+        chmod a+x $WORKDIR/mnt/kayak/$dir/*
+    done
+
+    echo " --- installing digest"
+    # "bootadm update-archive" uses `digest -a sha1` but digest has a lot of
+    # dependencies on crypto libraries etc. Install a small replacement
+    # digest utility to allow bootadm to work.
+    #
+    # We don't want this in the boot filesystem, just the ramdisk hence it is
+    # done here rather than under the 'fixup' stage.
+    cp $KYKDIR/bin/digest $WORKDIR/mnt/usr/bin/digest
+    chmod 0755 $WORKDIR/mnt/usr/bin/digest
+
+    make_initial_boot $WORKDIR/mnt/.initialboot
+    if [ -n "$DEBUG" ]; then
+        cp $KYKDIR/etc/anon.system $WORKDIR/mnt/etc/system
+        cp $KYKDIR/etc/anon.dtrace.conf $WORKDIR/mnt/kernel/drv/dtrace.conf
+    fi
+
+    chkpt umount
+}
+
+function step_umount {
+    umount $WORKDIR/mnt || fail "umount"
+    lofiadm -d $MKFILEDIR/miniroot || fail "lofiadm delete"
+
+    chkpt compress
+}
+
+function step_compress {
+    mv $MKFILEDIR/miniroot $WORKDIR/miniroot.ufs
+    $GZIP_CMD -9c -f $WORKDIR/miniroot.ufs > $WORKDIR/miniroot.gz
+    chmod 644 $WORKDIR/miniroot.gz
+    echo " === Finished ==="
+    $GZIP_CMD -l $WORKDIR/miniroot.gz
+}
+
+function make_initial_boot {
+    cat <<-EOM > $1
+		/kayak/installer/install-image
+		exit \$?
+	EOM
+}
+
+## main
+
+if (( "`id -u`" != 0 )); then
+    echo "must run as root"
+    exit 1
+fi
+
+if [ ! -d "$ROOTDIR" ]; then
+    echo " --- creating dataset $BASE/$DATASET"
+    zfs create $BASE/$DATASET || fail "zfs create failed"
+fi
+
+[ -n "$DEBUG" ] && BIGROOT=1
+
+if [ -n "$CHKPT" ]; then
+    echo "Explicit checkpoint requested: '$CHKPT'"
+else
+    CHKPT=begin
+fi
+chkpt $CHKPT
+
+while [ -n "$CHKPT" ]; do
+    step $CHKPT
+done
+
+# Vim hints
+# vim:ts=4:sw=4:et:fdm=marker
