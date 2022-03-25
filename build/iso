@@ -68,8 +68,11 @@ BA_FILE=$TMPDIR/boot_archive_$$.img
 
 # Parameters
 
-BA_SIZE=225M
-[ -n "$BIGROOT" ] && BA_SIZE=800M
+# Calculate the boot archive size
+typeset -i basz=225
+[ -n "$BIGROOT" ] && ((basz += 500))
+[ -n "$RAMDISKINSTALL" ] && ((basz += 300))
+BA_SIZE=${basz}M
 
 # Comment the following line out to build a CSM-only ISO.
 UEFI_SIZE=4M
@@ -132,13 +135,21 @@ rm $MINIROOT_FILE
 # Place the full ZFS image into the ISO root so it does not form part of the
 # boot archive. This allows the installer to be booted even if there is not
 # much available memory, and reduces the time taken to load the boot archive.
+# With $RAMDISKINSTALL, put the image into the boot archive instead.
 
-stage "Adding ZFS image to ISO root"
-mkdir -p $ISO_ROOT/image
-pv $ZFS_IMG > $ISO_ROOT/image/`basename $ZFS_IMG`
-# Create a file to indicate that this is the right volume set on which to
-# find the image - see src/mount_media.c
-echo $VERSION > $ISO_ROOT/.volsetid
+if [ -z "$RAMDISKINSTALL" ]; then
+	stage "Adding ZFS image to ISO root"
+	mkdir -p $ISO_ROOT/image
+	pv $ZFS_IMG > $ISO_ROOT/image/`basename $ZFS_IMG`
+	# Create a file to indicate that this is the right volume set on which
+	# to find the image - see src/mount_media.c
+	echo $VERSION > $ISO_ROOT/.volsetid
+else
+	stage "Adding ZFS image directly to boot archive"
+	mkdir -p $BA_ROOT/.cdrom/image
+	pv $ZFS_IMG > $BA_ROOT/.cdrom/image/`basename $ZFS_IMG`
+	echo $VERSION > $BA_ROOT/.cdrom/.volsetid
+fi
 
 #############################################################################
 # Add .p5p files to the ISO root containing the packages required for running
