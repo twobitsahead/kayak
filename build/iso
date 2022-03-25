@@ -69,8 +69,9 @@ BA_FILE=$TMPDIR/boot_archive_$$.img
 # Parameters
 
 BA_SIZE=225M
+[ -n "$BIGROOT" ] && BA_SIZE=800M
 
-# Comment the following line to build a CSM-only ISO.
+# Comment the following line out to build a CSM-only ISO.
 UEFI_SIZE=4M
 
 # Output file
