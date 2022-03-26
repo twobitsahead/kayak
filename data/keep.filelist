@@ -95,6 +95,7 @@
 /usr/bin/dmesg
 /usr/bin/echo
 /usr/bin/egrep
+/usr/bin/env
 /usr/bin/expr
 /usr/bin/file
 /usr/bin/find
