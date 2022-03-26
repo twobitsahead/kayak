@@ -46,13 +46,14 @@
 #include <sys/dkio.h>
 #include <sys/mount.h>
 #include <sys/stat.h>
+#include <stdbool.h>
 
 #define	HSFS_OPTS	"ro"
 #define	UFS_OPTS	"ro,nologging,noatime"
 #define	PCFS_OPTS	"ro"
 
-static boolean_t mounted = B_FALSE;
-static boolean_t verbose = B_FALSE;
+static bool mounted = false;
+static bool verbose = false;
 
 static int
 check_volsetid(const char *volid)
@@ -92,8 +93,9 @@ test_iso_file(const char *path, const char *volid)
 	if (verbose)
 		printf("%s: mount hsfs (iso)\n", path);
 	if (mount(path, "/.cdrom", MS_RDONLY | MS_OPTIONSTR,
-		"hsfs", NULL, 0, opts, sizeof (opts)) != 0)
+	    "hsfs", NULL, 0, opts, sizeof (opts)) != 0) {
 		return (ret); /* mount failed */
+	}
 
 	/* Mounted, see if it's the image we're looking for, unmount if not */
 	ret = check_volsetid(volid);
@@ -119,8 +121,10 @@ check_for_iso(const char *path, const char *volid)
 	char opts[MAX_MNTOPT_STR];
 
 	strcpy(opts, PCFS_OPTS);
+
 	if (verbose)
 		printf("%s: mount PCFS\n", path);
+
 	if (mount(path, "/.usbdrive", MS_RDONLY | MS_OPTIONSTR,
 	    "pcfs", NULL, 0, opts, sizeof (opts)) != 0) {
 		return (ret); /* mount failed */
@@ -153,9 +157,10 @@ check_for_iso(const char *path, const char *volid)
 			}
 		}
 
-		if (fts_close(tree) < 0)
+		if (fts_close(tree) < 0) {
 			if (verbose)
 				printf("error closing tree\n");
+		}
 
 		if (ret != 0) {
 			if (verbose)
@@ -179,17 +184,20 @@ mount_image(const char *path, const char *volid)
 	 * that fails try check_for_iso()
 	 */
 	strcpy(opts, HSFS_OPTS);
+
 	if (verbose)
 		printf("%s: mount HSFS\n", path);
+
 	if (mount(path, "/.cdrom", MS_RDONLY | MS_OPTIONSTR, "hsfs",
 	    NULL, 0, opts, sizeof (opts)) != 0) {
 		strcpy(opts, UFS_OPTS);
 		if (verbose)
 			printf("%s: mount UFS\n", path);
 		if (mount(path, "/.cdrom", MS_OPTIONSTR, "ufs", NULL, 0,
-		    opts, sizeof (opts)) != 0)
+		    opts, sizeof (opts)) != 0) {
 			if (check_for_iso(path, volid) != 0)
 				return (ret);
+		}
 	}
 
 	if (verbose)
@@ -231,17 +239,22 @@ mount_minor(di_node_t node, di_minor_t minor, void *arg)
 	strcpy(mpath, "/devices");
 	strlcat(mpath, mnp, PATH_MAX);
 
-	/*printf("Checking %s\n", mnp);*/
+	if (verbose) {
+		printf("Checking %s (%s)[%d]\n", mnp, nt,
+		    di_minor_spectype(minor));
+	}
 
 	/* If it's a block device and claims to be USB, try mounting it */
 	if ((di_minor_spectype(minor) == S_IFBLK) &&
-	    (di_prop_lookup_ints(DDI_DEV_T_ANY, node, "usb", prop) != -1))
+	    (di_prop_lookup_ints(DDI_DEV_T_ANY, node, "usb", prop) != -1)) {
 		goto mount;
+	}
 
 	/* Node type is a CD.  Try mounting it */
 	if (strstr(nt, DDI_NT_CD) != NULL ||
-	    strstr(nt, DDI_NT_CD_CHAN) != NULL)
+	    strstr(nt, DDI_NT_CD_CHAN) != NULL) {
 		goto mount;
+	}
 
 	/*
 	 * If node type is not marked, Xvm devices for instance
@@ -258,10 +271,9 @@ mount:
 	/* Remove raw suffix from path to get to block device for mount */
 	if ((cp = strstr(mpath, ",raw")) != NULL)
 		*cp = '\0';
-	if (mount_image(mpath, volid) == 0)
-	{
+	if (mount_image(mpath, volid) == 0) {
 		printf("Found %s media at %s\n", volid, mpath);
-		mounted = B_TRUE;
+		mounted = true;
 	}
 
 end:
@@ -269,12 +281,13 @@ end:
 	return (mounted ? DI_WALK_TERMINATE : DI_WALK_CONTINUE);
 }
 
-int main(int argc, char **argv)
+int
+main(int argc, char **argv)
 {
 	di_node_t root_node;
 
-	if (argc > 1 && !strcmp(argv[1], "-v")) {
-		verbose = B_TRUE;
+	if (argc > 1 && strcmp(argv[1], "-v") == 0) {
+		verbose = true;
 		argc--, argv++;
 	}
 
@@ -284,9 +297,8 @@ int main(int argc, char **argv)
 	}
 
 	/* Initialize libdevinfo and walk the tree */
-	if ((root_node = di_init("/", DINFOCPYALL)) == DI_NODE_NIL) {
+	if ((root_node = di_init("/", DINFOCPYALL)) == DI_NODE_NIL)
 		return (1);
-	}
 	(void) di_walk_minor(root_node, DDI_NT_BLOCK, 0, argv[1], mount_minor);
 	di_fini(root_node);
 

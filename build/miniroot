@@ -371,6 +371,10 @@ function step_copy {
     #
     # We don't want this in the boot filesystem, just the ramdisk hence it is
     # done here rather than under the 'fixup' stage.
+    #
+    # Note that digest is a hard link to isaexec so we need to remove it before
+    # copying the new version in to avoid overwriting that.
+    rm -f $WORKDIR/mnt/usr/bin/digest
     cp $KYKDIR/bin/digest $WORKDIR/mnt/usr/bin/digest
     chmod 0755 $WORKDIR/mnt/usr/bin/digest
 

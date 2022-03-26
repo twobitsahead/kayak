@@ -41,7 +41,7 @@ export VERSION=`head -1 /etc/release | awk '{print $3}'`
 . /kayak/lib/install_help.sh
 . /kayak/lib/dialog.sh
 
-if [ $debug -eq 0 ]; then
+if [ $debug -eq 0 -a ! -d /.cdrom/image ]; then
 	echo
 	echo "Scanning for media..."
 	mkdir /.cdrom
