@@ -150,7 +150,7 @@ bin/passutil:	src/passutil.c
 	gcc -m32 -o $@ $<
 
 bin/mount_media:	src/mount_media.c
-	gcc -m32 -o $@ $< -ldevinfo
+	gcc -m32 -std=gnu99 -o $@ $< -ldevinfo
 
 bin/zpool_patch:	src/zpool_patch.c
 	gcc -m64 -g -Wall -Wunused -g -Isrc/include -o $@ $< -lnvpair
