@@ -14,6 +14,7 @@ system/device/devices-local.xml
 system/device/mpxio-upgrade.xml
 system/early-manifest-import.xml
 system/fcoe_target.xml
+system/filesystem/autofs.xml
 system/filesystem/local-fs.xml
 system/filesystem/minimal-fs.xml
 system/filesystem/root-fs.xml
