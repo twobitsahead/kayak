@@ -244,7 +244,8 @@
 /usr/lib/amd64/libnvpair.so
 /usr/lib/amd64/libnvpair.so.1
 /usr/lib/amd64/libpcidb.so.1
-/usr/lib/amd64/libpcre2-8.so.*
+/usr/lib/amd64/libpcre2-8.so.0
+/usr/lib/amd64/libpcre2-8.so.0.11.*
 /usr/lib/amd64/libpool.so.1
 /usr/lib/amd64/libproject.so.1
 /usr/lib/amd64/libreadline.so.8
