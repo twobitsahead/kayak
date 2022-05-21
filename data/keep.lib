@@ -27,7 +27,6 @@
 /lib/amd64/libkstat.so.1
 /lib/amd64/libm.so.2
 /lib/amd64/libmd.so.1
-/lib/amd64/libmd5.so.1
 /lib/amd64/libmp.so.2
 /lib/amd64/libnsl.so.1
 /lib/amd64/libnvpair.so.1
