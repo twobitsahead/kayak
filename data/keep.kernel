@@ -470,7 +470,6 @@
 /kernel/kmdb/amd64/mpt
 /kernel/kmdb/amd64/mpt_sas
 /kernel/kmdb/amd64/mr_sas
-/kernel/kmdb/amd64/nca
 /kernel/kmdb/amd64/neti
 /kernel/kmdb/amd64/nfs
 /kernel/kmdb/amd64/pmcs
