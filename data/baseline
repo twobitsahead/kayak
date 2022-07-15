@@ -76,7 +76,6 @@ Unused library usr/lib/mdb/kvm/amd64/mdb_ks.so
 Unused library usr/lib/mdb/kvm/amd64/mpt.so
 Unused library usr/lib/mdb/kvm/amd64/mpt_sas.so
 Unused library usr/lib/mdb/kvm/amd64/mr_sas.so
-Unused library usr/lib/mdb/kvm/amd64/nca.so
 Unused library usr/lib/mdb/kvm/amd64/neti.so
 Unused library usr/lib/mdb/kvm/amd64/nfs.so
 Unused library usr/lib/mdb/kvm/amd64/ptm.so
