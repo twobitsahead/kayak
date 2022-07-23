@@ -79,7 +79,6 @@
 /usr/lib/mdb/proc/amd64/libcmdutils.so
 /usr/lib/mdb/proc/amd64/libnvpair.so
 /usr/lib/mdb/proc/amd64/libproc.so
-/usr/lib/mdb/proc/amd64/libpython2.7.so
 /usr/lib/mdb/proc/amd64/libsysevent.so
 /usr/lib/mdb/proc/amd64/libtopo.so
 /usr/lib/mdb/proc/amd64/libumem.so
