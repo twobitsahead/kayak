@@ -70,7 +70,7 @@ function prompt_timezone {
 function runpkg {
     log "runpkg: $*"
     LD_LIBRARY_PATH=$ALTROOT/usr/lib/amd64 \
-        PYTHONPATH=$ALTROOT/usr/lib/python3.10/vendor-packages \
+        PYTHONPATH=$ALTROOT/usr/lib/pkg/python3.10:$ALTROOT/usr/lib/python3.10/vendor-packages \
         $ALTROOT/usr/bin/python3.10 \
         $ALTROOT/usr/bin/pkg -R $ALTROOT "$@" | pipelog
     sed -i '/^last_uuid/d' $ALTROOT/var/pkg/pkg5.image
