@@ -89,7 +89,7 @@ if [ ! -d $dir ]; then
 fi
 
 rm -f /kayak-image/xen-$VERSION.vmdk
-./$dir/VMDKstream.py $BUILDSEND_MP/xen-$VERSION.raw \
+python2 ./$dir/VMDKstream.py $BUILDSEND_MP/xen-$VERSION.raw \
     $BUILDSEND_MP/xen-$VERSION.vmdk
 rm -rf $dir
 ls -lh $BUILDSEND_MP/xen-$VERSION.vmdk

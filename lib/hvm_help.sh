@@ -80,6 +80,7 @@ function find_zfssend {
 	    VERSION="`nawk 'NR == 1 { sub(/^r/, "", $3); print $3 }' \
 	    /etc/release`"
 	: ${ZFSSEND:=/kayak_image/kayak_r$VERSION.zfs.xz}
+	[ -f "$ZFSSEND" ] || ZFSSEND="omnios-r$VERSION.zfs.xz"
 	[ -f "$ZFSSEND" ] || ZFSSEND="omniosce-r$VERSION.zfs.xz"
 }
 
