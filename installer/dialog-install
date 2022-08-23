@@ -438,10 +438,10 @@ extrarepo -on
 # If a VM environment is detected, perform additional steps
 setupvm
 
-if hypervisor | egrep -s '^Microsoft' && \
+if [ -n "`hypervisor`" ] && \
     dialog --defaultno --yesno \
-    "\nInstall extra components for Microsoft Azure?" 7 50; then
-	vm_azure
+    "\nInstall cloud-init?" 7 50; then
+	vm_cloudinit
 fi
 
 ######################################################################
