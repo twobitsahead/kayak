@@ -23,19 +23,10 @@ function vm_vmware {
     cp /kayak/etc/vmware.xml $ALTROOT/etc/svc/profile/site/
 }
 
-function vm_azure {
-    log "Installing azure package..."
+function vm_cloudinit {
+    log "Installing cloud-init package..."
     runpkg install --no-refresh --no-index \
-        -g /.cdrom/image/p5p/azure.p5p azure-agent
-    cp /kayak/etc/azure.xml $ALTROOT/etc/svc/profile/site/
-    sed -i '/^MANAGE_ZFS=NO/s/^/#/' $ALTROOT/etc/default/useradd
-    sed -i '/^#MANAGE_ZFS=YES/s/#//' $ALTROOT/etc/default/useradd
-    {
-		echo "/sbin/zfs destroy -r $RPOOL/export"
-		echo "/sbin/zfs create -o mountpoint=/home $RPOOL/home"
-		echo "chmod 0555 /home"		# as per SUNWcs
-		echo "/usr/sbin/useradd -D -b /home"
-    } >> $ALTROOT/.initialboot
+        -g /.cdrom/image/p5p/cloud-init.p5p cloud-init
 }
 
 function setupvm {

@@ -202,14 +202,10 @@ build-cloud: bins zfs
 	@banner .CLOUD
 	BUILDSEND_MP=$(BUILDSEND_MP) ./build/cloud
 
-build-azure: bins zfs
-	@banner .azure
-	BUILDSEND_MP=$(BUILDSEND_MP) ./build/azure
-
 install-iso:	check-mkisofs bins install-tftp install-web build-iso
 install-usb:	install-iso build-usb
 all:		install-usb $(NGZ_ZFS_STREAM) \
-		build-bhyve build-azure build-cloud
+		build-bhyve build-cloud
 
 # Used by omnios-build/kayak/ to create the kayak package
 

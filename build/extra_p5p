@@ -19,11 +19,9 @@
 # detected during installation.
 
 typeset -A pkg
-pkg['aws']=(system/management/ec2-credential)
 pkg['vmware']=(system/virtualization/open-vm-tools)
-pkg['azure']=(system/virtualization/azure-agent \
-                service/storage/media-volume-manager)
 pkg['iwn']=(driver/network/iwn)
+pkg['cloud-init']=(system/management/cloud-init)
 
 set -- `getopt d:o: $*`
 for i in $*
