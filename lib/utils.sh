@@ -67,6 +67,15 @@ function prompt_timezone {
     log "Selected timezone: $TZ"
 }
 
+function runsvccfg {
+    log "runsvccfg: $*"
+
+    LD_LIBRARY_PATH=$ALTROOT/lib:$ALTROOT/usr/lib \
+        SVCCFG_DTD=$ALTROOT/usr/share/lib/xml/dtd/service_bundle.dtd.1 \
+        SVCCFG_REPOSITORY=$ALTROOT/etc/svc/repository.db \
+        logcmd $ALTROOT/usr/sbin/svccfg "$@"
+}
+
 function runpkg {
     log "runpkg: $*"
     LD_LIBRARY_PATH=$ALTROOT/usr/lib/amd64 \
@@ -103,6 +112,20 @@ SUPATH=/usr/sbin:/sbin:/opt/ooce/sbin:/usr/bin:/opt/ooce/bin
     fi
     log "--- final publisher configuration ---"
     runpkg publisher
+}
+
+function cloudinit_pkg {
+    case $1 in
+        -off)
+            log "Uninstalling cloud-init package..."
+            runpkg uninstall --no-index cloud-init
+            ;;
+        *)
+            log "Installing cloud-init package..."
+            runpkg install --no-refresh --no-index \
+                -g /.cdrom/image/p5p/cloud-init.p5p cloud-init
+            ;;
+    esac
 }
 
 function logadm_rsyslog {

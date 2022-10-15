@@ -1,0 +1,7 @@
+addpg iboot dependency
+setprop iboot/entities = fmri: svc:/system/initial-boot:default
+setprop iboot/grouping = astring: optional_all
+setprop iboot/restart_on = astring: none
+setprop iboot/type = astring: service
+listprop
+
