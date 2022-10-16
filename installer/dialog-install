@@ -14,7 +14,7 @@
 
 #
 # Copyright 2017 OmniTI Computer Consulting, Inc. All rights reserved.
-# Copyright 2020 OmniOS Community Edition (OmniOSce) Association.
+# Copyright 2022 OmniOS Community Edition (OmniOSce) Association.
 #
 
 . /kayak/lib/install_help.sh
@@ -422,7 +422,7 @@ MakeBootable $RPOOL $bename || bomb "Could not make bootable"
 ######################################################################
 # Apply some additional settings for interactive installations.
 
-# Disable SSH
+# Disable SSH (can be re-enabled via the configuration menu)
 [ -f /kayak/etc/nossh.xml ] && \
     logcmd cp /kayak/etc/nossh.xml $ALTROOT/etc/svc/profile/site/
 
@@ -437,12 +437,6 @@ extrarepo -on
 
 # If a VM environment is detected, perform additional steps
 setupvm
-
-if [ -n "`hypervisor`" ] && \
-    dialog --defaultno --yesno \
-    "\nInstall cloud-init?" 7 50; then
-	vm_cloudinit
-fi
 
 ######################################################################
 

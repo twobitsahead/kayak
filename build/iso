@@ -180,8 +180,9 @@ if [ -n "$REFRESH_KAYAK" ]; then
 	find $BA_ROOT/kayak -type f | while read f; do
 		[ -f "$f" ] || continue
 		echo "REFRESH $f"
-		cp `echo $f | sed 's^.*/kayak/^^'` $f
+		cp ${f#*/kayak/} $f
 	done
+	cp etc/* $BA_ROOT/kayak/etc/
 	#rsync -avr $PROTO/boot/ $ISO_ROOT/boot/
 fi
 

@@ -23,12 +23,6 @@ function vm_vmware {
     cp /kayak/etc/vmware.xml $ALTROOT/etc/svc/profile/site/
 }
 
-function vm_cloudinit {
-    log "Installing cloud-init package..."
-    runpkg install --no-refresh --no-index \
-        -g /.cdrom/image/p5p/cloud-init.p5p cloud-init
-}
-
 function setupvm {
     case `hypervisor` in
         bhyve*)     ;;

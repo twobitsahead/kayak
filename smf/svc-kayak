@@ -21,17 +21,19 @@
 # CDDL HEADER END }}}
 #
 # Copyright 2012 OmniTI Computer Consulting, Inc.  All rights reserved.
-# Copyright 2018 OmniOS Community Edition (OmniOSce) Association.
-# Use is subject to license terms.
+# Copyright 2022 OmniOS Community Edition (OmniOSce) Association.
 #
 
 import os.path
-import cherrypy
 import re
 import time
+from optparse import OptionParser
+
+import pkg.site_paths
+pkg.site_paths.init()
+import cherrypy
 from cherrypy.process.plugins import DropPrivileges
 from cherrypy.lib.static import serve_file
-from optparse import OptionParser
 
 class Root:
     exposed = True

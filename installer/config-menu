@@ -187,12 +187,27 @@ function show_menu {
 	return 0
 }
 
+function add_config {
+	typeset tag=$1
+	{
+		echo "### BEGIN_$tag"
+		echo "echo 'Applying $tag configuration'"
+		cat
+		echo "### END_$tag"
+	} >> $INITIALBOOT
+}
+
 function remove_config {
 	typeset tag=$1
 	if [ -f $INITIALBOOT ]; then
 		sed -i "/BEGIN_$tag/,/END_$tag/d" $INITIALBOOT
 		[ -s $INITIALBOOT ] || rm -f $INITIALBOOT
 	fi
+}
+
+function in_config {
+	typeset tag=$1
+	[ -f $INITIALBOOT ] && egrep -s "BEGIN_$tag" $INITIALBOOT
 }
 
 ##############################################################################
@@ -247,8 +262,7 @@ function save_networking {
 	[ "$net_ifmode" = "static" -a -z "$net_ip" ] && return
 	set_hosts
 	set_dma
-	(
-		echo '### BEGIN_NETWORK'
+	{
 		echo "/sbin/ipadm create-if $net_if"
 		if [ "$net_ifmode" = "static" ]; then
 			echo "/sbin/ipadm create-addr -T static"\
@@ -271,8 +285,7 @@ function save_networking {
 			echo '/bin/cp /etc/nsswitch.{dns,conf}'
 			echo "/usr/sbin/svcadm restart network/service"
 		fi
-		echo '### END_NETWORK'
-	) >> $INITIALBOOT
+	} | add_config NETWORK
 }
 
 function load_networking {
@@ -786,14 +799,14 @@ function cfg_networking {
 # Create User
 
 function load_user {
-	user_uid=
+	user_name=
 	user_pass=
 	user_pfexec=
 	user_sudo=
 	user_sudo_nopw=
 	user_shell=
 	if [ -f $INITIALBOOT ]; then
-		user_uid=`grep 'useradd -m' $INITIALBOOT | awk '{print $NF}'`
+		user_name=`grep 'useradd -m' $INITIALBOOT | awk '{print $NF}'`
 		user_sudo=`grep groupadd $INITIALBOOT | cut -d\  -f2`
 		user_shell=`grep 'usermod -s' $INITIALBOOT | cut -d\  -f3`
 		egrep -s 'Primary Admin' $INITIALBOOT && user_pfexec=y
@@ -803,34 +816,49 @@ function load_user {
 	[ -z "$user_shell" ] && user_shell=/bin/ksh
 }
 
+function create_home {
+	# Create a BE-independent filesystem for the home directory and do not
+	# use autofs. Configure useradd to automatically manage ZFS datasets
+	# for home directories.
+	mkdir -p $ALTROOT/etc/svc/profile/site
+	cp /kayak/etc/noautofs.xml $ALTROOT/etc/svc/profile/site/
+
+	in_config HOME || add_config HOME <<- EOM
+		/sbin/zfs destroy -r $RPOOL/export
+		/sbin/zfs create -o mountpoint=/home $RPOOL/home
+		chmod 0555 /home
+		/usr/sbin/useradd -D -b /home
+		sed -i '/^MANAGE_ZFS=NO/s/^/#/' /etc/default/useradd
+		sed -i '/^#MANAGE_ZFS=YES/s/#//' /etc/default/useradd
+	EOM
+}
+
+function uncreate_home {
+	in_config USER && return
+	in_config CLOUDINIT && return
+
+	remove_config HOME
+	rm -f $ALTROOT/etc/svc/profile/site/noautofs.xml
+}
+
 function save_user {
 	remove_config USER
-	[ -z "$user_uid" ] && return
-	(
-		# If creating a user from the installer, create a
-		# BE-independent filesystem for the home directory and do
-		# not use autofs. Configure useradd to automatically manage
-		# ZFS datasets for home directories.
-		[ -d $ALTROOT/etc/svc/profile/site ] \
-		    || mkdir -p $ALTROOT/etc/svc/profile/site
-		cp /kayak/etc/noautofs.xml $ALTROOT/etc/svc/profile/site/
-		echo '### BEGIN_USER'
-		echo "/sbin/zfs destroy -r $RPOOL/export"
-		echo "/sbin/zfs create -o mountpoint=/home $RPOOL/home"
-		echo "chmod 0555 /home"		# as per SUNWcs
-		echo "/usr/sbin/useradd -D -b /home"
-		echo "sed -i '/^MANAGE_ZFS=NO/s/^/#/' /etc/default/useradd"
-		echo "sed -i '/^#MANAGE_ZFS=YES/s/#//' /etc/default/useradd"
-		echo "/usr/sbin/useradd -mz $user_uid"
+	[ -z "$user_name" ] && return
+	# If creating a user from the installer, create a real /home
+	create_home
+	{
+		echo "/usr/sbin/useradd -mz $user_name"
 		[ -n "$user_shell" ] \
-		    && echo "/usr/sbin/usermod -s $user_shell $user_uid"
+		    && echo "/usr/sbin/usermod -s $user_shell $user_name"
 		hash=`$PASSUTIL -H "$user_pass"`
-		echo "sed -i 's|^$user_uid:[^:]*|$user_uid:$hash|' /etc/shadow"
-		[ -n "$user_pfexec" ] && \
-		    echo "/usr/sbin/usermod -P'Primary Administrator' $user_uid"
+		echo "/usr/lib/passmgmt -m -p '$hash' $user_name"
+		if [ -n "$user_pfexec" ]; then
+			echo "/usr/sbin/usermod"\
+			    "-P'Primary Administrator' $user_name"
+		fi
 		if [ -n "$user_sudo" ]; then
 			echo "/usr/sbin/groupadd $user_sudo"
-			echo "/usr/sbin/usermod -G $user_sudo $user_uid"
+			echo "/usr/sbin/usermod -G $user_sudo $user_name"
 			if [ -n "$user_sudo_nopw" ]; then
 				echo "echo '%$user_sudo ALL=(ALL) "\
 				    "NOPASSWD: ALL'"\
@@ -840,15 +868,13 @@ function save_user {
 				    "> /etc/sudoers.d/group_$user_sudo"
 			fi
 		fi
-		echo '### END_USER'
-	) >> $INITIALBOOT
+	} | add_config USER
 }
 
 function remove_user {
-	user_uid=
+	user_name=
 	remove_config USER
-	[ -f $ALTROOT/etc/svc/profile/site/noautofs.xml ] \
-	    && rm -f $ALTROOT/etc/svc/profile/site/noautofs.xml
+	uncreate_home
 }
 
 function dcfg_user {
@@ -858,7 +884,7 @@ function dcfg_user {
 	plab="        Password :"
 	while :; do
 		extra=
-		[ -n "$user_uid" ] && \
+		[ -n "$user_name" ] && \
 		    extra=" --extra-button --extra-label Delete "
 
 		dialog \
@@ -869,7 +895,7 @@ function dcfg_user {
 		    $extra \
 		    --mixedform "\nEnter the new user's details below\n\Zn" \
 			12 50 0 \
-			"        Username :"  1 1  "$user_uid"  1 22 20 0 0 \
+			"        Username :"  1 1  "$user_name" 1 22 20 0 0 \
 			"$plab"               2 1  ""           2 22 20 0 1 \
 			"Re-type Password :"  3 1  ""           3 22 20 0 1 \
 		    2> $tmpf
@@ -880,14 +906,14 @@ function dcfg_user {
 			d_msg "User removed successfully."
 			return
 		fi
-		user_uid="`sed -n 1p < $tmpf`"
-		[ -z "$user_uid" -o $stat -ne 0 ] && return
+		user_name="`sed -n 1p < $tmpf`"
+		[ -z "$user_name" -o $stat -ne 0 ] && return
 		user_pass="`sed -n 2p <$tmpf`"
 		user_pass2="`sed -n 3p <$tmpf`"
 		rm -f $tmpf
 
-		if [[ ! $user_uid =~ ^[a-z][-a-z0-9]*$ ]]; then
-			d_msg "$user_uid is not a valid username."
+		if [[ ! $user_name =~ ^[a-z][-a-z0-9]*$ ]]; then
+			d_msg "$user_name is not a valid username."
 			def=1
 			continue
 		fi
@@ -906,7 +932,7 @@ function dcfg_user {
 		break
 	done
 
-	if [ -n "$user_uid" ]; then
+	if [ -n "$user_name" ]; then
 		dialog \
 		    --title "Select shell" \
 		    --colors \
@@ -949,13 +975,13 @@ function dcfg_user {
 
 	save_user
 
-	d_msg "User $user_uid created successfully."
+	d_msg "User $user_name created successfully."
 }
 
 function cfg_user {
 	load_user
 
-	if [ -n "$user_uid" ]; then
+	if [ -n "$user_name" ]; then
 		cat <<- EOM
 
 -- Choose a new username or to remove the user configuration, enter - at the
@@ -965,21 +991,21 @@ function cfg_user {
 	fi
 
 	while :; do
-		read "_uid?Username [$user_uid]: "
+		read "_uid?Username [$user_name]: "
 		if [ "$_uid" = "-" ]; then
 			remove_user
 			return
 		fi
 		if [ -z "$_uid" ]; then
-			[ -z "$user_uid" ] && break
-			_uid=$user_uid
+			[ -z "$user_name" ] && break
+			_uid=$user_name
 		fi
 
 		if [[ ! $_uid =~ ^[a-z][-a-z0-9]*$ ]]; then
 			echo "$_uid is not a valid username."
 			continue
 		fi
-		user_uid=$_uid
+		user_name=$_uid
 		break
 	done
 
@@ -1046,8 +1072,8 @@ function cfg_user {
 function show_user {
 	load_user
 	tag='<none>'
-	if [ -n "$user_uid" ]; then
-		tag=$user_uid
+	if [ -n "$user_name" ]; then
+		tag=$user_name
 	fi
 	[ -n "$user_pfexec" ] && tag="$tag/admin"
 	[ -n "$user_sudo" ] && tag="$tag/sudo"
@@ -1115,13 +1141,10 @@ function store_rootpw {
 	typeset arg="$1"
 
 	remove_config ROOTPW
-	(
-		echo "### BEGIN_ROOTPW"
-		hash=`$PASSUTIL -H "$arg"`
-		echo "sed -i 's|^root:[^:]*|root:$hash|' /etc/shadow"
-		echo "### END_ROOTPW"
-	) >> $INITIALBOOT
-
+	hash=`$PASSUTIL -H "$arg"`
+	add_config ROOTPW <<- EOM
+		/usr/lib/passmgmt -m -p '$hash' root
+	EOM
 }
 
 function show_rootpw {
@@ -1133,23 +1156,22 @@ function show_rootpw {
 # Virtual Terminals
 
 function cfg_vtdaemon {
-	if [ -f $INITIALBOOT ] && egrep -s vtdaemon $INITIALBOOT; then
+	if in_config VTDAEMON; then
 		remove_config VTDAEMON
-	else
-		# Add configuration
-		cat << EOM >> $INITIALBOOT
-### BEGIN_VTDAEMON
-/usr/sbin/svcadm enable vtdaemon
-for i in \`seq 2 6\`; do
-	/usr/sbin/svcadm enable console-login:vt\$i
-done
-/usr/sbin/svccfg -s vtdaemon setprop options/hotkeys=true
-/usr/sbin/svccfg -s vtdaemon setprop options/secure=false
-/usr/sbin/svcadm refresh vtdaemon
-/usr/sbin/svcadm restart vtdaemon
-### END_VTDAEMON
-EOM
+		return
 	fi
+
+	# Add configuration
+	add_config VTDAEMON <<- EOM
+		/usr/sbin/svcadm enable vtdaemon
+		for i in \`seq 2 6\`; do
+			/usr/sbin/svcadm enable console-login:vt\$i
+		done
+		/usr/sbin/svccfg -s vtdaemon setprop options/hotkeys=true
+		/usr/sbin/svccfg -s vtdaemon setprop options/secure=false
+		/usr/sbin/svcadm refresh vtdaemon
+		/usr/sbin/svcadm restart vtdaemon
+	EOM
 }
 
 function show_vtdaemon {
@@ -1313,6 +1335,40 @@ function show_extrarepo {
 }
 
 ##############################################################################
+# Cloud Init
+
+cinit_key=var/pkg/license/system%2Fmanagement%2Fcloud-init/
+
+function cfg_cloudinit {
+	if [ -d $ALTROOT/$cinit_key ]; then
+		echo "Uninstalling cloud-init..."
+		cloudinit_pkg -off
+		rm -rf $ALTROOT/$cinit_key
+		remove_config CLOUDINIT
+		uncreate_home
+		runsvccfg delete system/cloud-init
+	else
+		echo "Installing cloud-init..."
+		cloudinit_pkg -on
+		create_home
+		add_config CLOUDINIT <<- EOM
+			/bin/cp /etc/nsswitch.{dns,conf}
+		EOM
+		# We have to make cloud-init wait for initial-boot so that
+		# the filesystems are all set up as it expects.
+		runsvccfg import -p /dev/stdout \
+		    $ALTROOT/lib/svc/manifest/system/cloud-init.xml
+		runsvccfg -s svc:/system/cloud-init:initlocal \
+		    -f /kayak/etc/cloud-init.svccfg
+	fi
+}
+
+function show_cloudinit {
+	[ -d $ALTROOT/$cinit_key ] \
+	    && echo "Installed" || echo "Not installed"
+}
+
+##############################################################################
 
 # Main menu
 main_menu=( \
@@ -1333,6 +1389,10 @@ main_menu=( \
     (menu_str="SSH Server"						\
 	cmds=("cfg_sshd")						\
 	current="show_sshd"						\
+    )									\
+    (menu_str="Cloud Init"						\
+	cmds=("cfg_cloudinit")						\
+	current="show_cloudinit"					\
     )									\
     (menu_str="Extra Packages Repo"					\
 	cmds=("cfg_extrarepo")						\
