@@ -172,7 +172,7 @@ function HVM_Image_Build {
 	# system.
 	Postboot 'zpool upgrade -a'
 	# Give the pool a unique GUID
-	Postboot "zpool reguid $RPOOL"
+	Postboot "zpool reguid $HVMrpool"
 }
 
 function HVM_Image_Finalise {
