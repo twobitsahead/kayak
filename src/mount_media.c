@@ -251,6 +251,7 @@ mount_minor(di_node_t node, di_minor_t minor, void *arg)
 {
 	char mpath[PATH_MAX];
 	char *volid = arg;
+	char *cp;
 
 	char *driver = di_driver_name(node);
 	char *nodetype = di_minor_nodetype(minor);
@@ -327,7 +328,7 @@ mount_minor(di_node_t node, di_minor_t minor, void *arg)
 
 mount:
 	/* Remove raw suffix from path to get to block device for mount */
-	char *cp = strstr(mpath, ",raw");
+	cp = strstr(mpath, ",raw");
 	if (cp != NULL)
 		*cp = '\0';
 	if (mount_image(mpath, volid) == 0) {
