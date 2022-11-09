@@ -146,7 +146,6 @@ system/library
 system/library/math
 system/library/platform
 system/library/policykit
-system/library/processor
 system/library/storage/fibre-channel/hbaapi
 system/library/storage/fibre-channel/libsun_fc
 system/library/storage/ima
