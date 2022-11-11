@@ -75,7 +75,7 @@ typeset -i basz=225
 BA_SIZE=${basz}M
 
 # Comment the following line out to build a CSM-only ISO.
-UEFI_SIZE=4M
+UEFI_SIZE=4400K
 
 # Output file
 
