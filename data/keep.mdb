@@ -1,8 +1,11 @@
+/kernel/kmdb
+/kernel/kmdb/amd64
 /kernel/kmdb/amd64/arp
 /kernel/kmdb/amd64/cpc
 /kernel/kmdb/amd64/cpu.generic
 /kernel/kmdb/amd64/cpu_ms.AuthenticAMD.15
 /kernel/kmdb/amd64/crypto
+/kernel/kmdb/amd64/emlxs
 /kernel/kmdb/amd64/genunix
 /kernel/kmdb/amd64/hook
 /kernel/kmdb/amd64/ip
@@ -17,6 +20,7 @@
 /kernel/kmdb/amd64/mr_sas
 /kernel/kmdb/amd64/neti
 /kernel/kmdb/amd64/nfs
+/kernel/kmdb/amd64/pmcs
 /kernel/kmdb/amd64/ptm
 /kernel/kmdb/amd64/random
 /kernel/kmdb/amd64/s1394
@@ -27,10 +31,13 @@
 /kernel/kmdb/amd64/sockfs
 /kernel/kmdb/amd64/specfs
 /kernel/kmdb/amd64/sppp
+/kernel/kmdb/amd64/stmf
+/kernel/kmdb/amd64/stmf_sbd
 /kernel/kmdb/amd64/ufs
 /kernel/kmdb/amd64/uhci
 /kernel/kmdb/amd64/usba
 /kernel/kmdb/amd64/xhci
+/kernel/kmdb/amd64/zfs
 /platform/i86pc/kernel/kmdb/amd64/apix
 /platform/i86pc/kernel/kmdb/amd64/pcplusmp
 /platform/i86pc/kernel/kmdb/amd64/unix
