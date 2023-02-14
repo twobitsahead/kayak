@@ -13,7 +13,7 @@
 
 #
 # Copyright 2017 OmniTI Computer Consulting, Inc.  All rights reserved.
-# Copyright 2022 OmniOS Community Edition (OmniOSce) Association.
+# Copyright 2023 OmniOS Community Edition (OmniOSce) Association.
 #
 
 export PATH=/usr/bin:/usr/sbin:/sbin
@@ -58,7 +58,7 @@ export PKG_IMAGE=$ROOTDIR
 
 RMRF="
     /var/pkg /usr/share/man /usr/lib/iconv
-    /usr/lib/python2.7 /usr/lib/python3.10
+    /usr/lib/python2.7 /usr/lib/python3.11
 "
 
 DEBUG_PKGS="system/dtrace developer/dtrace"
