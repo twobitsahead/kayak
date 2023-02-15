@@ -10,7 +10,7 @@
 # http://www.illumos.org/license/CDDL.
 # }}}
 
-# Copyright 2021 OmniOS Community Edition (OmniOSce) Association.
+# Copyright 2023 OmniOS Community Edition (OmniOSce) Association.
 
 function check_hostname {
     echo $1 | egrep -s '^[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9]$'
@@ -79,8 +79,8 @@ function runsvccfg {
 function runpkg {
     log "runpkg: $*"
     LD_LIBRARY_PATH=$ALTROOT/usr/lib/amd64 \
-        PYTHONPATH=$ALTROOT/usr/lib/pkg/python3.10:$ALTROOT/usr/lib/python3.10/vendor-packages \
-        $ALTROOT/usr/bin/python3.10 \
+        PYTHONPATH=$ALTROOT/usr/lib/pkg/python3.11:$ALTROOT/usr/lib/python3.11/vendor-packages \
+        $ALTROOT/usr/bin/python3.11 \
         $ALTROOT/usr/bin/pkg -R $ALTROOT "$@" | pipelog
     sed -i '/^last_uuid/d' $ALTROOT/var/pkg/pkg5.image
 }
