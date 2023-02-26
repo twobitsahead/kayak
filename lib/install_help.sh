@@ -220,8 +220,7 @@ function BE_SetUUID {
     typeset _bename=${2:?bename}
     typeset _root=${3:?root}
 
-    typeset uuid=`LD_LIBRARY_PATH=$_root/lib:$_root/usr/lib \
-        $_root/usr/bin/uuidgen`
+    typeset uuid=`/usr/bin/uuidgen`
 
     slog "Setting BE $_bename UUID: $uuid"
     logcmd zfs set org.opensolaris.libbe:uuid=$uuid $_rpool/ROOT/$_bename

@@ -12,7 +12,7 @@
 # }}}
 
 # Copyright 2017 OmniTI Computer Consulting, Inc. All rights reserved.
-# Copyright 2022 OmniOS Community Edition (OmniOSce) Association.
+# Copyright 2023 OmniOS Community Edition (OmniOSce) Association.
 #
 
 export PATH=/usr/bin:/usr/sbin:/sbin
@@ -34,15 +34,18 @@ note() {
     echo "***"
 }
 
-: ${PKGURL:=$OOCEPUBURL}
 ZROOT=rpool
 OUT=
 CLEANUP=0
+ARCH=`uname -p`
+NATIVE_ARCH=$ARCH
 VARIANT=global
-set -- `getopt cd:o:p:V: $*`
+typeset -i INSTALL_ENTIRE=1
+set -- `getopt a:cd:o:p:V: $*`
 for i in $*
 do
     case $i in
+        -a) ARCH=$2; shift 2;;
         -c) CLEANUP=1; shift ;;
         -d) ZROOT=$2; shift 2;;
         -o) OUT=$2; shift 2;;
@@ -53,13 +56,34 @@ do
     esac
 done
 
+case $ARCH in
+    i386)
+        PUBURL=$OOCEPUBURL
+        OUTPUT_PREFIX=kayak
+        ;;
+    aarch64)
+        INSTALL_ENTIRE=0
+        PUBURL=$OOCEBRAICHURL
+        OUTPUT_PREFIX=aarch64
+        ;;
+    *)  fail "Unknown arch '$ARCH'" ;;
+esac
+
+typeset -i native
+[ $ARCH = $NATIVE_ARCH ] && native=1 || native=0
+
+# PKGURL in the environment overrides the publisher path used for installation
+# but the publisher will be reset to PUBURL before bundling up the final image.
+: ${PKGURL:=$PUBURL}
+
 name=$1
 if [ -z "$name" ]; then
     echo "$0 [-cP] [-d zfsparent] [-p profile] [-o outputfile] <release_name>"
     exit
 fi
+ZDATASET=$ZROOT/$name
 
-# Setting this flag lets `pkg` know that this is an automatic install and
+# Setting this flag lets `pkg` know that this is an automatic installation and
 # that the installed packages should not be marked as 'manually installed'
 export PKG_AUTOINSTALL=1
 
@@ -68,42 +92,86 @@ entire_fmri="entire@11-$entire_version"
 
 MPR=`zfs get -o value -H mountpoint $ZROOT`
 if [ -z "$OUT" ]; then
-    OUT=$MPR/kayak_$name.zfs.xz
-    [ $VARIANT = nonglobal ] && OUT=$MPR/kayak_$name.ngz.zfs.xz
+    OUT=$MPR/${OUTPUT_PREFIX}_$name.zfs.xz
+    [ $VARIANT = nonglobal ] && OUT=$MPR/${OUTPUT_PREFIX}_$name.ngz.zfs.xz
 fi
 
-if zfs list $ZROOT/$name@entire > /dev/null 2>&1; then
-    note "Rolling back to last @entire"
-    zfs rollback -r $ZROOT/$name@entire || fail "zfs rollback"
-    MP=`zfs get -o value -H mountpoint $ZROOT/$name`
+cat << EOM
+
+                  Dataset: $ZDATASET
+                Publisher: $OOCEPUB
+  Installation Repository: $PKGURL
+         Final Repository: $PUBURL
+                     Arch: $ARCH
+                  Variant: $VARIANT
+                   Output: $OUT
+
+EOM
+
+function postinstall_aarch64 {
+    typeset ROOT=$1
+
+    note "aarch64 postinstall steps"
+
+    # aarch64 doesn't currently include this file but we need it for pkg
+    # to operate correctly. Without it the name of the default zone brand
+    # cannot be determined.
+    mkdir -p $ROOT/etc/zones
+    cp /etc/zones/SUNWdefault.xml $ROOT/etc/zones/
+
+    # Install skeleton /dev
+    tar zxf $KYKDIR/data/dev.tar.gz -C $ROOT 2>&1 | grep -v 'Removing leading'
+}
+
+if zfs list $ZDATASET@snap_$ARCH > /dev/null 2>&1; then
+    note "Rolling back to last @snap"
+    zfs rollback -r $ZDATASET@snap_$ARCH || fail "zfs rollback"
+    MP=`zfs get -o value -H mountpoint $ZDATASET`
     [ -n "$MP" -a -d "$MP" ] || fail "$MP is not a directory"
     export PKG_IMAGE=$MP
 else
-    zfs create $ZROOT/$name || fail "zfs create"
-    MP=`zfs get -o value -H mountpoint $ZROOT/$name`
+    zfs list $ZDATASET >/dev/null 2>&1 && zfs destroy -r $ZDATASET
+    zfs create $ZDATASET || fail "zfs create"
+    MP=`zfs get -o value -H mountpoint $ZDATASET`
     [ -n "$MP" -a -d "$MP" ] || fail "$MP is not a directory"
+    args=
+    args+="--variant variant.arch=$ARCH "
+    [ -n "$DEBUG_VARIANT" ] && args+="--variant debug.illumos=true "
     note "Creating IPS image"
-    pkg image-create -F -p $OOCEPUB=$PKGURL $MP || fail "image-create"
+    pkg image-create --full $args \
+        --publisher $OOCEPUB=$PKGURL $MP || fail "image-create"
     export PKG_IMAGE=$MP
-    [ -n "$DEBUG_VARIANT" ] && pkg change-variant debug.illumos=true
-    note "Installing $entire_fmri"
-    pkg install $entire_fmri || fail "install entire"
-    zfs snapshot $ZROOT/$name@entire
+    if ((INSTALL_ENTIRE)); then
+        note "Installing $entire_fmri"
+        pkg install $entire_fmri || fail "install entire"
+    else
+        note "Installing all packages"
+        pkg install '*' || fail "pkg install"
+    fi
+    pkg clean
+    sudo sed -i '/^last_uuid/d' $MP/var/pkg/pkg5.image
+
+    [ `type -t postinstall_$ARCH` = function ] && postinstall_$ARCH $MP
+
+    zfs snapshot $ZDATASET@snap_$ARCH
 fi
 
 note "Changing zone variant to $VARIANT"
 pkg change-variant opensolaris.zone=$VARIANT
 
-note "Installing optional packages"
-typeset -a optlist=
-while read p v; do
+if ((INSTALL_ENTIRE)); then
+    note "Installing optional packages"
+    typeset -a optlist=
+    while read p v; do
         [ -n "$v" -a "$v" != "$VARIANT" ] && continue
+
         echo "++++ $p"
         optlist+=($p)
-done < <(pkg contents -rH -a type=optional \
-    -o fmri,variant.opensolaris.zone $entire_fmri)
+    done < <(pkg contents -rH -a type=optional \
+        -o fmri,variant.opensolaris.zone $entire_fmri)
 
-pkg install ${optlist[*]} || fail "install optional entire"
+    pkg install ${optlist[*]} || fail "install optional entire"
+fi
 
 if [ -n "$PROFILE" ]; then
     note "Applying custom profile: $PROFILE"
@@ -127,17 +195,18 @@ fi
 if [ -n "$PUBLISHER_OVERRIDE" ]; then
     OOCEPUBURL=$PKGURL
 fi
-note "Setting omnios publisher to $OOCEPUBURL"
+note "Setting omnios publisher to $PUBURL"
 pkg unset-publisher $OOCEPUB
-pkg set-publisher -P --no-refresh -O $OOCEPUBURL $OOCEPUB
+pkg set-publisher -P --no-refresh -O $PUBURL $OOCEPUB
 
 # Starting with r151014, require signatures for the omnios publishers.
-if [[ $OOCEPUBURL != */bloody/* ]]; then
+if [[ $PUBURL != */bloody/* ]]; then
     note "Setting signature policy to require."
     pkg set-publisher \
         --set-property signature-policy=require-signatures $OOCEPUB
 fi
 
+pkg clean
 pkg purge-history
 
 function seed_smf
@@ -179,21 +248,21 @@ if [ "$VARIANT" = nonglobal ]; then
 fi
 
 note "Creating compressed stream"
-zfs snapshot $ZROOT/$name@kayak || fail "snap"
-zfs send $ZROOT/$name@kayak | pv | xz -T0 -9c > $OUT || fail "send/compress"
+zfs snapshot $ZDATASET@kayak || fail "snap"
+zfs send $ZDATASET@kayak | pv | xz -T0 -9c > $OUT || fail "send/compress"
 xz -l $OUT
 
 ############################################################################
 # Also build .p5p files for various VM environments
 
-if [ $VARIANT = global ]; then
+if [ $VARIANT = global ] && ((native)); then
     $SRCDIR/extra_p5p -d $MPR -o $PKGURL
 fi
 
 ############################################################################
 
 if [ "$CLEANUP" -eq "1" ]; then
-    zfs destroy -r $ZROOT/$name || fail "could not remove zfs filesystem"
+    zfs destroy -r $ZDATASET || fail "could not remove zfs dataset"
 fi
 
 # Vim hints

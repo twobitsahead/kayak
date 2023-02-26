@@ -10,7 +10,7 @@
 # http://www.illumos.org/license/CDDL.
 # }}}
 
-# Copyright 2022 OmniOS Community Edition (OmniOSce) Association.
+# Copyright 2023 OmniOS Community Edition (OmniOSce) Association.
 
 # This library used by both ksh and bash scripts, don't use any bash extensions.
 
@@ -25,6 +25,8 @@ else
     OOCEPUBURL=https://pkg.omnios.org/bloody/core
 fi
 OOCEPUBURL_EXTRA="${OOCEPUBURL/core/extra}"
+
+OOCEBRAICHURL=https://pkg.omnios.org/bloody/braich
 
 # Vim hints
 # vim:ts=4:sw=4:et:fdm=marker

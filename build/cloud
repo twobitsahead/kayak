@@ -94,7 +94,7 @@ zfs send $HVMdataset@final | pv > $basef.zfs
 note "Creating raw disk image"
 
 rm -f $basef.raw
-dd if=$HVMlofi of=$basef.raw bs=2048
+dd if=$HVMlofi of=$basef.raw bs=2048 status=progress
 
 ##############################################################################
 note "Creating VMDK"
