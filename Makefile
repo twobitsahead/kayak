@@ -11,7 +11,7 @@
 
 #
 # Copyright 2017 OmniTI Computer Consulting, Inc.  All rights reserved.
-# Copyright 2020 OmniOS Community Edition (OmniOSce) Association.
+# Copyright 2023 OmniOS Community Edition (OmniOSce) Association.
 #
 
 ifeq ($(shell zonename),global)
@@ -82,7 +82,7 @@ $(DESTDIR)/tftpboot/kayak/miniroot.gz.hash:	$(BUILDSEND_MP)/miniroot.gz
 	digest -a sha1 $< > $@
 
 ######################################################################
-# More involved targets - creation of miniroot.gz & zfs image
+# More involved targets - creation of miniroot.gz and zfs images
 
 $(BUILDSEND_MP)/kayak_$(VERSION).zfs.xz:	build/zfs_send
 	@banner "ZFS GZ IMG"
@@ -93,6 +93,11 @@ $(BUILDSEND_MP)/kayak_$(VERSION).ngz.zfs.xz:	build/zfs_send
 	@banner "ZFS NGZ IMG"
 	@test -d "$(BUILDSEND_MP)" || (echo "$(BUILDSEND) missing" && false)
 	./$< -d $(BUILDSEND) -V nonglobal $(VERSION)
+
+$(BUILDSEND_MP)/aarch64_$(VERSION).zfs.xz:	build/zfs_send
+	@banner "AARCH64 IMG"
+	@test -d "$(BUILDSEND_MP)" || (echo "$(BUILDSEND) missing" && false)
+	./$< -d $(BUILDSEND) -a aarch64 $(VERSION)
 
 $(BUILDSEND_MP)/miniroot.gz:	build/miniroot
 	@banner "MINIROOT"
@@ -202,10 +207,18 @@ build-cloud: bins zfs
 	@banner .CLOUD
 	BUILDSEND_MP=$(BUILDSEND_MP) ./build/cloud
 
+build-braich: bins zfscreate zfs_aarch64
+	@banner .BRAICH
+	BUILDSEND_MP=$(BUILDSEND_MP) ./build/braich
+
 install-iso:	check-mkisofs bins install-tftp install-web build-iso
 install-usb:	install-iso build-usb
 all:		install-usb $(NGZ_ZFS_STREAM) \
 		build-bhyve build-cloud
+
+zfs_gz:		$(BUILDSEND_MP)/kayak_$(VERSION).zfs.xz
+zfs_ngz:	$(BUILDSEND_MP)/kayak_$(VERSION).ngz.zfs.xz
+zfs_aarch64:	$(BUILDSEND_MP)/aarch64_$(VERSION).zfs.xz
 
 # Used by omnios-build/kayak/ to create the kayak package
 

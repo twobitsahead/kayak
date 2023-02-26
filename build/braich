@@ -1,0 +1,117 @@
+#!/bin/bash
+#
+# {{{ CDDL HEADER
+#
+# This file and its contents are supplied under the terms of the
+# Common Development and Distribution License ("CDDL"), version 1.0.
+# You may only use this file in accordance with the terms of version
+# 1.0 of the CDDL.
+#
+# A full copy of the text of the CDDL should have accompanied this
+# source. A copy of the CDDL is also available via the Internet at
+# http://www.illumos.org/license/CDDL.
+# }}}
+#
+# Copyright 2023 OmniOS Community Edition (OmniOSce) Association.
+#
+
+SRCDIR=`dirname $0`
+[ ${SRCDIR:0:1} = "/" ] || SRCDIR=`pwd`/$SRCDIR
+
+. $SRCDIR/../lib/hvm_help.sh
+. $SRCDIR/../lib/utils.sh
+
+[ -z "$BUILDSEND_MP" ] && BUILDSEND_MP=/kayak_image
+
+find_zfssend aarch64
+[ ! -f $ZFSSEND ] && echo "ZFS Image ($ZFSSEND) missing" && exit
+
+note() {
+    tput setaf 6
+    echo "***"
+    echo "*** $*"
+    echo "***"
+    tput sgr0
+}
+
+set -e
+
+customise() {
+    typeset root="${1?altroot}"
+
+    img_permit_rootlogin $root without-password
+
+    # This is KMF_DEADBEEF|KMF_REDZONE
+    echo "set kmem_flags = 0x6" > $root/etc/system.d/kmem_flags
+
+    sed -i 's/PASSREQ=YES/PASSREQ=NO/' $root/etc/default/login
+
+    create_swap_dump $HVMtmprpool rpool $root 1G 4096 y
+
+    # No Postboot yet so create the dump config manually
+    cat << EOM > $root/etc/dumpadm.conf
+DUMPADM_DEVICE=/dev/zvol/dsk/$HVMtmprpool/dump
+DUMPADM_SAVDIR=/var/crash/braich
+DUMPADM_CONTENT=curproc
+DUMPADM_ENABLE=yes
+DUMPADM_CSAVE=on
+EOM
+
+    # Create the boot archive manually because we can only boot from hsfs and
+    # the create_ramdisk script cannot do this for us.
+    pushd $root
+
+    zpool set bootfs=$HVMtmprpool/ROOT/$HVMbename $HVMtmprpool
+
+    typeset filelist=`mktemp`
+
+    ./boot/solaris/bin/extract_boot_filelist \
+        -R $root -p aarch64 boot/solaris/filelist.ramdisk \
+        | while read file; do
+            [ -e "$file" ] && echo $file
+        done | awk '{printf("/%s=./%s\n", $1, $1);}' > $filelist
+
+    mkisofs \
+        -quiet \
+        -graft-points \
+        -dlrDJN \
+        -relaxed-filenames \
+        -o ./platform/armv8/boot_archive \
+        `cat $filelist`
+
+    rm -f $filelist
+
+    popd
+}
+
+HVM_Image_Init 8G rpool braich omnios-r$VERSION
+HVM_MBR_Init
+HVMdisk+=s0 HVM_Image_Build "-f" $ZFSSEND braich customise -noactivate
+slice=0
+HVM_Image_Finalise $slice \
+    "/dev/dsk/c1t0d0s${slice}" "/virtio_mmio@a003c00/blkdev@0,0:a" "" \
+    -keeplofi
+
+##############################################################################
+
+basef=$BUILDSEND_MP/braich-$VERSION
+
+##############################################################################
+note "Creating raw disk image"
+
+rm -f $basef.raw
+dd if=$HVMlofi of=$basef.raw bs=2048 status=progress
+
+##############################################################################
+note "Cleaning up"
+
+lofiadm -d $HVMlofi
+zfs destroy -r $HVMdataset
+
+##############################################################################
+note "Compressing"
+
+zstd -9fv --rm $basef.raw
+
+# Vim hints
+# vim:ts=4:sw=4:et:fdm=marker

@@ -1,4 +1,5 @@
-#
+#!/bin/bash
+
 # {{{ CDDL HEADER
 #
 # This file and its contents are supplied under the terms of the
@@ -76,127 +77,132 @@ function HVM_Build_Devtree {
 }
 
 function find_zfssend {
-	[ -z "$VERSION" ] && \
-	    VERSION="`nawk 'NR == 1 { sub(/^r/, "", $3); print $3 }' \
-	    /etc/release`"
-	: ${ZFSSEND:=/kayak_image/kayak_r$VERSION.zfs.xz}
-	[ -f "$ZFSSEND" ] || ZFSSEND="omnios-r$VERSION.zfs.xz"
-	[ -f "$ZFSSEND" ] || ZFSSEND="omniosce-r$VERSION.zfs.xz"
+    typeset prefix=${1:-kayak}
+    [ -z "$VERSION" ] && \
+        VERSION="`nawk 'NR == 1 { sub(/^r/, "", $3); print $3 }' \
+        /etc/release`"
+    : ${ZFSSEND:=/kayak_image/${prefix}_r$VERSION.zfs.xz}
+    [ -f "$ZFSSEND" ] || ZFSSEND="omnios-r$VERSION.zfs.xz"
+    [ -f "$ZFSSEND" ] || ZFSSEND="omniosce-r$VERSION.zfs.xz"
 }
 
 function HVM_Image_Init {
-	typeset size="${1:?size}"; shift
-	typeset rpool="${1:?rpool}"; shift
-	typeset tag="${1:?tag}"; shift
-	typeset bename="${1:?bename}"; shift
+    typeset size="${1:?size}"; shift
+    typeset rpool="${1:?rpool}"; shift
+    typeset tag="${1:?tag}"; shift
+    typeset bename="${1:?bename}"; shift
 
-	[ "$UID" != 0 ] && echo Need root privileges && exit 1
+    [ "$UID" != 0 ] && echo Need root privileges && exit 1
 
-	HVMtag=$tag
-	HVMrpool=$rpool
-	HVMtmprpool=$tag$rpool
-	HVMaltroot=/HVM${tag}root
-	HVMpoolmount=/HVM$HVMtmprpool
-	HVMbename=$bename
+    HVMtag=$tag
+    HVMrpool=$rpool
+    HVMtmprpool=$tag$rpool
+    HVMaltroot=/HVM${tag}root
+    HVMpoolmount=/HVM$HVMtmprpool
+    HVMbename=$bename
 
-	HVMdev=`HVM_Create_Diskvol $size $tag` || exit 1
-	HVMdataset="${HVMdev%:*}"
-	HVMlofi="${HVMdev#*:}"
-	HVMdisk="${HVMlofi/p0/}"
-	HVMrlofi="${HVMlofi/dsk/rdsk}"
-	HVMrdisk="${HVMdisk/dsk/rdsk}"
+    HVMdev=`HVM_Create_Diskvol $size $tag` || exit 1
+    HVMdataset="${HVMdev%:*}"
+    HVMlofi="${HVMdev#*:}"
+    HVMdisk="${HVMlofi/p0/}"
+    HVMrlofi="${HVMlofi/dsk/rdsk}"
+    HVMrdisk="${HVMdisk/dsk/rdsk}"
 
-	SetupLog /tmp/kayak-$tag.log
+    SetupLog /tmp/kayak-$tag.log
 }
 
 function HVM_MBR_Init {
-	echo "Setting up disk volume for MBR"
+    echo "Setting up disk volume for MBR"
 
-	# Create Solaris2 partition filling the entire disk
-	fdisk -B $HVMrlofi
-	fdisk -W - $HVMrlofi | tail -5 | head -2
-	echo
+    # Create Solaris2 partition filling the entire disk
+    fdisk -B $HVMrlofi
+    fdisk -W - $HVMrlofi | tail -5 | head -2
+    echo
 
-	# Create slice 0 covering all of the non-reserved space
-	OIFS="$IFS"; IFS=" ="
-	set -- `prtvtoc -f $HVMrlofi`
-	IFS="$OIFS"
-	# FREE_START=2048 FREE_SIZE=196608 FREE_COUNT=1 FREE_PART=...
-	start=$2; size=$4
-	fmthard -d 0:2:01:$start:$size $HVMrlofi
-	prtvtoc -s $HVMrlofi
-	echo
+    # Create slice 0 covering all of the non-reserved space
+    OIFS="$IFS"; IFS=" ="
+    set -- `prtvtoc -f $HVMrlofi`
+    IFS="$OIFS"
+    # FREE_START=2048 FREE_SIZE=196608 FREE_COUNT=1 FREE_PART=...
+    start=$2; size=$4
+    fmthard -d 0:2:01:$start:$size $HVMrlofi
+    prtvtoc -s $HVMrlofi
+    echo
 }
 
 function HVM_Image_Build {
-	typeset poolopts="${1:?poolopts}"; shift
-	typeset zfssend="${1:?zfssend}"; shift
-	typeset hostname="${1:-omnios}"; shift
-	typeset custom="$1"; shift
+    typeset poolopts="${1:?poolopts}"; shift
+    typeset zfssend="${1:?zfssend}"; shift
+    typeset hostname="${1:-omnios}"; shift
+    typeset custom="$1"; shift
+    typeset flags="$*"
 
-	echo "Clearing any old pool"
-	zpool destroy -f $HVMtmprpool 2>/dev/null || true
+    echo "Clearing any old pool"
+    zpool destroy -f $HVMtmprpool 2>/dev/null || true
 
-	zpool create $poolopts -R $HVMpoolmount -t $HVMtmprpool \
-	    $HVMrpool $HVMdisk
+    zpool create $poolopts -R $HVMpoolmount -t $HVMtmprpool \
+        $HVMrpool $HVMdisk
 
-	BE_Create_Root $HVMtmprpool
-	BE_Receive_Image cat "xz -dc" $HVMtmprpool $HVMbename $zfssend
-	mkdir -p $HVMaltroot
-	BE_Mount $HVMtmprpool $HVMbename $HVMaltroot raw
-	BE_SetUUID $HVMtmprpool $HVMbename $HVMaltroot
-	BE_LinkMsglog $HVMaltroot
-	MakeBootable $HVMtmprpool $HVMbename
-	ApplyChanges
-	SetTimezone UTC
-	echo $hostname > $HVMaltroot/etc/nodename
+    BE_Create_Root $HVMtmprpool
+    BE_Receive_Image cat "xz -dc" $HVMtmprpool $HVMbename $zfssend
+    mkdir -p $HVMaltroot
+    BE_Mount $HVMtmprpool $HVMbename $HVMaltroot raw
+    BE_SetUUID $HVMtmprpool $HVMbename $HVMaltroot
+    BE_LinkMsglog $HVMaltroot
+    case $flags in
+        *-noactivate*)  ;;
+        *)              MakeBootable $HVMtmprpool $HVMbename ;;
+    esac
+    ApplyChanges
+    SetTimezone UTC
+    echo $hostname > $HVMaltroot/etc/nodename
 
-	# Any additional customisation
-	[ -n "$custom" ] && $custom "$HVMaltroot"
+    # Any additional customisation
+    [ -n "$custom" ] && $custom "$HVMaltroot"
 
-	# Force new IPS UUID on first pkg invocation.
-	sed -i '/^last_uuid/d' $HVMaltroot/var/pkg/pkg5.image
+    # Force new IPS UUID on first pkg invocation.
+    sed -i '/^last_uuid/d' $HVMaltroot/var/pkg/pkg5.image
 
-	# Move disk links so they will be correctly generated on first boot.
-	rm -f $HVMaltroot/dev/dsk/* $HVMaltroot/dev/rdsk/*
+    # Move disk links so they will be correctly generated on first boot.
+    rm -f $HVMaltroot/dev/dsk/* $HVMaltroot/dev/rdsk/*
 
-	# Reconfigure on first boot
-	touch $HVMaltroot/reconfigure
+    # Reconfigure on first boot
+    touch $HVMaltroot/reconfigure
 
-	#
-	# First boot configuration
-	#
+    #
+    # First boot configuration
+    #
 
-	# Pools are sometimes created with no features enabled and then
-	# updated on first boot to add all features supported on the target
-	# system.
-	Postboot 'zpool upgrade -a'
-	# Give the pool a unique GUID
-	Postboot "zpool reguid $HVMrpool"
+    # Pools are sometimes created with no features enabled and then
+    # updated on first boot to add all features supported on the target
+    # system.
+    Postboot 'zpool upgrade -a'
+    # Give the pool a unique GUID
+    Postboot "zpool reguid $HVMrpool"
 }
 
 function HVM_Image_Finalise {
-	typeset slice="$1"; shift
-	typeset blk="$1"; shift
-	typeset phys="$1"; shift
-	typeset devid="$1"; shift
-	typeset flags="$*"
+    typeset slice="$1"; shift
+    typeset blk="$1"; shift
+    typeset phys="$1"; shift
+    typeset devid="$1"; shift
+    typeset flags="$*"
 
-	Postboot 'exit $SMF_EXIT_OK'
+    Postboot 'exit $SMF_EXIT_OK'
 
-	echo "Unmount"
-	BE_Umount $HVMbename $HVMaltroot raw
-	rmdir $HVMaltroot
+    echo "Unmount"
+    BE_Umount $HVMbename $HVMaltroot raw
+    rmdir $HVMaltroot
 
-	echo "Export"
-	zpool export $HVMtmprpool
+    echo "Export"
+    zpool export $HVMtmprpool
 
-	$SRCDIR/../bin/zpool_patch -v ${HVMdisk}s$slice "$blk" "$phys" "$devid"
+    $SRCDIR/../bin/zpool_patch -v ${HVMdisk}s$slice "$blk" "$phys" "$devid"
 
-	case $flags in
-		*-keeplofi*)	;;
-		*)		HVM_Destroy_Diskvol $HVMlofi ;;
-	esac
+    case $flags in
+        *-keeplofi*)    ;;
+        *)              HVM_Destroy_Diskvol $HVMlofi ;;
+    esac
 }
 
 function img_version {

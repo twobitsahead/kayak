@@ -144,6 +144,34 @@ function GetRpoolFree {
     echo $avail
 }
 
+function create_swap_dump {
+    typeset tmppool=${1?pool}; shift
+    typeset pool=${1?pool}; shift
+    typeset root=${1?root}; shift
+    typeset size=${1?size}; shift
+    typeset blocksize=${1:-4096}
+    typeset savecore=${2:-y}
+
+    typeset volname
+    for volname in swap dump; do
+        log "Creating $volname..."
+        logcmd /sbin/zfs create \
+            -V ${size} \
+            -b $blocksize \
+            -o logbias=throughput \
+            -o sync=always \
+            -o primarycache=metadata \
+            -o secondarycache=none \
+            $tmppool/$volname \
+            || bomb "Failed to create $ptmpool/$volname"
+    done
+    printf "/dev/zvol/dsk/$pool/swap\t-\t-\tswap\t-\tno\t-\n" \
+        >> $root/etc/vfstab
+    Postboot /usr/sbin/dumpadm -$savecore -c curproc \
+        -d /dev/zvol/dsk/$pool/dump
+    return 0
+}
+
 function MakeSwapDump {
     typeset size=`GetTargetVolSize`
     typeset free=`GetRpoolFree`
@@ -173,9 +201,9 @@ function MakeSwapDump {
         log "Required volume space ($totalvols) is more than usable ($usable)"
         ((size = usable / 2))
         log "Using $size instead and disabling savecore"
-        savecore="-n"
+        savecore="n"
     else
-        savecore="-y"
+        savecore="y"
     fi
 
     log "Final swap/dump volume size is $size"
@@ -185,22 +213,7 @@ function MakeSwapDump {
 
     log "Using blocksize $blocksize"
 
-    for volname in swap dump; do
-        log "Creating $volname..."
-        logcmd /sbin/zfs create \
-            -V ${size}G \
-            -b $blocksize \
-            -o logbias=throughput \
-            -o sync=always \
-            -o primarycache=metadata \
-            -o secondarycache=none \
-            $RPOOL/$volname \
-            || bomb "Failed to create $RPOOL/$volname"
-    done
-    printf "/dev/zvol/dsk/$RPOOL/swap\t-\t-\tswap\t-\tno\t-\n" \
-        >> $ALTROOT/etc/vfstab
-    Postboot /usr/sbin/dumpadm $savecore -c curproc \
-        -d /dev/zvol/dsk/$RPOOL/dump
+    create_swap_dump $RPOOL $RPOOL $ALTROOT ${size}G $blocksize $savecore
     return 0
 }
 
