@@ -59,11 +59,13 @@ done
 case $ARCH in
     i386)
         PUBURL=$OOCEPUBURL
+        EXTRAPUBURL=
         OUTPUT_PREFIX=kayak
         ;;
     aarch64)
         INSTALL_ENTIRE=0
         PUBURL=$OOCEBRAICHURL
+        EXTRAPUBURL=$OOCEBRAICHURL
         OUTPUT_PREFIX=aarch64
         ;;
     *)  fail "Unknown arch '$ARCH'" ;;
@@ -75,6 +77,7 @@ typeset -i native
 # PKGURL in the environment overrides the publisher path used for installation
 # but the publisher will be reset to PUBURL before bundling up the final image.
 : ${PKGURL:=$PUBURL}
+: ${EXTRAPKGURL:=$EXTRAPUBURL}
 
 name=$1
 if [ -z "$name" ]; then
@@ -101,7 +104,9 @@ cat << EOM
                   Dataset: $ZDATASET
                 Publisher: $OOCEPUB
   Installation Repository: $PKGURL
+         Extra Repository: $EXTRAPKGURL
          Final Repository: $PUBURL
+   Final extra Repository: $EXTRAPUBURL
                      Arch: $ARCH
                   Variant: $VARIANT
                    Output: $OUT
@@ -141,6 +146,8 @@ else
     pkg image-create --full $args \
         --publisher $OOCEPUB=$PKGURL $MP || fail "image-create"
     export PKG_IMAGE=$MP
+    [ -n $EXTRAPKGURL ] && \
+        pkg set-publisher -P --no-refresh -O $EXTRAPKGURL extra.$OOCEPUB
     if ((INSTALL_ENTIRE)); then
         note "Installing $entire_fmri"
         pkg install $entire_fmri || fail "install entire"
@@ -198,6 +205,12 @@ fi
 note "Setting omnios publisher to $PUBURL"
 pkg unset-publisher $OOCEPUB
 pkg set-publisher -P --no-refresh -O $PUBURL $OOCEPUB
+
+if [ -n "$EXTRAPUBURL" ]; then
+    note "Setting omnios extra publisher to $EXTRAPUBURL"
+    pkg unset-publisher extra.$OOCEPUB
+    pkg set-publisher -P --no-refresh -O $EXTRAPUBURL extra.$OOCEPUB
+fi
 
 # Starting with r151014, require signatures for the omnios publishers.
 if [[ $PUBURL != */bloody/* ]]; then
