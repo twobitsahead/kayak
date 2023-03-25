@@ -146,7 +146,7 @@ else
     pkg image-create --full $args \
         --publisher $OOCEPUB=$PKGURL $MP || fail "image-create"
     export PKG_IMAGE=$MP
-    [ -n $EXTRAPKGURL ] && \
+    [ -n "$EXTRAPKGURL" ] && \
         pkg set-publisher -P --no-refresh -O $EXTRAPKGURL extra.$OOCEPUB
     if ((INSTALL_ENTIRE)); then
         note "Installing $entire_fmri"
