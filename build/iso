@@ -70,7 +70,7 @@ BA_FILE=$TMPDIR/boot_archive_$$.img
 
 # Calculate the boot archive size
 typeset -i basz=225
-[ -n "$BIGROOT" ] && ((basz += 500))
+[ -n "$BIGROOT" ] && ((basz += 1500))
 [ -n "$RAMDISKINSTALL" ] && ((basz += 300))
 BA_SIZE=${basz}M
 
