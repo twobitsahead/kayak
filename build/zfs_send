@@ -158,7 +158,7 @@ else
     pkg clean
     sudo sed -i '/^last_uuid/d' $MP/var/pkg/pkg5.image
 
-    [ `type -t postinstall_$ARCH` = function ] && postinstall_$ARCH $MP
+    [ "`type -t postinstall_$ARCH`" = function ] && postinstall_$ARCH $MP
 
     zfs snapshot $ZDATASET@snap_$ARCH
 fi
