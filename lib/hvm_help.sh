@@ -225,6 +225,11 @@ function img_extrarepo {
             log "...enabling extra repo"
             pkg set-publisher --no-refresh \
                 -O $OOCEPUBURL_EXTRA $EXTRAPUB
+            for m in $MIRRORS; do
+                pkg set-publisher --no-refresh \
+                    -m https://$m.$MIRRORDOMAIN/${URLSUFFIX/core/extra} \
+                    $EXTRAPUB
+            done
             pkg publisher $OOCEPUB | egrep -s require-signatures &&
                 pkg set-publisher --no-refresh --set-property \
                 signature-policy=require-signatures $EXTRAPUB

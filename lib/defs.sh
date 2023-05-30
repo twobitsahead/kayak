@@ -22,6 +22,9 @@ EXTRAPUB=extra.omnios
 
 URLPREFIX=https://pkg.omnios.org
 
+MIRRORS=us-west
+MIRRORDOMAIN=mirror.omnios.org
+
 if (( OOCEREL % 2 == 0 )); then
     URLSUFFIX=r$OOCEREL/core
 else

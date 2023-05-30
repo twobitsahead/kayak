@@ -231,12 +231,23 @@ pkg set-publisher -P --no-refresh -O $PUBURL $OOCEPUB
 snote "Setting signature policy to '$policy'"
 pkg set-publisher --set-property signature-policy=$policy $OOCEPUB
 
+for m in $MIRRORS; do
+    snote "  adding mirror https://$m.$MIRRORDOMAIN/$URLSUFFIX"
+    pkg set-publisher --no-refresh \
+        -m https://$m.$MIRRORDOMAIN/$URLSUFFIX $OOCEPUB
+done
+
 if [ -n "$EXTRAPUBURL" ]; then
     snote "Setting omnios extra publisher to $EXTRAPUBURL"
     pkg unset-publisher $EXTRAPUB
     pkg set-publisher --no-refresh -O $EXTRAPUBURL $EXTRAPUB
     snote "Setting signature policy to $policy."
     pkg set-publisher --set-property signature-policy=$policy $EXTRAPUB
+    for m in $MIRRORS; do
+        snote "  adding mirror https://$m.$MIRRORDOMAIN/$URLSUFFIX"
+        pkg set-publisher --no-refresh \
+            -m https://$m.$MIRRORDOMAIN/${URLSUFFIX/core/extra} $EXTRAPUB
+    done
 fi
 
 note "Final publisher configuration:"

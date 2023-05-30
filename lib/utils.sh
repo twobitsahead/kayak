@@ -108,6 +108,11 @@ function extrarepo {
             ;;
         *)
             runpkg set-publisher --no-refresh -O $OOCEPUBURL_EXTRA $EXTRAPUB
+            for m in $MIRRORS; do
+                runpkg set-publisher --no-refresh \
+                    -m https://$m.$MIRRORDOMAIN/${URLSUFFIX/core/extra} \
+                    $EXTRAPUB
+            done
             runpkg publisher $OOCEPUB | egrep -s require-signatures &&
                 runpkg set-publisher --no-refresh --set-property \
                 signature-policy=require-signatures $EXTRAPUB
