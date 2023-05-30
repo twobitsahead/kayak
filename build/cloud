@@ -59,6 +59,9 @@ customise() {
     img_install_profile $root $SRCDIR/../etc/rsyslog.xml
     logadm_rsyslog $root
 
+    # Enable the extra repo for cloud images
+    img_extrarepo "$root" -on
+
     # Decrease boot delay
     cat << EOM > $root/boot/loader.conf.local
 autoboot_delay=2
