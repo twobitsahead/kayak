@@ -173,10 +173,6 @@ function HVM_Image_Build {
     # First boot configuration
     #
 
-    # Pools are sometimes created with no features enabled and then
-    # updated on first boot to add all features supported on the target
-    # system.
-    Postboot 'zpool upgrade -a'
     # Give the pool a unique GUID
     Postboot "zpool reguid $HVMrpool"
 }

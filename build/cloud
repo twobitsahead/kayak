@@ -71,10 +71,10 @@ EOM
 HVM_Image_Init 8G rpool cloud omnios-r$VERSION
 if ((mbr)); then
     HVM_MBR_Init
-    HVMdisk+=s0 HVM_Image_Build "-fd" $ZFSSEND omnios customise
+    HVMdisk+=s0 HVM_Image_Build "-f" $ZFSSEND omnios customise
     slice=0
 else
-    HVM_Image_Build "-fdB -o ashift=12" $ZFSSEND omnios customise
+    HVM_Image_Build "-fB -o ashift=12" $ZFSSEND omnios customise
     slice=1
 fi
 HVM_Image_Finalise $slice \
