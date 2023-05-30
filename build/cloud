@@ -60,7 +60,7 @@ customise() {
 
     # Decrease boot delay
     cat << EOM > $root/boot/loader.conf.local
-autoboot_delay=1
+autoboot_delay=2
 EOM
 
     img_postboot_block $root << EOM
