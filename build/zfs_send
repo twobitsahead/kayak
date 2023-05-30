@@ -76,8 +76,8 @@ case $ARCH in
         PUBURL=$OOCEBRAICHURL
         OUTPUT_PREFIX=aarch64
         URLSUFFIX=bloody/braich
-        # The extra publishers are included in the aarch64 image at present.
-        EXTRAPUBURL=$OOCEBRAICHURL
+        # The extra publishers are not included in the aarch64 send stream.
+        # The braich image build script will add it.
         ;;
     *)  fail "Unknown arch '$ARCH'" ;;
 esac

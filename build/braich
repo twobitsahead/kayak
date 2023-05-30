@@ -58,6 +58,9 @@ DUMPADM_ENABLE=yes
 DUMPADM_CSAVE=on
 EOM
 
+    # Enable the extra repo
+    img_extrarepo "$root" -on
+
     # Create the boot archive manually because we can only boot from hsfs and
     # the create_ramdisk script cannot do this for us.
     pushd $root
