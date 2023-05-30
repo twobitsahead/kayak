@@ -18,15 +18,24 @@ OOCEVER=`awk -F= '$1 == "VERSION" { print $2 }' /etc/os-release`
 OOCEREL="${OOCEVER//[a-z]/}"
 
 OOCEPUB=omnios
+EXTRAPUB=extra.omnios
+
+URLPREFIX=https://pkg.omnios.org
 
 if (( OOCEREL % 2 == 0 )); then
-    OOCEPUBURL=https://pkg.omnios.org/r$OOCEREL/core
+    URLSUFFIX=r$OOCEREL/core
 else
-    OOCEPUBURL=https://pkg.omnios.org/bloody/core
+    URLSUFFIX=bloody/core
 fi
+OOCEPUBURL=$URLPREFIX/$URLSUFFIX
 OOCEPUBURL_EXTRA="${OOCEPUBURL/core/extra}"
 
-OOCEBRAICHURL=https://pkg.omnios.org/bloody/braich
+OOCEBRAICHURL=$URLPREFIX/bloody/braich
+
+DEFPATH=/usr/bin:/usr/sbin:/sbin:/usr/gnu/bin
+DEFSUPATH=/usr/sbin:/sbin:/usr/bin
+EXTRAPATH=/usr/bin:/usr/sbin:/sbin:/opt/ooce/bin:/usr/gnu/bin
+EXTRASUPATH=/usr/sbin:/sbin:/opt/ooce/sbin:/usr/bin:/opt/ooce/bin
 
 # Vim hints
 # vim:ts=4:sw=4:et:fdm=marker

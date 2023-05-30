@@ -35,6 +35,7 @@ fi
 echo "Reading system configuration..."
 
 [ "$1" = "-dialog" ] && . /kayak/lib/dialog.sh
+. /kayak/lib/defs.sh
 . /kayak/lib/install_help.sh
 . /kayak/lib/utils.sh
 

@@ -18,6 +18,7 @@
 SRCDIR=`dirname $0`
 [ ${SRCDIR:0:1} = "/" ] || SRCDIR=`pwd`/$SRCDIR
 
+. $SRCDIR/../lib/defs.sh
 . $SRCDIR/../lib/hvm_help.sh
 . $SRCDIR/../lib/utils.sh
 

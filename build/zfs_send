@@ -34,13 +34,20 @@ note() {
     echo "***"
 }
 
+snote() {
+    echo "*** $*"
+}
+
 ZROOT=rpool
 OUT=
-CLEANUP=0
 ARCH=`uname -p`
 NATIVE_ARCH=$ARCH
 VARIANT=global
+
 typeset -i INSTALL_ENTIRE=1
+typeset -i PUBLISHER_OVERRIDE=0
+typeset -i CLEANUP=0
+
 set -- `getopt a:cd:o:p:V: $*`
 for i in $*
 do
@@ -59,14 +66,18 @@ done
 case $ARCH in
     i386)
         PUBURL=$OOCEPUBURL
-        EXTRAPUBURL=
         OUTPUT_PREFIX=kayak
+        # The extra publishers are not included in the i386 send stream.
+        # Consumers of the final image, such as the installer or cloud
+        # images will add those if necessary.
         ;;
     aarch64)
         INSTALL_ENTIRE=0
         PUBURL=$OOCEBRAICHURL
-        EXTRAPUBURL=$OOCEBRAICHURL
         OUTPUT_PREFIX=aarch64
+        URLSUFFIX=bloody/braich
+        # The extra publishers are included in the aarch64 image at present.
+        EXTRAPUBURL=$OOCEBRAICHURL
         ;;
     *)  fail "Unknown arch '$ARCH'" ;;
 esac
@@ -75,7 +86,8 @@ typeset -i native
 [ $ARCH = $NATIVE_ARCH ] && native=1 || native=0
 
 # PKGURL in the environment overrides the publisher path used for installation
-# but the publisher will be reset to PUBURL before bundling up the final image.
+# but the publisher will be reset to PUBURL before bundling up the final image
+# unless -P was provided.
 : ${PKGURL:=$PUBURL}
 : ${EXTRAPKGURL:=$EXTRAPUBURL}
 
@@ -199,26 +211,38 @@ if [ -n "$PROFILE" ]; then
     done < <(grep . $PROFILE | grep -v '^ *#')
 fi
 
-if [ -n "$PUBLISHER_OVERRIDE" ]; then
-    OOCEPUBURL=$PKGURL
-fi
-note "Setting omnios publisher to $PUBURL"
-pkg unset-publisher $OOCEPUB
-pkg set-publisher -P --no-refresh -O $PUBURL $OOCEPUB
-
-if [ -n "$EXTRAPUBURL" ]; then
-    note "Setting omnios extra publisher to $EXTRAPUBURL"
-    pkg unset-publisher extra.$OOCEPUB
-    pkg set-publisher -P --no-refresh -O $EXTRAPUBURL extra.$OOCEPUB
-fi
-
 # Starting with r151014, require signatures for the omnios publishers.
 if [[ $PUBURL != */bloody/* ]]; then
-    note "Setting signature policy to require."
-    pkg set-publisher \
-        --set-property signature-policy=require-signatures $OOCEPUB
+    policy=require-signatures
+else
+    policy=verify
 fi
 
+if ((PUBLISHER_OVERRIDE)); then
+    PUBURL=$PKGURL
+    EXTRAPUBURL=$EXTRAPKGURL
+fi
+
+note "Configuring publishers"
+
+snote "Setting omnios publisher to $PUBURL"
+pkg unset-publisher $OOCEPUB
+pkg set-publisher -P --no-refresh -O $PUBURL $OOCEPUB
+snote "Setting signature policy to '$policy'"
+pkg set-publisher --set-property signature-policy=$policy $OOCEPUB
+
+if [ -n "$EXTRAPUBURL" ]; then
+    snote "Setting omnios extra publisher to $EXTRAPUBURL"
+    pkg unset-publisher $EXTRAPUB
+    pkg set-publisher --no-refresh -O $EXTRAPUBURL $EXTRAPUB
+    snote "Setting signature policy to $policy."
+    pkg set-publisher --set-property signature-policy=$policy $EXTRAPUB
+fi
+
+note "Final publisher configuration:"
+pkg publisher
+
+note "Cleaning pkg cache and history"
 pkg clean
 pkg purge-history
 
@@ -274,7 +298,7 @@ fi
 
 ############################################################################
 
-if [ "$CLEANUP" -eq "1" ]; then
+if ((CLEANUP)); then
     zfs destroy -r $ZDATASET || fail "could not remove zfs dataset"
 fi
 

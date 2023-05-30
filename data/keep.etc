@@ -194,6 +194,7 @@
 /etc/openssl
 /etc/openssl/certs
 /etc/opt
+/etc/os-release
 /etc/pam.conf
 /etc/passwd
 /etc/path_to_inst

@@ -17,6 +17,7 @@
 # Copyright 2022 OmniOS Community Edition (OmniOSce) Association.
 #
 
+. /kayak/lib/defs.sh
 . /kayak/lib/install_help.sh
 . /kayak/lib/dialog.sh
 . /kayak/lib/utils.sh
