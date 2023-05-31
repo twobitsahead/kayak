@@ -35,6 +35,7 @@ fi
 
 echo "Installing from ZFS image $ZFS_IMAGE"
 
+. /kayak/lib/defs.sh
 . /kayak/lib/disk_help.sh
 . /kayak/lib/install_help.sh
 

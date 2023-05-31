@@ -18,6 +18,7 @@
 SRCDIR=`dirname $0`
 [ ${SRCDIR:0:1} = "/" ] || SRCDIR=`pwd`/$SRCDIR
 
+. $SRCDIR/../lib/defs.sh
 . $SRCDIR/../lib/hvm_help.sh
 . $SRCDIR/../lib/utils.sh
 
@@ -58,9 +59,12 @@ customise() {
     img_install_profile $root $SRCDIR/../etc/rsyslog.xml
     logadm_rsyslog $root
 
+    # Enable the extra repo for cloud images
+    img_extrarepo "$root" -on
+
     # Decrease boot delay
     cat << EOM > $root/boot/loader.conf.local
-autoboot_delay=1
+autoboot_delay=2
 EOM
 
     img_postboot_block $root << EOM
@@ -71,10 +75,10 @@ EOM
 HVM_Image_Init 8G rpool cloud omnios-r$VERSION
 if ((mbr)); then
     HVM_MBR_Init
-    HVMdisk+=s0 HVM_Image_Build "-fd" $ZFSSEND omnios customise
+    HVMdisk+=s0 HVM_Image_Build "-f" $ZFSSEND omnios customise
     slice=0
 else
-    HVM_Image_Build "-fdB -o ashift=12" $ZFSSEND omnios customise
+    HVM_Image_Build "-fB -o ashift=12" $ZFSSEND omnios customise
     slice=1
 fi
 HVM_Image_Finalise $slice \

@@ -85,31 +85,41 @@ function runpkg {
     sed -i '/^last_uuid/d' $ALTROOT/var/pkg/pkg5.image
 }
 
+function setpaths {
+    typeset root="${1?altroot}"; shift
+    typeset defpath="${1?defpath}"; shift
+    typeset supath="${1?supath}"; shift
+
+    sed -i~ "
+        /^#*PATH=/c\\
+PATH=$defpath
+        /^#*SUPATH=/c\\
+SUPATH=$supath
+    " $root/etc/default/login $root/etc/default/su
+}
+
 function extrarepo {
     log "extrarepo $1"
-    if [ "$1" = "-off" ]; then
-        runpkg unset-publisher extra.omnios
-        sed -i '
-        /^#*PATH=/c\
-PATH=/usr/bin:/usr/sbin:/sbin:/usr/gnu/bin
-        /^#*SUPATH=/c\
-SUPATH=/usr/sbin:/sbin:/usr/bin
-        ' $ALTROOT/etc/default/login $ALTROOT/etc/default/su
-    else
-        coreuri=`runpkg publisher omnios | \
-            nawk '/Origin URI:/ { print $3 }'`
-        extrauri="${coreuri/core/extra}"
-        runpkg set-publisher --no-refresh -O $extrauri extra.omnios
-        runpkg publisher omnios | egrep -s require-signatures &&
-            runpkg set-publisher --no-refresh --set-property \
-            signature-policy=require-signatures extra.omnios
-        sed -i~ '
-        /^#*PATH=/c\
-PATH=/usr/bin:/usr/sbin:/sbin:/opt/ooce/bin:/usr/gnu/bin
-        /^#*SUPATH=/c\
-SUPATH=/usr/sbin:/sbin:/opt/ooce/sbin:/usr/bin:/opt/ooce/bin
-        ' $ALTROOT/etc/default/login $ALTROOT/etc/default/su
-    fi
+
+    case $1 in
+        -off)
+            runpkg unset-publisher $EXTRAPUB
+            setpaths $ALTROOT $DEFPATH $DEFSUPATH
+            ;;
+        *)
+            runpkg set-publisher --no-refresh -O $OOCEPUBURL_EXTRA $EXTRAPUB
+            for m in $MIRRORS; do
+                runpkg set-publisher --no-refresh \
+                    -m https://$m.$MIRRORDOMAIN/${URLSUFFIX/core/extra} \
+                    $EXTRAPUB
+            done
+            runpkg publisher $OOCEPUB | egrep -s require-signatures &&
+                runpkg set-publisher --no-refresh --set-property \
+                signature-policy=require-signatures $EXTRAPUB
+            setpaths $ALTROOT $EXTRAPATH $EXTRASUPATH
+            ;;
+    esac
+
     log "--- final publisher configuration ---"
     runpkg publisher
 }

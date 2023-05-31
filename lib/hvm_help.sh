@@ -173,10 +173,6 @@ function HVM_Image_Build {
     # First boot configuration
     #
 
-    # Pools are sometimes created with no features enabled and then
-    # updated on first boot to add all features supported on the target
-    # system.
-    Postboot 'zpool upgrade -a'
     # Give the pool a unique GUID
     Postboot "zpool reguid $HVMrpool"
 }
@@ -214,6 +210,36 @@ function img_version {
         }' $root/etc/os-release
 }
 
+function img_extrarepo {
+    typeset root="${1?altroot}"; shift
+
+    export PKG_IMAGE="$root"
+
+    case $1 in
+        -off)
+            log "...disabling extra repo"
+            pkg unset-publisher $EXTRAPUB
+            setpaths $root $DEFPATH $DEFSUPATH
+            ;;
+        *)
+            log "...enabling extra repo"
+            pkg set-publisher --no-refresh \
+                -O $OOCEPUBURL_EXTRA $EXTRAPUB
+            for m in $MIRRORS; do
+                pkg set-publisher --no-refresh \
+                    -m https://$m.$MIRRORDOMAIN/${URLSUFFIX/core/extra} \
+                    $EXTRAPUB
+            done
+            pkg publisher $OOCEPUB | egrep -s require-signatures &&
+                pkg set-publisher --no-refresh --set-property \
+                signature-policy=require-signatures $EXTRAPUB
+            setpaths $root $EXTRAPATH $EXTRASUPATH
+            ;;
+    esac
+
+    unset PKG_IMAGE
+}
+
 function img_install_pkg {
     typeset root="${1?altroot}"; shift
 
@@ -225,10 +251,12 @@ function img_install_pkg {
         pkg -R $root set-publisher \
             -g https://pkg.omnios.org/r$ver/staging omnios || true
     fi
-    # Setting this flag lets `pkg` know that this is an automatic install and
-    # that the installed packages should not be marked as 'manually installed'
-    export PKG_AUTOINSTALL=1
-    logcmd pkg -R $root install "$@"
+
+    # Setting PKG_AUTOINSTALL lets `pkg` know that this is an automatic install
+    # and that the installed packages should not be marked as 'manually
+    # installed'
+    PKG_AUTOINSTALL=1 logcmd pkg -R $root install "$@"
+
     if (( ver % 2 == 0 )); then
         pkg -R $root set-publisher \
             -G https://pkg.omnios.org/r$ver/staging omnios || true

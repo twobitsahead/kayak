@@ -18,6 +18,7 @@
 SRCDIR=`dirname $0`
 [ ${SRCDIR:0:1} = "/" ] || SRCDIR=`pwd`/$SRCDIR
 
+. $SRCDIR/../lib/defs.sh
 . $SRCDIR/../lib/hvm_help.sh
 . $SRCDIR/../lib/utils.sh
 
@@ -56,6 +57,9 @@ DUMPADM_CONTENT=curproc
 DUMPADM_ENABLE=yes
 DUMPADM_CSAVE=on
 EOM
+
+    # Enable the extra repo
+    img_extrarepo "$root" -on
 
     # Create the boot archive manually because we can only boot from hsfs and
     # the create_ramdisk script cannot do this for us.
