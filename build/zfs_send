@@ -67,17 +67,12 @@ case $ARCH in
     i386)
         PUBURL=$OOCEPUBURL
         OUTPUT_PREFIX=kayak
-        # The extra publishers are not included in the i386 send stream.
-        # Consumers of the final image, such as the installer or cloud
-        # images will add those if necessary.
         ;;
     aarch64)
         INSTALL_ENTIRE=0
         PUBURL=$OOCEBRAICHURL
         OUTPUT_PREFIX=aarch64
         URLSUFFIX=bloody/braich
-        # The extra publishers are not included in the aarch64 send stream.
-        # The braich image build script will add it.
         ;;
     *)  fail "Unknown arch '$ARCH'" ;;
 esac
@@ -89,7 +84,6 @@ typeset -i native
 # but the publisher will be reset to PUBURL before bundling up the final image
 # unless -P was provided.
 : ${PKGURL:=$PUBURL}
-: ${EXTRAPKGURL:=$EXTRAPUBURL}
 
 name=$1
 if [ -z "$name" ]; then
@@ -116,9 +110,7 @@ cat << EOM
                   Dataset: $ZDATASET
                 Publisher: $OOCEPUB
   Installation Repository: $PKGURL
-         Extra Repository: $EXTRAPKGURL
          Final Repository: $PUBURL
-   Final extra Repository: $EXTRAPUBURL
                      Arch: $ARCH
                   Variant: $VARIANT
                    Output: $OUT
@@ -158,8 +150,6 @@ else
     pkg image-create --full $args \
         --publisher $OOCEPUB=$PKGURL $MP || fail "image-create"
     export PKG_IMAGE=$MP
-    [ -n "$EXTRAPKGURL" ] && \
-        pkg set-publisher --no-refresh -O $EXTRAPKGURL $EXTRAPUB
     if ((INSTALL_ENTIRE)); then
         note "Installing $entire_fmri"
         pkg install $entire_fmri || fail "install entire"
@@ -220,7 +210,6 @@ fi
 
 if ((PUBLISHER_OVERRIDE)); then
     PUBURL=$PKGURL
-    EXTRAPUBURL=$EXTRAPKGURL
 fi
 
 note "Configuring publishers"
@@ -236,19 +225,6 @@ for m in $MIRRORS; do
     pkg set-publisher --no-refresh \
         -m https://$m.$MIRRORDOMAIN/$URLSUFFIX $OOCEPUB
 done
-
-if [ -n "$EXTRAPUBURL" ]; then
-    snote "Setting omnios extra publisher to $EXTRAPUBURL"
-    pkg unset-publisher $EXTRAPUB
-    pkg set-publisher --no-refresh -O $EXTRAPUBURL $EXTRAPUB
-    snote "Setting signature policy to $policy."
-    pkg set-publisher --set-property signature-policy=$policy $EXTRAPUB
-    for m in $MIRRORS; do
-        snote "  adding mirror https://$m.$MIRRORDOMAIN/$URLSUFFIX"
-        pkg set-publisher --no-refresh \
-            -m https://$m.$MIRRORDOMAIN/${URLSUFFIX/core/extra} $EXTRAPUB
-    done
-fi
 
 note "Final publisher configuration:"
 pkg publisher
