@@ -122,12 +122,6 @@ function postinstall_aarch64 {
 
     note "aarch64 postinstall steps"
 
-    # aarch64 doesn't currently include this file but we need it for pkg
-    # to operate correctly. Without it the name of the default zone brand
-    # cannot be determined.
-    mkdir -p $ROOT/etc/zones
-    cp /etc/zones/SUNWdefault.xml $ROOT/etc/zones/
-
     # Install skeleton /dev
     tar zxf $KYKDIR/data/dev.tar.gz -C $ROOT 2>&1 | grep -v 'Removing leading'
 }
