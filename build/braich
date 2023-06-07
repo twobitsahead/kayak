@@ -59,7 +59,11 @@ DUMPADM_CSAVE=on
 EOM
 
     # Enable the extra repo
-    img_extrarepo "$root" -on
+    pkg -R "$root" set-publisher --no-refresh -O $OOCEBRAICHURL $EXTRAPUB
+    for m in $MIRRORS; do
+        pkg -R "$root" set-publisher --no-refresh \
+            -m https://$m.$MIRRORDOMAIN/bloody/braich $EXTRAPUB
+    done
 
     # Create the boot archive manually because we can only boot from hsfs and
     # the create_ramdisk script cannot do this for us.
