@@ -56,6 +56,8 @@ customise() {
 
     log "... installing noautofs profile"
     img_install_profile $root $SRCDIR/../etc/noautofs.xml
+
+    log "... installing rsyslog profile"
     img_install_profile $root $SRCDIR/../etc/rsyslog.xml
     logadm_rsyslog $root
 

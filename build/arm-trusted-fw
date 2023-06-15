@@ -1,0 +1,25 @@
+#!/bin/ksh
+
+# Copyright 2023 OmniOS Community Edition (OmniOSce) Association.
+
+MIRROR=https://mirrors.omnios.org
+PROG=arm-trusted-firmware
+VER=2.9.0
+FILE=$PROG-$VER.tar.gz
+URL=$MIRROR/$PROG/$FILE
+
+dir=`/usr/gnu/bin/mktemp -d`
+trap 'rm -rf $dir' EXIT
+
+(
+	cd $dir
+	wget $URL
+	gtar zxf $FILE
+	cd $PROG-$VER
+	CROSS_COMPILE=/opt/cross/aarch64/bin/aarch64-unknown-solaris2.11- \
+	    DTC=/opt/ooce/bin/dtc \
+	    gmake -j 10 PLAT=rpi4 DEBUG=1 bl31
+)
+
+cp $dir/$PROG-$VER/build/rpi4/debug/bl31.bin ./bin/bl31.bin
+

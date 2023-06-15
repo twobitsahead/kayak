@@ -22,6 +22,26 @@ SRCDIR=`dirname $0`
 . $SRCDIR/../lib/hvm_help.sh
 . $SRCDIR/../lib/utils.sh
 
+typeset -i QEMU=0
+typeset -i RPI=0
+typeset -i RPIMBR=0
+
+while getopts "qrm" opt; do
+    case $opt in
+        q)  QEMU=1 ;;
+        r)  RPI=1 ;;
+        m)  RPIMBR=1 ;;
+        *)  print -u2 "Syntax: $0 [-qr]"; exit 2 ;;
+    esac
+done
+
+# If nothing is specified, build everything
+if ((QEMU + RPI + RPIMBR == 0)); then
+    QEMU=1
+    RPI=1
+    RPIMBR=1
+fi
+
 [ -z "$BUILDSEND_MP" ] && BUILDSEND_MP=/kayak_image
 
 find_zfssend aarch64
@@ -41,22 +61,24 @@ customise() {
     typeset root="${1?altroot}"
 
     img_permit_rootlogin $root without-password
+    img_dedicated_home $root
+
+    log "... installing noautofs profile"
+    img_install_profile $root $SRCDIR/../etc/noautofs.xml
+
+    img_install_profile $root $SRCDIR/../etc/rsyslog.xml
+    logadm_rsyslog $root
+
+    # Install the postboot service
+    img_install_service $root system $SRCDIR/../smf/initial-boot{.xml,}
 
     # This is KMF_DEADBEEF|KMF_REDZONE
     echo "set kmem_flags = 0x6" > $root/etc/system.d/kmem_flags
 
     sed -i 's/PASSREQ=YES/PASSREQ=NO/' $root/etc/default/login
 
-    create_swap_dump $HVMtmprpool rpool $root 1G 4096 y
-
-    # No Postboot yet so create the dump config manually
-    cat << EOM > $root/etc/dumpadm.conf
-DUMPADM_DEVICE=/dev/zvol/dsk/$HVMtmprpool/dump
-DUMPADM_SAVDIR=/var/crash/braich
-DUMPADM_CONTENT=curproc
-DUMPADM_ENABLE=yes
-DUMPADM_CSAVE=on
-EOM
+    # Set the default timezone to UTC (it's PST in illumos-gate)
+    img_set_timezone $root UTC
 
     # Enable the extra repo
     pkg -R "$root" set-publisher --no-refresh -O $OOCEBRAICHURL $EXTRAPUB
@@ -64,6 +86,26 @@ EOM
         pkg -R "$root" set-publisher --no-refresh \
             -m https://$m.$MIRRORDOMAIN/bloody/braich $EXTRAPUB
     done
+
+    # We don't currently ship 'tput' from illumos, substitute a symlink to
+    # the GNU variant for now so that commands like 'clear' work.
+    ln -s gtput $root/usr/bin/tput
+
+    # On first boot, create swap and dump, and turn autoexpansion on for the
+    # root. We don't do this in the image to keep the size down.
+    # Note that swap is created as a sparse volume (we hope it will never
+    # be written to, but it needs to exist).
+    img_postboot_block $root << EOM
+/sbin/zpool set autoexpand=on $HVMrpool
+/sbin/zfs create -sV 1G -b 4096 \
+    -o logbias=throughput -o primarycache=metadata -o secondarycache=none \
+    $HVMrpool/swap
+/sbin/zfs create -V 1G -b 4096 \
+    -o logbias=throughput -o primarycache=metadata -o secondarycache=none \
+    $HVMrpool/dump
+print "/dev/zvol/dsk/$HVMrpool/swap - - swap - no -" >> /etc/vfstab
+/usr/sbin/dumpadm -y -c curproc -d /dev/zvol/dsk/$HVMpool/dump
+EOM
 
     # Create the boot archive manually because we can only boot from hsfs and
     # the create_ramdisk script cannot do this for us.
@@ -92,34 +134,224 @@ EOM
     popd
 }
 
-HVM_Image_Init 8G rpool braich omnios-r$VERSION
-HVM_MBR_Init
-HVMdisk+=s0 HVM_Image_Build "-f" $ZFSSEND braich customise -noactivate
-slice=0
-HVM_Image_Finalise $slice \
-    "/dev/dsk/c1t0d0s${slice}" "/virtio_mmio@a003c00/blkdev@0,0:a" "" \
-    -keeplofi
+customise_qemu() {
+    typeset root="${1?altroot}"
+
+    customise "$root"
+
+    cp $root/platform/QEMU,virt-4.1/inetboot.bin \
+        $BUILDSEND_MP/braich-$VERSION.inetboot
+}
+
+customise_rpi4() {
+    typeset root="${1?altroot}"
+
+    customise "$root"
+
+    # The rpi4 does not have a battery and so the system clock comes up in
+    # 2015. Enable chrony by default and configure it so that it's allowed to
+    # step the time.
+
+    log "... configuring chrony"
+    img_install_profile $root $SRCDIR/../etc/chrony.xml
+
+    cat << EOM > $root/etc/inet/chrony.conf
+pool 0.omnios.pool.ntp.org iburst
+driftfile /var/lib/chrony/drift
+ntsdumpdir /var/lib/chrony
+pidfile /var/run/chrony/chronyd.pid
+makestep 900 -1
+EOM
+
+    cp $root/platform/RaspberryPi,4/inetboot \
+        $BUILDSEND_MP/braich-rpi4-$VERSION.inetboot
+    cp $root/platform/RaspberryPi,4/inetboot \
+        $BUILDSEND_MP/braich-rpi4-mbr-$VERSION.inetboot
+}
 
 ##############################################################################
+# Build a disk image suitable for running under QEMU
 
-basef=$BUILDSEND_MP/braich-$VERSION
+export_raw() {
+    typeset basef="$1"
+    typeset lofi="$2"
 
-##############################################################################
-note "Creating raw disk image"
+    note "Creating raw disk image (${basef##*/})"
 
-rm -f $basef.raw
-dd if=$HVMlofi of=$basef.raw bs=2048 status=progress
+    rm -f $basef.raw
+    dd if=$lofi of=$basef.raw bs=2048 status=progress
 
-##############################################################################
-note "Cleaning up"
+    note "Compressing"
 
-lofiadm -d $HVMlofi
-zfs destroy -r $HVMdataset
+    zstd -9fv --rm $basef.raw
+}
 
-##############################################################################
-note "Compressing"
+build_qemu() {
+    typeset basef="$1"
 
-zstd -9fv --rm $basef.raw
+    note "Building QEMU image"
+
+    HVM_Image_Init 8G rpool braich omnios-r$VERSION
+    # Create boot partition even though UEFI boot is not yet supported.
+    HVM_Image_Build "-B -o ashift=12" \
+        $ZFSSEND braich customise_qemu -noactivate
+    HVM_Image_Finalise 1 \
+        "/dev/dsk/c1t0d0s1" "/virtio_mmio@a003c00/blkdev@0,0:b" "" \
+        -keeplofi
+
+    export_raw $basef $HVMlofi
+
+    lofiadm -d $HVMlofi
+    zfs destroy -r $HVMdataset
+}
+
+build_rpi4() {
+    typeset basef="$1"; shift
+    typeset -i mbr=0
+
+    while [[ "$1" = -* ]]; do
+        case $1 in
+            -mbr)   mbr=1 ;;
+            *)      echo "Unknown flag $1" ;;
+        esac
+        shift
+    done
+
+    ((mbr)) && note "Building MBR rpi4 image" || note "Building EFI rpi4 image"
+
+    if ((mbr)); then
+        # It's hard to grow this later (unlike EFI partitioning where the zfs
+        # pool will auto-expand to fill the available space).
+        HVM_Image_Init 4G rpool braich omnios-r$VERSION
+
+        # We don't use HVM_MBR_Init because we need to create two partitions
+        # on this disk. The first is FAT32 and holds the files required to
+        # boot the Raspberry Pi, and that is followed by a Solaris2 partition
+        # that occupies the remaining space. That second partition then
+        # contains a VTOC and the ZFS pool is created on the first slice of
+        # that VTOC. That means that when you see "s0" below, this represents
+        # the first slice in the VTOC in the second partition.
+
+        # These were derived from the partition structure on  an official
+        # Raspberry Pi Linux. There may be some improvements possible here.
+        FAT_SECTORS=524288      # Ends up being ~256MiB
+        RESV_FAT_SECTORS=8192
+        RESV_SOL_SECTORS=532480
+
+        # Calculate the total number of available sectors by creating a single
+        # sol2 partition that spans the entire disk and reading the Numsect
+        # value back out.
+        sudo fdisk -B $HVMrlofi
+        # Id Act Bhead Bsect Bcyl Ehead Esect Ecyl Rsect Numsect
+        set -- $(sudo fdisk -W - $HVMrlofi | awk '$1 == 191 { print }')
+        TOTAL_SECTORS=${10}
+
+        # Now create the real partition table, small FAT32 partition followed
+        # by a solaris one filling the remaining space.
+
+        ((ZPOOL_SECTORS = TOTAL_SECTORS - FAT_SECTORS - RESV_FAT_SECTORS))
+
+        #       id act bhead bsect bcyl ehead esect ecyl rsect numsect
+        tf=`mktemp`
+        cat <<EOM > $tf
+12 0 0 1 64 3 32 1023 $RESV_FAT_SECTORS $FAT_SECTORS
+191 128 3 32 1023 3 32 1023 $RESV_SOL_SECTORS $ZPOOL_SECTORS
+EOM
+        sudo fdisk -F $tf $HVMrlofi
+        rm -f $tf
+
+        # Set up a VTOC in the second partition.
+        # Create slice 0 covering all of the non-reserved space.
+        OIFS="$IFS"; IFS=" ="
+        set -- `sudo prtvtoc -f $HVMrlofi`
+        IFS="$OIFS"
+        # FREE_START=2048 FREE_SIZE=196608 FREE_COUNT=1 FREE_PART=...
+        start=$2; size=$4
+        sudo fmthard -d 0:2:01:$start:$size $HVMrlofi
+
+        HVMdisk+=s0 HVM_Image_Build "-f -o ashift=9" $ZFSSEND \
+            braich customise_rpi4 -noactivate
+
+        slice=0
+        FAT_RAW=${HVMrlofi}:c
+        FAT_BLK=${HVMlofi}:c
+    else
+        # Keep it small so it's quick to write to the SD card. It will
+        # auto-expand on first boot.
+        HVM_Image_Init 2G rpool braich omnios-r$VERSION
+        HVM_Image_Build "-B -o bootsize=256M -o ashift=9" \
+            $ZFSSEND braich customise_rpi4 -noactivate
+
+        slice=1
+        FAT_RAW=${HVMrlofi/p0/s0}
+        FAT_BLK=${HVMlofi/p0/s0}
+    fi
+
+    HVM_Image_Finalise $slice \
+        "/dev/dsk/c1t0d0s$slice" "/emmc2bus/mmc@7e340000/blkdev@0,0:b" "" \
+        -keeplofi
+
+    # Format and populate the boot partition with the files needed to boot
+
+    # The boot sequence is:
+    #   - ROM stage1 bootloader
+    #   - SPI flash stage2 bootloader (was bootcode.bin on previous models)
+    #   - arm trusted firmware bl31.bin
+    #   - u-boot
+    #   - inetboot
+    #   - illumos kernel
+
+    boot=`mktemp -d`
+    yes | sudo mkfs -F pcfs -o fat=32,b=bootfs $FAT_RAW || true
+    sudo mount -F pcfs $FAT_BLK $boot
+
+    cp $basef.inetboot $boot/inetboot
+
+    cp $SRCDIR/../bin/bl31.bin $boot/
+    cp $SRCDIR/../bin/u-boot.bin $boot/
+
+	for f in \
+        COPYING.linux \
+        LICENCE.broadcom \
+        bootcode.bin \
+        fixup4cd.dat \
+        start4cd.elf \
+        bcm2711-rpi-4-b.dtb
+	do
+		cp $SRCDIR/../bin/firmware-1.*/boot/$f $boot/
+	done
+    mkdir -p $boot/overlays
+    cp $SRCDIR/../bin/firmware-1.*/boot/overlays/* $boot/overlays
+
+    cat << EOM > $boot/config.txt
+gpu_mem=16
+start_file=start4cd.elf
+fixup_file=fixup4cd.dat
+arm_64bit=1
+enable_gic=1
+armstub=bl31.bin
+kernel=u-boot.bin
+dtoverlay=mmc
+dtoverlay=disable-wifi
+# The following two lines disable the mini UART and set the first PL011 UART as
+# the primary UART - that which is presented on GPIO14/GPIO15. The mini UART
+# is less capable and its baud rate is linked to the VCPU clock speed.
+enable_uart=1
+dtoverlay=disable-bt
+EOM
+
+    umount $boot
+    rm -rf $boot
+
+    export_raw $basef $HVMlofi
+
+    lofiadm -d $HVMlofi
+    zfs destroy -r $HVMdataset
+}
+
+((QEMU)) && build_qemu $BUILDSEND_MP/braich-$VERSION
+((RPI)) && build_rpi4 $BUILDSEND_MP/braich-rpi4-$VERSION
+((RPIMBR)) && build_rpi4 $BUILDSEND_MP/braich-rpi4-mbr-$VERSION -mbr
 
 # Vim hints
 # vim:ts=4:sw=4:et:fdm=marker

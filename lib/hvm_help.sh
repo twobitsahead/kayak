@@ -270,6 +270,17 @@ function img_install_profile {
     logcmd cp $profile $root/etc/svc/profile/site/
 }
 
+function img_install_service {
+    typeset root="${1?altroot}"; shift
+    typeset class="${1?class}"; shift
+    typeset manifest="${1?manifest}"; shift
+    typeset method="$1"
+
+    logcmd mkdir -p $root/lib/svc/manifest/$class
+    logcmd cp $manifest $root/lib/svc/manifest/$class/
+    [ -n "$method" ] && logcmd cp $method $root/lib/svc/method/
+}
+
 function img_permit_rootlogin {
     typeset root="${1?altroot}"; shift
     typeset type="${2:-without-password}"; shift
@@ -311,6 +322,13 @@ function img_dedicated_home {
 /bin/chmod 0555 /home
 /usr/sbin/useradd -D -b /home
 EOM
+}
+
+function img_set_timezone {
+    typeset root="${1?altroot}"; shift
+    typeset tz="${1?tz}"; shift
+
+    logcmd sed -i -e "s:^TZ=.*:TZ=$tz:" $root/etc/default/init
 }
 
 # Vim hints
