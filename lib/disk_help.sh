@@ -151,11 +151,15 @@ function create_swap_dump {
     typeset size=${1?size}; shift
     typeset blocksize=${1:-4096}
     typeset savecore=${2:-y}
+    typeset sparse=${3:-n}
 
     typeset volname
     for volname in swap dump; do
+        typeset extra_args=
+        [ "$volname" = swap -a "$sparse" = y ] && extra_args=-s
         log "Creating $volname..."
         logcmd /sbin/zfs create \
+            $extra_args \
             -V ${size} \
             -b $blocksize \
             -o logbias=throughput \
@@ -163,7 +167,7 @@ function create_swap_dump {
             -o primarycache=metadata \
             -o secondarycache=none \
             $tmppool/$volname \
-            || bomb "Failed to create $ptmpool/$volname"
+            || bomb "Failed to create $tmppool/$volname"
     done
     printf "/dev/zvol/dsk/$pool/swap\t-\t-\tswap\t-\tno\t-\n" \
         >> $root/etc/vfstab

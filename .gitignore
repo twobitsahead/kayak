@@ -1,9 +1,12 @@
 kayak_root/
+bin/bl31.bin
 bin/dialog
+bin/firmware-1.*/
 bin/ipcalc
 bin/mount_media
 bin/passutil
 bin/takeover-console
+bin/u-boot.bin
 bin/zpool_patch
 etc/kbd.list
 run

@@ -1,0 +1,27 @@
+#!/bin/ksh
+
+# Copyright 2023 OmniOS Community Edition (OmniOSce) Association.
+
+MIRROR=https://mirrors.omnios.org
+PROG=u-boot
+VER=2023.01
+FILE=$PROG-$VER-aarch64-patched.tar.zst
+URL=$MIRROR/$PROG/$FILE
+
+dir=`/usr/gnu/bin/mktemp -d`
+trap 'rm -rf $dir' EXIT
+
+(
+	cd $dir
+	wget $URL
+	zstd -dc $FILE | gtar xf -
+	cd $PROG-$VER
+	gmake -j 10 HOSTCC="gcc -m64" \
+	    HOSTCFLAGS="-I/opt/ooce/include" \
+	    HOSTLDLIBS="-L/opt/ooce/lib/amd64 -lnsl -lsocket" \
+	    CROSS_COMPILE=/opt/cross/aarch64/bin/aarch64-unknown-solaris2.11- \
+	    ARCH=arm rpi_4_defconfig u-boot u-boot.bin
+)
+
+cp $dir/$PROG-$VER/$PROG.bin ./bin/$PROG.bin
+

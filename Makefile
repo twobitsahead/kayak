@@ -143,6 +143,28 @@ zfsdestroy:
 	    zfs destroy -r $(BUILDSEND)
 
 ######################################################################
+# Raspberry Pi components
+
+RPIGITHUB=https://github.com/raspberrypi
+RPIFWVER=1.20230405
+download-rpi-firmware: bin/firmware-$(RPIFWVER)
+bin/firmware-$(RPIFWVER):
+	wget -O bin/firmware-$(RPIFWVER).tar.gz \
+	    $(RPIGITHUB)/firmware/archive/refs/tags/$(RPIFWVER).tar.gz
+	tar xf bin/firmware-$(RPIFWVER).tar.gz \
+	    firmware-$(RPIFWVER)/boot -C bin
+	rm -f bin/firmware-$(RPIFWVER).tar.gz
+
+bin/u-boot.bin: build/u-boot
+	./build/u-boot
+
+bin/bl31.bin: build/arm-trusted-fw
+	./build/arm-trusted-fw
+
+RPI_BINS= bin/firmware-$(RPIFWVER) bin/u-boot.bin bin/bl31.bin
+rpi-bins: $(RPI_BINS)
+
+######################################################################
 # Binaries to build from source
 
 BINS=bin/takeover-console bin/ipcalc bin/dialog bin/passutil bin/mount_media \
@@ -175,6 +197,7 @@ bins: $(BINS)
 
 clean:
 	-rm -f $(BINS)
+	-rm -rf $(RPI_BINS)
 	-rm -rf VMDK-stream-converter-0.2
 
 ######################################################################
@@ -207,7 +230,7 @@ build-cloud: bins zfs
 	@banner .CLOUD
 	BUILDSEND_MP=$(BUILDSEND_MP) ./build/cloud
 
-build-braich: bins zfscreate zfs_aarch64
+build-braich: bins zfscreate zfs_aarch64 rpi-bins
 	@banner .BRAICH
 	BUILDSEND_MP=$(BUILDSEND_MP) ./build/braich
 
