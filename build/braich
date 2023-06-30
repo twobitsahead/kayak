@@ -96,6 +96,7 @@ customise() {
     # Note that swap is created as a sparse volume (we hope it will never
     # be written to, but it needs to exist).
     img_postboot_block $root << EOM
+/sbin/zpool set cachefile=/etc/zfs/zpool.cache $HVMrpool
 /sbin/zpool set autoexpand=on $HVMrpool
 /sbin/zfs create -sV 1G -b 4096 \
     -o logbias=throughput -o primarycache=metadata -o secondarycache=none \
