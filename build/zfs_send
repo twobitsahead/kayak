@@ -69,7 +69,6 @@ case $ARCH in
         OUTPUT_PREFIX=kayak
         ;;
     aarch64)
-        INSTALL_ENTIRE=0
         PUBURL=$OOCEBRAICHURL
         OUTPUT_PREFIX=aarch64
         URLSUFFIX=bloody/braich
