@@ -161,7 +161,10 @@ bin/u-boot.bin: build/u-boot
 bin/bl31.bin: build/arm-trusted-fw
 	./build/arm-trusted-fw
 
-RPI_BINS= bin/firmware-$(RPIFWVER) bin/u-boot.bin bin/bl31.bin
+bin/barn:	src/barn.c
+	gcc -m64 -o $@ $< -lnvpair
+
+RPI_BINS= bin/firmware-$(RPIFWVER) bin/u-boot.bin bin/bl31.bin bin/barn
 rpi-bins: $(RPI_BINS)
 
 ######################################################################

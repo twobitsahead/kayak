@@ -1,4 +1,5 @@
 kayak_root/
+bin/barn
 bin/bl31.bin
 bin/dialog
 bin/firmware-1.*/

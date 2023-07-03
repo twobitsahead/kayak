@@ -111,18 +111,20 @@ print "/dev/zvol/dsk/$HVMrpool/swap - - swap - no -" >> /etc/vfstab
 EOM
 
     # Create the boot archive manually because we can only boot from hsfs and
-    # the create_ramdisk script cannot do this for us.
+    # the create_ramdisk script cannot yet do this for us.
     pushd $root
 
     zpool set bootfs=$HVMtmprpool/ROOT/$HVMbename $HVMtmprpool
 
-    typeset filelist=`mktemp`
+    cat ./etc/system.d/* > ./etc/system.d/.self-assembly
+
+    typeset filelist=./platform/armv8/archive_cache
 
     ./boot/solaris/bin/extract_boot_filelist \
         -R $root -p aarch64 boot/solaris/filelist.ramdisk \
         | while read file; do
-            [ -e "$file" ] && echo $file
-        done | awk '{printf("/%s=./%s\n", $1, $1);}' > $filelist
+            [ -e "$file" ] && find "$file" -type f
+        done | awk '{printf("/%s=./%s\n", $1, $1)}' > $filelist
 
     mkisofs \
         -quiet \
@@ -132,7 +134,14 @@ EOM
         -o ./platform/armv8/boot_archive \
         `cat $filelist`
 
-    rm -f $filelist
+    sed -i 's/=\./=/' $filelist
+
+    $SRCDIR/../bin/barn -R $PWD -w $filelist
+
+    touch ./boot/solaris/timestamp.cache
+
+    SVCCFG_REPOSITORY=$root/etc/svc/repository.db \
+        svccfg -s system/boot-archive setprop config/format=hsfs
 
     popd
 }
