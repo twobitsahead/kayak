@@ -86,6 +86,7 @@ customise() {
         pkg -R "$root" set-publisher --no-refresh \
             -m https://$m.$MIRRORDOMAIN/bloody/braich $EXTRAPUB
     done
+    setpaths $root $EXTRAPATH $EXTRASUPATH
 
     # We don't currently ship 'tput' from illumos, substitute a symlink to
     # the GNU variant for now so that commands like 'clear' work.
