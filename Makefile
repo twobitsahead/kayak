@@ -149,7 +149,7 @@ RPIGITHUB=https://github.com/raspberrypi
 RPIFWVER=1.20230405
 download-rpi-firmware: bin/firmware-$(RPIFWVER)
 bin/firmware-$(RPIFWVER):
-	wget -O bin/firmware-$(RPIFWVER).tar.gz \
+	curl -fLo bin/firmware-$(RPIFWVER).tar.gz \
 	    $(RPIGITHUB)/firmware/archive/refs/tags/$(RPIFWVER).tar.gz
 	tar xf bin/firmware-$(RPIFWVER).tar.gz \
 	    firmware-$(RPIFWVER)/boot -C bin
