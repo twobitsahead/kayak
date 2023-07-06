@@ -109,7 +109,7 @@ vmdkver=0.2
 dir=VMDK-stream-converter-$vmdkver
 file=$dir.tar.gz
 if [ ! -d $dir ]; then
-    wget -O /tmp/$file https://mirrors.omnios.org/vmdk/$file
+    curl -fLo /tmp/$file https://mirrors.omnios.org/vmdk/$file
     gtar zxf /tmp/$file
 fi
 
@@ -121,7 +121,7 @@ rm -rf $dir
 note "Creating VHD"
 
 conv=`mktemp`
-wget -O $conv https://mirrors.omnios.org/vhd/raw2vhd.py
+curl -fLo $conv https://mirrors.omnios.org/vhd/raw2vhd.py
 echo "Creating vhd disk image"
 python2 $conv $basef.{raw,vhd}
 rm -f $conv

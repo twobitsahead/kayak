@@ -86,6 +86,7 @@ customise() {
         pkg -R "$root" set-publisher --no-refresh \
             -m https://$m.$MIRRORDOMAIN/bloody/braich $EXTRAPUB
     done
+    setpaths $root $EXTRAPATH $EXTRASUPATH
 
     # We don't currently ship 'tput' from illumos, substitute a symlink to
     # the GNU variant for now so that commands like 'clear' work.
@@ -96,7 +97,7 @@ customise() {
     # Note that swap is created as a sparse volume (we hope it will never
     # be written to, but it needs to exist).
     img_postboot_block $root << EOM
-/sbin/zpool set cachefile=/etc/zfs/zpool.cache $HVMrpool
+/sbin/zpool set cachefile=none $HVMrpool
 /sbin/zpool set autoexpand=on $HVMrpool
 /sbin/zfs create -sV 1G -b 4096 \
     -o logbias=throughput -o primarycache=metadata -o secondarycache=none \
@@ -106,21 +107,24 @@ customise() {
     $HVMrpool/dump
 print "/dev/zvol/dsk/$HVMrpool/swap - - swap - no -" >> /etc/vfstab
 /usr/sbin/dumpadm -y -c curproc -d /dev/zvol/dsk/$HVMpool/dump
+/sbin/zpool set cachefile=/etc/zfs/zpool.cache $HVMrpool
 EOM
 
     # Create the boot archive manually because we can only boot from hsfs and
-    # the create_ramdisk script cannot do this for us.
+    # the create_ramdisk script cannot yet do this for us.
     pushd $root
 
     zpool set bootfs=$HVMtmprpool/ROOT/$HVMbename $HVMtmprpool
 
-    typeset filelist=`mktemp`
+    cat ./etc/system.d/* > ./etc/system.d/.self-assembly
+
+    typeset filelist=./platform/armv8/archive_cache
 
     ./boot/solaris/bin/extract_boot_filelist \
         -R $root -p aarch64 boot/solaris/filelist.ramdisk \
         | while read file; do
-            [ -e "$file" ] && echo $file
-        done | awk '{printf("/%s=./%s\n", $1, $1);}' > $filelist
+            [ -e "$file" ] && find "$file" -type f
+        done | awk '{printf("/%s=./%s\n", $1, $1)}' > $filelist
 
     mkisofs \
         -quiet \
@@ -130,7 +134,14 @@ EOM
         -o ./platform/armv8/boot_archive \
         `cat $filelist`
 
-    rm -f $filelist
+    sed -i 's/=\./=/' $filelist
+
+    $SRCDIR/../bin/barn -R $PWD -w $filelist
+
+    touch ./boot/solaris/timestamp.cache
+
+    SVCCFG_REPOSITORY=$root/etc/svc/repository.db \
+        svccfg -s system/boot-archive setprop config/format=hsfs
 
     popd
 }

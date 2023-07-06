@@ -13,7 +13,7 @@ trap 'rm -rf $dir' EXIT
 
 (
 	cd $dir
-	wget $URL
+	curl -fLO $URL
 	zstd -dc $FILE | gtar xf -
 	cd $PROG-$VER
 	gmake -j 10 HOSTCC="gcc -m64" \

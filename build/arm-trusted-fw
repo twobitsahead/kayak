@@ -13,7 +13,7 @@ trap 'rm -rf $dir' EXIT
 
 (
 	cd $dir
-	wget $URL
+	curl -fLO $URL
 	gtar zxf $FILE
 	cd $PROG-$VER
 	CROSS_COMPILE=/opt/cross/aarch64/bin/aarch64-unknown-solaris2.11- \

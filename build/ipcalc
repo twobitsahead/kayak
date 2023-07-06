@@ -12,7 +12,7 @@ dir=`/usr/gnu/bin/mktemp -d`
 
 (
 	cd $dir
-	wget $URL
+	curl -fLO $URL
 	gtar -zxf $FILE
 	cd $PROG-$VER
 	# Remove 'ipcalc: ' prefix from error messages.
