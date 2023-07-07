@@ -106,7 +106,7 @@ customise() {
     -o logbias=throughput -o primarycache=metadata -o secondarycache=none \
     $HVMrpool/dump
 print "/dev/zvol/dsk/$HVMrpool/swap - - swap - no -" >> /etc/vfstab
-/usr/sbin/dumpadm -y -c curproc -d /dev/zvol/dsk/$HVMpool/dump
+/usr/sbin/dumpadm -y -c curproc -d /dev/zvol/dsk/$HVMrpool/dump
 /sbin/zpool set cachefile=/etc/zfs/zpool.cache $HVMrpool
 EOM
 
