@@ -88,10 +88,6 @@ customise() {
     done
     setpaths $root $EXTRAPATH $EXTRASUPATH
 
-    # We don't currently ship 'tput' from illumos, substitute a symlink to
-    # the GNU variant for now so that commands like 'clear' work.
-    ln -s gtput $root/usr/bin/tput
-
     # On first boot, create swap and dump, and turn autoexpansion on for the
     # root. We don't do this in the image to keep the size down.
     # Note that swap is created as a sparse volume (we hope it will never
