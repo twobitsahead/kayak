@@ -130,7 +130,7 @@ class KayakLog(object):
             raise cherrypy.HTTPError("404 Not Found")
         log = open(os.path.join(options.basedir, 'log',
             macaddr + "." + str(time.time())), 'w')
-        log.write(cherrypy.request.body.read())
+        log.write(str(cherrypy.request.body.read(), errors='replace'))
 
 if __name__ == '__main__':
     parser = OptionParser(usage="usage: %prog [options]")
