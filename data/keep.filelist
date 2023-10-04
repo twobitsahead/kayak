@@ -158,6 +158,7 @@
 /usr/bin/tzselect
 /usr/bin/uname
 /usr/bin/uniq
+/usr/bin/uuidgen
 /usr/bin/vi
 /usr/bin/vim
 /usr/bin/wc
