@@ -2,10 +2,13 @@
 
 # Copyright 2023 OmniOS Community Edition (OmniOSce) Association.
 
+SRCDIR=`dirname $0`
+[ ${SRCDIR:0:1} = "/" ] || SRCDIR=`pwd`/$SRCDIR
+
 MIRROR=https://mirrors.omnios.org
 PROG=u-boot
 VER=2023.01
-FILE=$PROG-$VER-aarch64-patched.tar.zst
+FILE=$PROG-$VER.tar.bz2
 URL=$MIRROR/$PROG/$FILE
 
 dir=`/usr/gnu/bin/mktemp -d`
@@ -14,8 +17,9 @@ trap 'rm -rf $dir' EXIT
 (
 	cd $dir
 	curl -fLO $URL
-	zstd -dc $FILE | gtar xf -
+	bzip2 -dc $FILE | gtar xf -
 	cd $PROG-$VER
+	gpatch -p1 < $SRCDIR/../patches/u-boot.patch || exit 1
 	gmake -j 10 HOSTCC="gcc -m64" \
 	    HOSTCFLAGS="-I/opt/ooce/include" \
 	    HOSTLDLIBS="-L/opt/ooce/lib/amd64 -lnsl -lsocket" \
