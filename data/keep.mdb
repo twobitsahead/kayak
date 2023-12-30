@@ -1,5 +1,3 @@
-/kernel/kmdb
-/kernel/kmdb/amd64
 /kernel/kmdb/amd64/arp
 /kernel/kmdb/amd64/cpc
 /kernel/kmdb/amd64/cpu.generic
@@ -83,7 +81,6 @@
 /usr/lib/mdb/proc/amd64/ld.so
 /usr/lib/mdb/proc/amd64/libavl.so
 /usr/lib/mdb/proc/amd64/libc.so
-/usr/lib/mdb/proc/amd64/libcmdutils.so
 /usr/lib/mdb/proc/amd64/libnvpair.so
 /usr/lib/mdb/proc/amd64/libproc.so
 /usr/lib/mdb/proc/amd64/libsysevent.so

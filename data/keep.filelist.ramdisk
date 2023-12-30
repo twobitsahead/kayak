@@ -1,13 +1,7 @@
-/boot/acpi/tables
 /boot/solaris/bootenv.rc
-/boot/solaris/devicedb/master
 /etc/dacf.conf
-/etc/devices/devid_cache
-/etc/devices/mdi_scsi_vhci_cache
-/etc/devices/pci_unitaddr_persistent
 /etc/driver_aliases
 /etc/driver_classes
-/etc/hostid
 /etc/mach
 /etc/name_to_major
 /etc/name_to_sysnum
