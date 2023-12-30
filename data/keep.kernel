@@ -508,7 +508,6 @@
 /kernel/misc/amd64/nfs_dlboot
 /kernel/misc/amd64/pci_autoconfig
 /kernel/misc/amd64/pcicfg
-/kernel/misc/amd64/pcie
 /kernel/misc/amd64/pcihp
 /kernel/misc/amd64/pcmcia
 /kernel/misc/amd64/rpcsec
@@ -626,3 +625,4 @@
 /kernel/sys/amd64/rpcmod
 /kernel/sys/amd64/semsys
 /kernel/sys/amd64/shmsys
+/platform/i86pc/kernel/misc/amd64/pcie
