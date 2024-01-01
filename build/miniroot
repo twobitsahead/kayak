@@ -25,7 +25,7 @@ KYKDIR=$SRCDIR/..
 . $KYKDIR/lib/defs.sh
 
 fail() {
-    echo "ERROR: $*"
+    echo "ERROR: $*" >&2
     exit 1
 }
 
@@ -263,8 +263,26 @@ function step_smf {
 
 function step_cull {
     if [ -z "$BIGROOT" ]; then
-        typeset -i cnt=0
         load_keep_list $DATADIR/keep.*
+
+        typeset tf=`mktemp`
+        typeset -i cnt=0
+        for file in ${!keep_list[@]}; do
+            if [ ! -f "$ROOTDIR/$file" ]; then
+                echo "$file does not exist"
+                echo "$file" >> "$tf"
+                ((cnt++))
+            fi
+        done
+        if ((cnt > 0)); then
+            chmod 644 "$tf"
+            echo "The missing file list was saved in $tf"
+            fail "$cnt file(s) in keep list do not exist"
+        else
+            rm -f "$tf"
+        fi
+
+        cnt=0
         while read file; do
             [ -z "$file" ] && continue
             [ -n "${keep_list[$file]}" ] && continue
@@ -281,6 +299,7 @@ function step_cull {
         for path in $RMRF; do
             rm -rf ${ROOTDIR}$path && echo " --- discarding $path"
         done
+
         cnt=0
         while read link; do
             readlink -e "$link" >/dev/null && continue
@@ -289,6 +308,7 @@ function step_cull {
             rm -f "$link"
         done < <(cd $ROOTDIR; find ./ -type l | cut -c3-)
         echo " --- removed $cnt dangling link(s)"
+
     fi
 
     chkpt strip
@@ -411,10 +431,7 @@ function make_initial_boot {
 
 ## main
 
-if (( "`id -u`" != 0 )); then
-    echo "must run as root"
-    exit 1
-fi
+(( "`id -u`" == 0 )) || fail "must run as root"
 
 if [ ! -d "$ROOTDIR" ]; then
     echo " --- creating dataset $BASE/$DATASET"
