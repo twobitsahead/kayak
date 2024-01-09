@@ -89,6 +89,7 @@ driver/storage/bcm_sata
 driver/storage/blkdev
 driver/storage/cpqary3
 driver/storage/glm
+driver/storage/lmrc
 driver/storage/lsimega
 driver/storage/marvell88sx
 driver/storage/mega_sas

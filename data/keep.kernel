@@ -122,6 +122,7 @@
 /kernel/drv/amd64/keysock
 /kernel/drv/amd64/kmdb
 /kernel/drv/amd64/llc1
+/kernel/drv/amd64/lmrc
 /kernel/drv/amd64/lofi
 /kernel/drv/amd64/log
 /kernel/drv/amd64/lsimega
@@ -296,6 +297,7 @@
 /kernel/drv/keysock.conf
 /kernel/drv/kmdb.conf
 /kernel/drv/llc1.conf
+/kernel/drv/lmrc.conf
 /kernel/drv/lofi.conf
 /kernel/drv/log.conf
 /kernel/drv/lsimega.conf
