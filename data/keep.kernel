@@ -61,6 +61,7 @@
 /kernel/drv/amd64/cpunex
 /kernel/drv/amd64/crypto
 /kernel/drv/amd64/cryptoadm
+/kernel/drv/amd64/cxgbe
 /kernel/drv/amd64/dca
 /kernel/drv/amd64/devinfo
 /kernel/drv/amd64/dld
@@ -185,8 +186,10 @@
 /kernel/drv/amd64/sgen
 /kernel/drv/amd64/si3124
 /kernel/drv/amd64/simnet
+/kernel/drv/amd64/smartpqi
 /kernel/drv/amd64/smbios
 /kernel/drv/amd64/smp
+/kernel/drv/amd64/smrt
 /kernel/drv/amd64/smrt
 /kernel/drv/amd64/softmac
 /kernel/drv/amd64/sol_ucma
@@ -199,6 +202,7 @@
 /kernel/drv/amd64/sy
 /kernel/drv/amd64/sysevent
 /kernel/drv/amd64/sysmsg
+/kernel/drv/amd64/t4nex
 /kernel/drv/amd64/tavor
 /kernel/drv/amd64/tcp
 /kernel/drv/amd64/tcp6
@@ -342,8 +346,10 @@
 /kernel/drv/ses.conf
 /kernel/drv/sgen.conf
 /kernel/drv/simnet.conf
+/kernel/drv/smartpqi.conf
 /kernel/drv/smbios.conf
 /kernel/drv/smp.conf
+/kernel/drv/smrt.conf
 /kernel/drv/smrt.conf
 /kernel/drv/softmac.conf
 /kernel/drv/sol_ucma.conf
