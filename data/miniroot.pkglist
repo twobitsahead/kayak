@@ -25,6 +25,7 @@ driver/network/bnx
 driver/network/bnxe
 driver/network/bpf
 driver/network/chxge
+driver/network/cxgbe
 driver/network/dmfe
 driver/network/e1000g
 driver/network/elxl
@@ -104,7 +105,9 @@ driver/storage/scsa1394
 driver/storage/sdcard
 driver/storage/ses
 driver/storage/si3124
+driver/storage/smartpqi
 driver/storage/smp
+driver/storage/smrt
 driver/storage/smrt
 driver/storage/vioblk
 driver/usb
