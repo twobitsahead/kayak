@@ -90,6 +90,7 @@
 /kernel/drv/amd64/hme
 /kernel/drv/amd64/hubd
 /kernel/drv/amd64/hv_heartbeat
+/kernel/drv/amd64/hv_kbd
 /kernel/drv/amd64/hv_kvp
 /kernel/drv/amd64/hv_netvsc
 /kernel/drv/amd64/hv_shutdown
