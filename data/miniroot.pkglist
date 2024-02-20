@@ -110,6 +110,7 @@ driver/storage/smp
 driver/storage/smrt
 driver/storage/smrt
 driver/storage/vioblk
+driver/storage/vioscsi
 driver/usb
 driver/usb/ugen
 driver/xvm/pv
