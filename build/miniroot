@@ -13,7 +13,7 @@
 
 #
 # Copyright 2017 OmniTI Computer Consulting, Inc.  All rights reserved.
-# Copyright 2023 OmniOS Community Edition (OmniOSce) Association.
+# Copyright 2024 OmniOS Community Edition (OmniOSce) Association.
 #
 
 export PATH=/usr/bin:/usr/sbin:/sbin
@@ -39,7 +39,7 @@ typeset -i VERBOSE=0
 BASE="$1"; shift
 CHKPT="$1"; shift
 
-BASEDIR=`zfs get -o value -H mountpoint $BASE`
+BASEDIR=`zfs get -Ho value mountpoint $BASE`
 [ -n "$BASEDIR" -a -d "$BASEDIR" ] || fail "Cannot find directory for $BASE"
 
 [ -x /opt/ooce/bin/pigz ] && GZIP=/opt/ooce/bin/pigz || GZIP=gzip
@@ -258,6 +258,8 @@ function step_smf {
     echo " --- increasing initial-boot timeout"
     ${SVCCFG} -s "system/initial-boot" setprop "start/timeout_seconds=86400"
 
+    touch ${ROOTDIR}/reconfigure
+
     chkpt cull
 }
 
@@ -350,6 +352,14 @@ function step_sanity {
         rm -f $of
     fi
 
+    # This is as far as we can currently go without root privileges. The
+    # important part for running in CI is that we've checked package
+    # installation and got past the sanity check.
+    if ((UID != 0)); then
+        touch $WORKDIR/miniroot.gz
+        exit 0
+    fi
+
     chkpt mkfs
 }
 
@@ -430,8 +440,6 @@ function make_initial_boot {
 }
 
 ## main
-
-(( "`id -u`" == 0 )) || fail "must run as root"
 
 if [ ! -d "$ROOTDIR" ]; then
     echo " --- creating dataset $BASE/$DATASET"
