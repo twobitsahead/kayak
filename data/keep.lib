@@ -227,6 +227,7 @@
 /usr/lib/amd64/libncurses.so.6*
 /usr/lib/amd64/libnghttp2.so.*
 /usr/lib/amd64/libnsl.so.1
+/usr/lib/amd64/libnvme.so.1
 /usr/lib/amd64/libnvpair.so
 /usr/lib/amd64/libnvpair.so.1
 /usr/lib/amd64/libpcidb.so.1
