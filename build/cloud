@@ -103,28 +103,15 @@ rm -f $basef.raw
 dd if=$HVMlofi of=$basef.raw bs=2048 status=progress
 
 ##############################################################################
-note "Creating VMDK"
+for fmt in vmdk vhd:vpc qcow2; do
+    name=${fmt%:*}
+    fmt=${fmt#*:}
 
-vmdkver=0.2
-dir=VMDK-stream-converter-$vmdkver
-file=$dir.tar.gz
-if [ ! -d $dir ]; then
-    curl -fLo /tmp/$file https://mirrors.omnios.org/vmdk/$file
-    gtar zxf /tmp/$file
-fi
+    note "Creating ${name^^}"
 
-rm -f $basef.vmdk
-python2 ./$dir/VMDKstream.py $basef.{raw,vmdk}
-rm -rf $dir
-
-##############################################################################
-note "Creating VHD"
-
-conv=`mktemp`
-curl -fLo $conv https://mirrors.omnios.org/vhd/raw2vhd.py
-echo "Creating vhd disk image"
-python2 $conv $basef.{raw,vhd}
-rm -f $conv
+    qemu-img convert -f raw -O $fmt $basef.{raw,$name}
+    qemu-img info $basef.$name
+done
 
 ##############################################################################
 note "Cleaning up"
@@ -135,7 +122,7 @@ zfs destroy -r $HVMdataset
 ##############################################################################
 note "Compressing"
 
-zstd -9fv --rm $basef.{raw,zfs,vmdk,vhd}
+zstd -9fv --rm $basef.{raw,zfs}
 
 # Vim hints
 # vim:ts=4:sw=4:et:fdm=marker
