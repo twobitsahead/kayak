@@ -43,6 +43,7 @@ driver/network/ib
 driver/network/ibdma
 driver/network/ibp
 driver/network/igb
+driver/network/igc
 driver/network/iprb
 driver/network/ixgb
 driver/network/ixgbe
