@@ -288,7 +288,6 @@
 /kernel/drv/icmp.conf
 /kernel/drv/icmp6.conf
 /kernel/drv/igb.conf
-/kernel/drv/igc.conf
 /kernel/drv/intel_nb5000.conf
 /kernel/drv/intel_nhm.conf
 /kernel/drv/intel_nhmex.conf
