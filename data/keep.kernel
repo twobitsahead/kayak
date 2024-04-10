@@ -106,6 +106,7 @@
 /kernel/drv/amd64/icmp
 /kernel/drv/amd64/icmp6
 /kernel/drv/amd64/igb
+/kernel/drv/amd64/igc
 /kernel/drv/amd64/intel_nb5000
 /kernel/drv/amd64/intel_nhm
 /kernel/drv/amd64/intel_nhmex
@@ -287,6 +288,7 @@
 /kernel/drv/icmp.conf
 /kernel/drv/icmp6.conf
 /kernel/drv/igb.conf
+/kernel/drv/igc.conf
 /kernel/drv/intel_nb5000.conf
 /kernel/drv/intel_nhm.conf
 /kernel/drv/intel_nhmex.conf
