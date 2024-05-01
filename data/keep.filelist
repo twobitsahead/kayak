@@ -180,7 +180,6 @@
 /usr/platform/i86pc/lib/fm/topo/plugins/pcibus.so
 /usr/platform/i86pc/lib/fm/topo/plugins/x86pi.so
 /usr/sbin/add_drv
-/usr/sbin/amd64/dtrace
 /usr/sbin/beadm
 /usr/sbin/bhhwcompat
 /usr/sbin/bootadm
@@ -189,6 +188,7 @@
 /usr/sbin/devfsadm
 /usr/sbin/df
 /usr/sbin/disks
+/usr/sbin/dtrace
 /usr/sbin/dumpadm
 /usr/sbin/fdisk
 /usr/sbin/fmthard
