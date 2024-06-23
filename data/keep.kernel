@@ -231,6 +231,7 @@
 /kernel/drv/amd64/vgatext
 /kernel/drv/amd64/vioblk
 /kernel/drv/amd64/vioif
+/kernel/drv/amd64/vioscsi
 /kernel/drv/amd64/vmxnet3s
 /kernel/drv/amd64/vnic
 /kernel/drv/amd64/vr
