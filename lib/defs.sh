@@ -40,5 +40,7 @@ DEFSUPATH=/usr/sbin:/sbin:/usr/bin
 EXTRAPATH=/usr/bin:/usr/sbin:/sbin:/opt/ooce/bin:/usr/gnu/bin
 EXTRASUPATH=/usr/sbin:/sbin:/opt/ooce/sbin:/usr/bin:/opt/ooce/bin
 
+NATIVE_SVCCFG=usr/src/tools/proto/root_i386-nd/opt/onbld/bin/i386/svccfg
+
 # Vim hints
 # vim:ts=4:sw=4:et:fdm=marker

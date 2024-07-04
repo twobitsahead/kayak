@@ -232,8 +232,8 @@ function seed_smf
 
     note "Seeding SMF database ($variant)"
 
-    [ -x "$PREBUILT_ILLUMOS/usr/src/cmd/svc/svccfg/svccfg-native" ] \
-        && SVCCFG="${PREBUILT_ILLUMOS}/usr/src/cmd/svc/svccfg/svccfg-native" \
+    [ -x "$PREBUILT_ILLUMOS/$NATIVE_SVCCFG" ] \
+        && SVCCFG="${PREBUILT_ILLUMOS}/$NATIVE_SVCCFG" \
         || SVCCFG=/usr/sbin/svccfg
     SVCCFG_DTD=$MP/usr/share/lib/xml/dtd/service_bundle.dtd.1
     SVCCFG_REPOSITORY=/tmp/kayak.svc.$$
