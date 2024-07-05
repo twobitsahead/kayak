@@ -208,8 +208,8 @@ function step_smf {
 
     SVCCFG_DTD=${ROOTDIR}/usr/share/lib/xml/dtd/service_bundle.dtd.1
     SVCCFG_REPOSITORY=${ROOTDIR}/etc/svc/repository.db
-    if [ -f "$PREBUILT_ILLUMOS/usr/src/cmd/svc/svccfg/svccfg-native" ]; then
-        SVCCFG="${PREBUILT_ILLUMOS}/usr/src/cmd/svc/svccfg/svccfg-native"
+    if [ -f "$PREBUILT_ILLUMOS/$NATIVE_SVCCFG" ]; then
+        SVCCFG="${PREBUILT_ILLUMOS}/$NATIVE_SVCCFG"
     else
         cat <<- EOM
 			WARNING -- Not using 'native' svccfg, may hang on build.
