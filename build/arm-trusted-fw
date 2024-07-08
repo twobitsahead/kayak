@@ -4,7 +4,7 @@
 
 MIRROR=https://mirrors.omnios.org
 PROG=arm-trusted-firmware
-VER=2.9.0
+VER=lts-v2.10.4
 FILE=$PROG-$VER.tar.gz
 URL=$MIRROR/$PROG/$FILE
 
@@ -18,7 +18,7 @@ trap 'rm -rf $dir' EXIT
 	cd $PROG-$VER
 	CROSS_COMPILE=/opt/cross/aarch64/bin/aarch64-unknown-solaris2.11- \
 	    DTC=/opt/ooce/bin/dtc \
-	    gmake -j 10 PLAT=rpi4 DEBUG=1 bl31
+	    gmake -j 10 PLAT=rpi4 DEBUG=1 SMC_PCI_SUPPORT=1 bl31
 )
 
 cp $dir/$PROG-$VER/build/rpi4/debug/bl31.bin ./bin/bl31.bin

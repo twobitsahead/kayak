@@ -7,7 +7,7 @@ SRCDIR=`dirname $0`
 
 MIRROR=https://mirrors.omnios.org
 PROG=u-boot
-VER=2023.01
+VER=2024.07
 FILE=$PROG-$VER.tar.bz2
 URL=$MIRROR/$PROG/$FILE
 
