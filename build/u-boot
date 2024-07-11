@@ -1,6 +1,6 @@
 #!/bin/ksh
 
-# Copyright 2023 OmniOS Community Edition (OmniOSce) Association.
+# Copyright 2024 OmniOS Community Edition (OmniOSce) Association.
 
 SRCDIR=`dirname $0`
 [ ${SRCDIR:0:1} = "/" ] || SRCDIR=`pwd`/$SRCDIR
@@ -10,22 +10,33 @@ PROG=u-boot
 VER=2024.07
 FILE=$PROG-$VER.tar.bz2
 URL=$MIRROR/$PROG/$FILE
+TARGETS="qemu_arm64_defconfig rpi_4_defconfig rpi_arm64_defconfig"
 
 dir=`/usr/gnu/bin/mktemp -d`
 trap 'rm -rf $dir' EXIT
 
-(
-	cd $dir
-	curl -fLO $URL
-	bzip2 -dc $FILE | gtar xf -
-	cd $PROG-$VER
-	gpatch -p1 < $SRCDIR/../patches/u-boot.patch || exit 1
-	gmake -j 10 HOSTCC="gcc -m64" \
+SRC=$PWD
+
+cd $dir
+curl -fLO $URL
+bzip2 -dc $FILE | gtar xf -
+cd $PROG-$VER
+gpatch -p1 < $SRCDIR/../patches/u-boot.patch || exit 1
+cd ..
+for tgt in $TARGETS; do
+	echo "--> $tgt"
+	mkdir $tgt
+	gmake -j 10 -C $PROG-$VER \
+	    O=$PWD/$tgt \
+	    HOSTCC="gcc -m64" \
 	    HOSTCFLAGS="-I/opt/ooce/include" \
 	    HOSTLDLIBS="-L/opt/ooce/lib/amd64 -lnsl -lsocket" \
 	    CROSS_COMPILE=/opt/cross/aarch64/bin/aarch64-unknown-solaris2.11- \
-	    ARCH=arm rpi_4_defconfig u-boot u-boot.bin
-)
-
-cp $dir/$PROG-$VER/$PROG.bin ./bin/$PROG.bin
+	    ARCH=arm $tgt u-boot u-boot.bin &
+done
+wait
+for tgt in $TARGETS; do
+	cp $tgt/u-boot.bin $SRC/bin/u-boot.$tgt
+done
+cd $SRC
 

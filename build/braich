@@ -149,6 +149,8 @@ customise_qemu() {
 
     cp $root/platform/QEMU,virt-4.1/inetboot.bin \
         $BUILDSEND_MP/braich-$VERSION.inetboot
+    cp $SRCDIR/../bin/u-boot.qemu_arm64_defconfig \
+        $BUILDSEND_MP/braich-$VERSION.u-boot
 }
 
 customise_rpi4() {
@@ -171,10 +173,12 @@ pidfile /var/run/chrony/chronyd.pid
 makestep 900 -1
 EOM
 
-    cp $root/platform/RaspberryPi,4/inetboot \
-        $BUILDSEND_MP/braich-rpi4-$VERSION.inetboot
-    cp $root/platform/RaspberryPi,4/inetboot \
-        $BUILDSEND_MP/braich-rpi4-mbr-$VERSION.inetboot
+    for var in braich-rpi4 braich-rpi4-mbr; do
+        cp $root/platform/RaspberryPi,4/inetboot \
+            $BUILDSEND_MP/$var-$VERSION.inetboot
+        cp $SRCDIR/../bin/u-boot.rpi_4_defconfig \
+            $BUILDSEND_MP/$var-$VERSION.u-boot
+    done
 }
 
 ##############################################################################
@@ -314,9 +318,9 @@ EOM
     sudo mount -F pcfs $FAT_BLK $boot
 
     cp $basef.inetboot $boot/inetboot
+    cp $basef.u-boot $boot/u-boot.bin
 
     cp $SRCDIR/../bin/bl31.bin $boot/
-    cp $SRCDIR/../bin/u-boot.bin $boot/
 
 	for f in \
         COPYING.linux \
