@@ -155,7 +155,7 @@ bin/firmware-$(RPIFWVER):
 	    firmware-$(RPIFWVER)/boot -C bin
 	rm -f bin/firmware-$(RPIFWVER).tar.gz
 
-bin/u-boot.bin: build/u-boot
+bin/u-boot.rpi_4_defconfig bin/u-boot.rpi_arm64_defconfig: build/u-boot
 	./build/u-boot
 
 bin/bl31.bin: build/arm-trusted-fw
@@ -164,7 +164,11 @@ bin/bl31.bin: build/arm-trusted-fw
 bin/barn:	src/barn.c
 	gcc -m64 -o $@ $< -lnvpair
 
-RPI_BINS= bin/firmware-$(RPIFWVER) bin/u-boot.bin bin/bl31.bin bin/barn
+QEMU_BINS= bin/u-boot.qemu_arm64_defconfig
+RPI_BINS= bin/firmware-$(RPIFWVER) \
+	  bin/bl31.bin \
+	  bin/u-boot.rpi_4_defconfig bin/u-boot.rpi_arm64_defconfig \
+	  bin/barn
 rpi-bins: $(RPI_BINS)
 
 ######################################################################
@@ -200,7 +204,7 @@ bins: $(BINS)
 
 clean:
 	-rm -f $(BINS)
-	-rm -rf $(RPI_BINS)
+	-rm -rf $(RPI_BINS) $(QEMU_BINS)
 	-rm -rf VMDK-stream-converter-0.2
 
 ######################################################################

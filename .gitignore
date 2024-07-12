@@ -7,7 +7,7 @@ bin/ipcalc
 bin/mount_media
 bin/passutil
 bin/takeover-console
-bin/u-boot.bin
+bin/u-boot.*
 bin/zpool_patch
 etc/kbd.list
 run
