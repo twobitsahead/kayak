@@ -136,12 +136,14 @@ else
     zfs create $ZDATASET || fail "zfs create"
     MP=`zfs get -o value -H mountpoint $ZDATASET`
     [ -n "$MP" -a -d "$MP" ] || fail "$MP is not a directory"
-    args=
-    args+="--variant variant.arch=$ARCH "
+    typeset args=
+    args+="--variant arch=$ARCH "
+    # Map PCI aliases to the newer `smrt` driver versus `cpqary3`
+    args+="--variant smrt.aliases=true "
     [ -n "$DEBUG_VARIANT" ] && args+="--variant debug.illumos=true "
     note "Creating IPS image"
-    pkg image-create --full $args \
-        --publisher $OOCEPUB=$PKGURL $MP || fail "image-create"
+    pkg image-create --full --publisher $OOCEPUB=$PKGURL $args $MP \
+        || fail "image-create"
     export PKG_IMAGE=$MP
     if ((INSTALL_ENTIRE)); then
         note "Installing $entire_fmri"

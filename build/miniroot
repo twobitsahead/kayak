@@ -52,6 +52,7 @@ MKFILEDIR=/tmp
 DATASET=miniroot
 WORKDIR=$BASEDIR
 ROOTDIR=$WORKDIR/$DATASET
+ARCH=`uname -p`
 
 : ${PKGURL:=$OOCEPUBURL}
 export PKG_IMAGE=$ROOTDIR
@@ -143,11 +144,18 @@ function step_pkg {
     fi
 
     echo "Creating image of $OOCEPUB from $PKGURL"
-    pkg image-create -F -p $OOCEPUB=$PKGURL $ROOTDIR || fail "image-create"
+
+    typeset args=
+    args+="--variant arch=$ARCH "
+    # Map PCI aliases to the newer `smrt` driver versus `cpqary3`
+    args+="--variant smrt.aliases=true "
     # No need to install documentation or development files in the miniroot
-    pkg change-facet doc.man=false
-    pkg change-facet devel=false
-    [ -n "$DEBUG_VARIANT" ] && pkg change-variant debug.illumos=true
+    args+="--facet doc.man=false "
+    args+="--facet devel=false "
+    [ -n "$DEBUG_VARIANT" ] && args+="--variant debug.illumos=true "
+
+    pkg image-create --full --publisher $OOCEPUB=$PKGURL $args $ROOTDIR \
+        || fail "image-create"
     pkg install ${pkglist[@]} || fail "install"
 
     chkpt fixup
