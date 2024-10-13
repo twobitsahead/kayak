@@ -7,7 +7,7 @@ SRCDIR=`dirname $0`
 
 MIRROR=https://mirrors.omnios.org
 PROG=u-boot
-VER=2024.07
+VER=2024.10
 FILE=$PROG-$VER.tar.bz2
 URL=$MIRROR/$PROG/$FILE
 TARGETS="qemu_arm64_defconfig rpi_4_defconfig rpi_arm64_defconfig"
