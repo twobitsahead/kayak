@@ -36,6 +36,7 @@ for tgt in $TARGETS; do
 done
 wait
 for tgt in $TARGETS; do
+	[ -f "$tgt/u-boot.bin" ] || exit 1
 	cp $tgt/u-boot.bin $SRC/bin/u-boot.$tgt
 done
 cd $SRC
