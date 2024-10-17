@@ -147,7 +147,7 @@ customise_qemu() {
 
     customise "$root"
 
-    cp $root/platform/QEMU,virt-4.1/inetboot.bin \
+    cp $root/platform/QEMU,virt/inetboot.bin \
         $BUILDSEND_MP/braich-$VERSION.inetboot
     cp $SRCDIR/../bin/u-boot.qemu_arm64_defconfig \
         $BUILDSEND_MP/braich-$VERSION.u-boot
