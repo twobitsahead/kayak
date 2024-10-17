@@ -21,5 +21,12 @@ trap 'rm -rf $dir' EXIT
 	    gmake -j 10 PLAT=rpi4 DEBUG=1 SMC_PCI_SUPPORT=1 bl31
 )
 
-cp $dir/$PROG-$VER/build/rpi4/debug/bl31.bin ./bin/bl31.bin
+out=$dir/$PROG-$VER/build/rpi4/debug/bl31.bin
+
+if [ ! -f "$out" ]; then
+	echo "Failed to build arm-trusted-fw"
+	exit 1
+fi
+
+cp $out ./bin/bl31.bin
 
