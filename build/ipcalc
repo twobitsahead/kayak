@@ -28,7 +28,14 @@ dir=`/usr/gnu/bin/mktemp -d`
 		CFLAGS="-m32 -D_KERNEL"
 )
 
-cp $dir/$PROG-$VER/$PROG ./bin/$PROG
+out=$dir/$PROG-$VER/$PROG
+
+if [ ! -f "$out" ]; then
+	echo "Failed to build ipcalc"
+	exit 1
+fi
+
+cp $out ./bin/$PROG
 strip ./bin/$PROG
 
 rm -rf $dir

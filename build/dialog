@@ -1,7 +1,5 @@
 #!/bin/ksh
 
-# {{{ CDDL HEADER
-#
 # This file and its contents are supplied under the terms of the
 # Common Development and Distribution License ("CDDL"), version 1.0.
 # You may only use this file in accordance with the terms of version
@@ -10,12 +8,11 @@
 # A full copy of the text of the CDDL should have accompanied this
 # source. A copy of the CDDL is also available via the Internet at
 # http://www.illumos.org/license/CDDL.
-# }}}
 
-# Copyright 2018 OmniOS Community Edition (OmniOSce) Association.
+# Copyright 2024 OmniOS Community Edition (OmniOSce) Association.
 
 SITE=https://mirrors.omnios.org/dialog
-VER=1.3-20170509
+VER=1.3-20240619
 FILE=dialog-$VER.tgz
 URL=$SITE/$FILE
 PROG=dialog
@@ -31,7 +28,14 @@ dir=`/usr/gnu/bin/mktemp -d`
 	gmake
 )
 
-cp $dir/$PROG-$VER/$PROG ./bin/$PROG
+out=$dir/$PROG-$VER/$PROG
+
+if [ ! -f "$out" ]; then
+	echo "Failed to build dialog"
+	exit 1
+fi
+
+cp $out ./bin/$PROG
 strip bin/$PROG
 
 rm -rf $dir
