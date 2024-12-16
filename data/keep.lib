@@ -217,6 +217,7 @@
 /usr/lib/amd64/libhistory.so.8
 /usr/lib/amd64/libidmap.so.1
 /usr/lib/amd64/libidspace.so.1
+/usr/lib/amd64/libjedec.so.1
 /usr/lib/amd64/libkvm.so
 /usr/lib/amd64/libkvm.so.1
 /usr/lib/amd64/libldap.so.5
@@ -312,7 +313,6 @@
 /usr/lib/libidspace.so.1
 /usr/lib/libinstzones.so.1
 /usr/lib/libipmi.so.1
-/usr/lib/libjedec.so.1
 /usr/lib/libl.so.1
 /usr/lib/liblzma.so
 /usr/lib/liblzma.so.*
