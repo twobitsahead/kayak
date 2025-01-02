@@ -62,7 +62,7 @@ class Root:
         for dirname, dirnames, filenames in os.walk(
           os.path.join(options.basedir, 'kayak')):
             for filename in filenames:
-                imagename = re.search("^(.+)\.zfs\.(?:xz|bz2|gz)", filename)
+                imagename = re.search(r'^(.+)\.zfs\.(?:xz|bz2|gz)', filename)
                 if imagename == None: continue
                 html += ('<li><a href="kayak/' + filename + '">' +
                     imagename.group(1) + '</a></li>\n')
@@ -76,7 +76,7 @@ class Root:
         for dirname, dirnames, filenames in os.walk(
           os.path.join(options.basedir, 'kayak')):
             for filename in filenames:
-                imagename = re.search("^[0-9a-fA-F]+$", filename)
+                imagename = re.search(r'^[0-9a-fA-F]+$', filename)
                 if imagename == None: continue
                 html += ('<li><a href="kayak/' + filename + '">' +
                     filename + '</a></li>')
@@ -93,10 +93,10 @@ class Root:
             for filename in filenames:
                 logs.append(filename)
         for filename in sorted(logs):
-            parted = re.match('^([0-9A-Fa-f]{12})\.(\d+)', filename)
+            parted = re.match(r'^([0-9A-Fa-f]{12})\.(\d+)', filename)
             if parted == None: continue
             html += ('<li><a href="kayaklog/' + filename + '">' +
-                re.sub('(..)(?=.)', '\\1:', parted.group(1)) +
+                re.sub(r'(..)(?=.)', '\\1:', parted.group(1)) +
                 ' [' + time.asctime(time.localtime(float(parted.group(2)))) +
                 ']</a></li>')
 
@@ -120,13 +120,13 @@ class KayakLog(object):
         self.options = options
 
     def GET(self, file):
-        if re.match("\.\.", file) != None:
+        if re.match(r'\.\.', file) != None:
             raise cherrypy.HTTPError("404 Not Found")
         return serve_file(os.path.join(options.basedir, 'log', file),
                           content_type='text/plain')
 
     def PUT(self, macaddr):
-        if re.match("^[0-9a-fA-F]{12}$", macaddr) == None:
+        if re.match(r'^[0-9a-fA-F]{12}$', macaddr) == None:
             raise cherrypy.HTTPError("404 Not Found")
         log = open(os.path.join(options.basedir, 'log',
             macaddr + "." + str(time.time())), 'w')
