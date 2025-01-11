@@ -1,13 +1,13 @@
 #!/bin/ksh
 
-# Copyright 2024 OmniOS Community Edition (OmniOSce) Association.
+# Copyright 2025 OmniOS Community Edition (OmniOSce) Association.
 
 SRCDIR=`dirname $0`
 [ ${SRCDIR:0:1} = "/" ] || SRCDIR=`pwd`/$SRCDIR
 
 MIRROR=https://mirrors.omnios.org
 PROG=u-boot
-VER=2024.10
+VER=2025.01
 FILE=$PROG-$VER.tar.bz2
 URL=$MIRROR/$PROG/$FILE
 TARGETS="qemu_arm64_defconfig rpi_4_defconfig rpi_arm64_defconfig"
