@@ -331,10 +331,10 @@ EOM
         bcm2711-rpi-4-b.dtb \
         bcm2712-rpi-5-b.dtb
 	do
-		cp $SRCDIR/../bin/firmware-1.*/boot/$f $boot/
+		cp $SRCDIR/../bin/firmware-1.20*/boot/$f $boot/
 	done
     mkdir -p $boot/overlays
-    cp $SRCDIR/../bin/firmware-1.*/boot/overlays/* $boot/overlays
+    cp $SRCDIR/../bin/firmware-1.20*/boot/overlays/* $boot/overlays
 
     cat << EOM > $boot/config.txt
 gpu_mem=16

@@ -1,11 +1,11 @@
 #!/bin/ksh
 
-# Copyright 2023 OmniOS Community Edition (OmniOSce) Association.
+# Copyright 2025 OmniOS Community Edition (OmniOSce) Association.
 
 MIRROR=https://mirrors.omnios.org
 PROG=arm-trusted-firmware
-VER=lts-v2.10.4
-FILE=$PROG-$VER.tar.gz
+VER=lts-v2.10.11
+FILE=$VER.tar.gz
 URL=$MIRROR/$PROG/$FILE
 
 dir=`/usr/gnu/bin/mktemp -d`
