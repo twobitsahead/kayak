@@ -17,7 +17,7 @@ trap 'rm -rf $dir' EXIT
 	gtar zxf $FILE
 	cd $PROG-$VER
 	CROSS_COMPILE=/opt/cross/aarch64/bin/aarch64-unknown-solaris2.11- \
-	    DTC=/opt/ooce/bin/dtc \
+	    DTC=/usr/bin/dtc \
 	    gmake -j 10 PLAT=rpi4 DEBUG=1 bl31
 )
 
