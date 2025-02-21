@@ -62,7 +62,7 @@ fi
 if [ -n "$USE_DIALOG" ]; then
 	i=10
 	echo; echo
-	echo "Press return to start the OmniOS installer."
+	echo "Press return to start the Surya 25.02 installer."
 	while [ $i -gt 0 ]; do
 		unit=second
 		[ $i -gt 1 ] && unit=seconds
@@ -94,7 +94,7 @@ function installed {
 if [ -n "$USE_DIALOG" ]; then
 	tmpf=`mktemp`
 	dialog \
-		--title "Please select a keyboard layout" \
+		--title "Select a keyboard layout" \
 		--no-ok \
 		--no-tags \
 		--no-lines \
@@ -134,12 +134,12 @@ function d_detecting {
 
 # Preinstall menu
 menu_items=( \
-    (menu_str="Find disks, create rpool, and install OmniOS"		\
+    (menu_str="Find disks, create rpool, and install Surya 25.02"	\
 	cmds=("/kayak/installer/find-and-install $klang")		\
 	dcmds=("d_detecting x", "/kayak/installer/dialog-install $klang")\
 	default="true"							\
 	do_subprocess="true")						\
-    (menu_str="Install OmniOS straight on to a preconfigured rpool"	\
+    (menu_str="Install Surya 25.02 directly onto a preconfigured rpool"	\
 	cmds=("/kayak/installer/rpool-install rpool $klang")		\
 	do_subprocess="true")						\
     (menu_str="Shell (for manual rpool creation)"			\
@@ -150,17 +150,17 @@ menu_items=( \
 	cmds=("/usr/sbin/reboot")					\
 	do_subprocess="true"						\
 	noreturn="true"							\
-	msg_str="Restarting, please wait...")				\
+	msg_str="Rebooting system...")					\
     (menu_str="Halt"							\
 	cmds=("/sbin/beadm umount /mnt" "/sbin/uadmin 2 6")		\
 	do_subprocess="true"						\
 	noreturn="true"							\
-	msg_str="Halting system, please wait...")			\
+	msg_str="Halting system...")					\
 )
 
 # Postinstall menu
 pi_menu_items=( \
-    (menu_str="Configure the installed OmniOS system"			\
+    (menu_str="Configure the installed Surya 25.02 system"		\
 	cmds=("/kayak/installer/config-menu")				\
 	dcmds=("/kayak/installer/config-menu -dialog")			\
 	default="true"							\
@@ -173,12 +173,12 @@ pi_menu_items=( \
 	cmds=("/usr/sbin/reboot")					\
 	do_subprocess="true"						\
 	noreturn="true"							\
-	msg_str="Restarting, please wait...")				\
+	msg_str="Rebooting system...")  				\
     (menu_str="Halt"							\
 	cmds=("/sbin/beadm umount /mnt" "/sbin/uadmin 2 6")		\
 	do_subprocess="true"						\
 	noreturn="true"							\
-	msg_str="Halting system, please wait...")			\
+	msg_str="Halting system...")					\
 )
 
 function display_text_menu {
@@ -186,7 +186,7 @@ function display_text_menu {
 	stty sane
 
 	clear
-	printf "Welcome to the OmniOS installation menu\n\n"
+	printf "Surya 25.02 installation menu\n\n"
 	for i in "${!menu[@]}"; do
 		nameref item=menu[$i]
 		print "\t$((i + 1))  ${item.menu_str}"
@@ -197,7 +197,7 @@ function display_text_menu {
  	# entered, accept only the first one.
 	input=""
 	dummy=""
-	print -n "\nPlease enter a number [${defaultchoice}]: "
+	print -n "\nEnter a number [${defaultchoice}]: "
 	read input dummy 2>/dev/null
 }
 
@@ -211,7 +211,7 @@ function display_dialog_menu {
 
 	tmpf=`mktemp`
 	dialog \
-		--title "Welcome to the OmniOS installer" \
+		--title "Surya 25.02 installer" \
 		--hline "Use arrow or hot keys to select one of the options above" \
 		--no-ok \
 		--no-tags \

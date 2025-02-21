@@ -100,7 +100,7 @@ function show_dialog_menu {
 
 	tmpf=`mktemp`
 	dialog \
-		--title "OmniOS $title menu" \
+		--title "Surya 25.02 menu" \
 		--hline "Use arrow or hot keys to select one of the options above" \
 		--no-ok \
 		--no-tags \
@@ -132,7 +132,7 @@ function show_text_menu {
 	clear
 
 	defaultchoice=
-	printf "OmniOS $title menu\n\n"
+	printf "Surya 25.02 menu\n\n"
 	for i in "${!menu[@]}"; do
 		nameref item=menu[$i]
 		printf "\t%d  %-40s" "$((i + 1))" "${item.menu_str}"
@@ -147,7 +147,7 @@ function show_text_menu {
 	# entered, accept only the first one.
 	input=""
 	dummy=""
-	print -n "\nPlease enter a number [$defaultchoice]: "
+	print -n "\nEnter a number [$defaultchoice]: "
 	read input dummy 2>/dev/null
 
 	# If no input was supplied, select the default option
@@ -941,8 +941,8 @@ function dcfg_user {
 		    --hline "If unsure, leave this at the default" \
 		    --radiolist "\nSelect the command line shell for the user\n\Zn" \
 			10 50 0 \
-			ksh "Ksh93 (Korn Shell)" on \
-			bash "Bash (Bourne-again Shell)" off \
+			bash "Bash (Bourne-again Shell)" on \
+			ksh "Ksh93 (Korn Shell)" off \
 			csh "Csh (C Shell)" off \
 			2> $tmpf
 		stat=$?

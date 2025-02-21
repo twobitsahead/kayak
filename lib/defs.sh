@@ -14,31 +14,31 @@
 
 # This library used by both ksh and bash scripts, don't use any bash extensions.
 
-OOCEVER=`awk -F= '$1 == "VERSION" { print $2 }' /etc/os-release`
-OOCEREL="${OOCEVER//[a-z]/}"
+OOCEVER=25.02 # `awk -F= '$1 == "VERSION" { print $2 }' /etc/os-release`
+OOCEREL= # "${OOCEVER//[a-z]/}"
 
-OOCEPUB=omnios
-EXTRAPUB=extra.omnios
+OOCEPUB=surya
+EXTRAPUB=twobitsahead
 
-URLPREFIX=https://pkg.omnios.org
+URLPREFIX=http://209.38.51.159
 
 MIRRORS=us-west
-MIRRORDOMAIN=mirror.omnios.org
+MIRRORDOMAIN=http://209.38.51.159
 
 if (( OOCEREL % 2 == 0 )); then
     URLSUFFIX=r$OOCEREL/core
 else
     URLSUFFIX=bloody/core
 fi
-OOCEPUBURL=$URLPREFIX/$URLSUFFIX
-OOCEPUBURL_EXTRA="${OOCEPUBURL/core/extra}"
+OOCEPUBURL=http://209.38.51.159
+OOCEPUBURL_EXTRA=http://209.38.51.159
 
 OOCEBRAICHURL=$URLPREFIX/bloody/braich
 
 DEFPATH=/usr/bin:/usr/sbin:/sbin:/usr/gnu/bin
-DEFSUPATH=/usr/sbin:/sbin:/usr/bin
-EXTRAPATH=/usr/bin:/usr/sbin:/sbin:/opt/ooce/bin:/usr/gnu/bin
-EXTRASUPATH=/usr/sbin:/sbin:/opt/ooce/sbin:/usr/bin:/opt/ooce/bin
+DEFSUPATH=$DEFPATH
+EXTRAPATH=$DEFPATH
+EXTRASUPATH=$DEFPATH
 
 NATIVE_SVCCFG=usr/src/tools/proto/root_i386-nd/opt/onbld/bin/i386/svccfg
 
