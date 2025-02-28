@@ -22,25 +22,25 @@ DATE=/usr/bin/date
 TZDIR=/usr/share/lib/zoneinfo
 
 # Messages
-ERR_NO_SETUP="%s: time zone files are not set up correctly"
-INFO_LOCATION="Please identify a location so that time zone rules \
+ERR_NO_SETUP="%s: the time zone files are not set up correctly"
+INFO_LOCATION="Identify a location so that time zone rules \
 can be set correctly."
-INFO_SELECT_CONT="Please select a continent or ocean."
+INFO_SELECT_CONT="Select a continent or ocean."
 INFO_POSIX="none - I want to specify the time zone using the POSIX \
 TZ format."
-WARN_ENTER_NUM="Please enter a number in range."
-INFO_ENTER_POSIX="Please enter the desired value of the TZ environment \
+WARN_ENTER_NUM="Enter a number in range."
+INFO_ENTER_POSIX="Enter the desired value of the TZ environment \
 variable."
 INFO_POSIX_EX="For example, GST-10 is a zone named GST that is 10 hours \
 ahead (east) of UTC."
 ERR_INV_POSIX="\`%s\' is not a conforming POSIX time zone string."
-INFO_SELECT_CNTRY="Please select a country or region."
-INFO_SELECT_TZ="Please select one of the following time zone regions."
-INFO_EXTRA1="Local time is now:       %s"
-INFO_EXTRA2="Universal Time is now:   %s"
+INFO_SELECT_CNTRY="Select a country or region."
+INFO_SELECT_TZ="Select one of the following time zone regions."
+INFO_EXTRA1="The local time is now:       %s"
+INFO_EXTRA2="Universal Time (UTC) is now:   %s"
 INFO_INFO="The following information has been given:"
-INFO_TZ="Therefore TZ='%s' will be used."
-INFO_OK="Is the above information OK?"
+INFO_TZ="Therefore, TZ='%s' will be used."
+INFO_OK="Is this information correct?"
 
 # Make sure the tables are readable.
 TZ_CONTINENT_TABLE=$TZDIR/tab/continent.tab

@@ -22,7 +22,7 @@ SCRATCH=/tmp/di.$$
 # In a KVM, the disks don't show up on the first invocation of diskinfo.
 # More investigation required so, for now, run it twice.
 echo
-echo "Detecting hard disks..."
+echo "Checking for hard drives..."
 echo
 diskinfo
 diskinfo | sed 's/      //' > $SCRATCH
@@ -67,7 +67,7 @@ until [[ $finished == 1 ]]; do
 	offset=$(($page * $onepage + 2))
     elif [[ $choice == 0 ]]; then
 	if [[ $DISKLIST == "" ]]; then
-	    echo -n "Press RETURN to go back to the main menu: "
+	    echo -n "Press ENTER to go back to the main menu: "
 	    read
 	    exit
 	else
@@ -101,7 +101,7 @@ reality_check() {
     fi
     zpool create $1 /tmp/test.$$
     if [[ $? != 0 ]]; then
-	echo "Can't test zpool create $1"
+	echo "Unable to test zpool create $1"
 	return 1
     fi
     zpool destroy $1
@@ -112,7 +112,7 @@ reality_check() {
 NEWRPOOL="rpool"
 until [[ $NEWRPOOL == "" ]]; do
     RPOOL=$NEWRPOOL
-    echo -n "Enter the root pool name or press RETURN if you want [$RPOOL]: "
+    echo -n "Enter the root pool name or press ENTER to select [$RPOOL]: "
     read NEWRPOOL
     if [[ $NEWRPOOL != "" ]]; then
 	reality_check $NEWRPOOL
