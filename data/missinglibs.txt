@@ -1,0 +1,19 @@
+these are the libs present on ooce but not OI
+
+libxml2.so.*
+libz.so
+libz.so.*
+
+/lib/libxml2.so
+/lib/libz.so
+/lib/libz.so.*
+
+/usr/lib/amd64/libssp
+
+/usr/lib/amd64/ossl-modules/legacy.so
+
+/usr/lib/libgcc_s.so.1
+
+/usr/lib/libssp.so.*
+
+
