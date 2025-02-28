@@ -27,8 +27,8 @@ tmpf=`mktemp`
 
 zpool list $RPOOL >& /dev/null
 if [[ $? != 0 ]]; then
-   echo "Cannot find root pool $RPOOL"
-   echo "Press RETURN to exit"
+   echo "Cannot find ZFS root pool $RPOOL"
+   echo "Press ENTER to exit"
    read
    exit 1
 fi
@@ -81,10 +81,10 @@ echo ""
 beadm list $bename
 cat << EOM
 
-$RPOOL now has a working and mounted boot environment, per above.
-Once back at the main menu, you can configure the initial system settings,
-reboot, or enter the shell to modify your new BE before its first boot.
+$RPOOL now has a functional and mounted boot environment.
+Once back at the main menu, the initial system settings can be configured,
+a reboot can be performed, or a shell can be entered to configure the BE.
 
 EOM
-echo -n "Press RETURN to go back to the menu: "
+echo -n "Press ENTER to go back to the menu: "
 read

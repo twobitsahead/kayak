@@ -465,7 +465,7 @@ elif beadm list -H $bename 2>/dev/null; then
 		--title "Installation Complete" \
 		--msgbox "\\n\
 `beadm list | sed 's/$/\\\\n/'`\\n\
-$RPOOL now has a functioning and mounted boot environment, as seen above.\\n\
+$RPOOL now has a functional and mounted boot environment.\\n\
 \\n\
 Once back at the main menu, the initial system setting can be configured,\\n\
 a reboot can be performed, or a shell can be entered to configure the BE.\\n\\Zn\
