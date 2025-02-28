@@ -32,7 +32,7 @@ else
 	trap "" TSTP INT TERM ABRT QUIT
 fi
 
-echo "Reading system configuration..."
+echo "Finding system configuration..."
 
 [ "$1" = "-dialog" ] && . /kayak/lib/dialog.sh
 . /kayak/lib/defs.sh
@@ -49,7 +49,7 @@ function pause {
 	echo
 	echo "$@"
 	echo
-	echo "Press return to continue...\\c"
+	echo "Press return to continue.\\c"
 	read a
 }
 
@@ -100,8 +100,8 @@ function show_dialog_menu {
 
 	tmpf=`mktemp`
 	dialog \
-		--title "OmniOS $title menu" \
-		--hline "Use arrow or hot keys to select one of the options above" \
+		--title "Surya 2025.02 menu" \
+		--hline "Select an option using the arrow keys" \
 		--no-ok \
 		--no-tags \
 		--no-lines \
@@ -132,7 +132,7 @@ function show_text_menu {
 	clear
 
 	defaultchoice=
-	printf "OmniOS $title menu\n\n"
+	printf "Surya 2025.02 menu\n\n"
 	for i in "${!menu[@]}"; do
 		nameref item=menu[$i]
 		printf "\t%d  %-40s" "$((i + 1))" "${item.menu_str}"
@@ -147,7 +147,7 @@ function show_text_menu {
 	# entered, accept only the first one.
 	input=""
 	dummy=""
-	print -n "\nPlease enter a number [$defaultchoice]: "
+	print -n "\nEnter a number [$defaultchoice]: "
 	read input dummy 2>/dev/null
 
 	# If no input was supplied, select the default option
@@ -436,7 +436,7 @@ function dcfg_ip {
 	def="${1:-1}"
 
 	if [ "$net_ifmode" != "static" ]; then
-		d_msg "Details will be retrieved via DHCP"
+		d_msg "Network information will be retrieved via DHCP"
 		return
 	fi
 
@@ -517,7 +517,7 @@ function dcfg_ip {
 		def=1
 
 		if [ -z "$_net_ip_ip" ]; then
-			d_msg "IP Address must be provided."
+			d_msg "An IP Address must be provided."
 			continue
 		fi
 
@@ -534,11 +534,11 @@ function dcfg_ip {
 		typeset xcast=`$IPCALC -b $ip/$prefix | cut -d= -f2`
 
 		if [ "$ip" = "$network" ]; then
-			d_msg "Entered IP is the reserved network address."
+			d_msg "The entered IP is the reserved network address."
 			continue
 		fi
 		if [ "$ip" = "$xcast" ]; then
-			d_msg "Entered IP is the network broadcast address."
+			d_msg "The entered IP is the network broadcast address."
 			continue
 		fi
 
@@ -561,7 +561,7 @@ function dcfg_ip {
 			    | cut -d= -f2`
 
 			if [ "$ipnetwork" != "$gwnetwork" ]; then
-				d_msg "Gateway is not on the local network."
+				d_msg "The gateway is not on the local network."
 				continue
 			fi
 		fi
@@ -605,7 +605,7 @@ function dcfg_ip {
 
 function cfg_ipaddress {
 	if [ "$net_ifmode" != "static" ]; then
-		pause "IP address will be retrieved via DHCP"
+		pause "The IP address will be retrieved via DHCP"
 		return
 	fi
 	cat <<- EOM
@@ -633,10 +633,10 @@ function cfg_ipaddress {
 		typeset xcast=`$IPCALC -b $ip/$prefix | cut -d= -f2`
 
 		[ "$ip" = "$network" ] \
-		    && echo "Entered IP is the reserved network address." \
+		    && echo "The entered IP is the reserved network address." \
 		    && continue
 		[ "$ip" = "$xcast" ] \
-		    && echo "Entered IP is the network broadcast address." \
+		    && echo "The entered IP is the network broadcast address." \
 		    && continue
 
 		net_ip="$ip/$prefix"
@@ -650,11 +650,11 @@ function show_ipaddress {
 
 function cfg_gateway {
 	if [ "$net_ifmode" != "static" ]; then
-		pause "Gateway address will be retrieved via DHCP"
+		pause "The gateway address will be retrieved via DHCP"
 		return
 	fi
 	if [ -z "$net_ip" ]; then
-		pause "Please set an IP address first"
+		pause "Set an IP address first"
 		return
 	fi
 
@@ -679,7 +679,7 @@ function cfg_gateway {
 		typeset gwnetwork=`$IPCALC -n $gwip/$ipprefix | cut -d= -f2`
 
 		[ "$ipnetwork" != "$gwnetwork" ] \
-		    && echo "Gateway is not on the local network." \
+		    && echo "The gateway is not on the local network." \
 		    && continue
 
 		net_gw="$gwip"
@@ -693,7 +693,7 @@ function show_gateway {
 
 function cfg_domain {
 	if [ "$net_ifmode" != "static" ]; then
-		pause "Domain name will be retrieved via DHCP"
+		pause "The domain name will be retrieved via DHCP"
 		return
 	fi
 	cat <<- EOM
@@ -725,7 +725,7 @@ function show_domain {
 
 function cfg_dns {
 	if [ "$net_ifmode" != "static" ]; then
-		pause "DNS servers will be retrieved via DHCP"
+		pause "The DNS servers will be retrieved via DHCP"
 		return
 	fi
 
@@ -894,7 +894,7 @@ function dcfg_user {
 		    --insecure \
 		    --default-item "$def" \
 		    $extra \
-		    --mixedform "\nEnter the new user's details below\n\Zn" \
+		    --mixedform "\nEnter the new user information below\n\Zn" \
 			12 50 0 \
 			"        Username :"  1 1  "$user_name" 1 22 20 0 0 \
 			"$plab"               2 1  ""           2 22 20 0 1 \
@@ -904,7 +904,7 @@ function dcfg_user {
 		if [ $stat -eq 3 ]; then
 			# Extra button selected, delete user.
 			remove_user
-			d_msg "User removed successfully."
+			d_msg "The user was removed successfully."
 			return
 		fi
 		user_name="`sed -n 1p < $tmpf`"
@@ -926,7 +926,7 @@ function dcfg_user {
 		fi
 
 		if [ "$user_pass" != "$user_pass2" ]; then
-			d_msg "Entered passwords do not match."
+			d_msg "The entered passwords do not match."
 			def="$plab"
 			continue
 		fi
@@ -935,14 +935,14 @@ function dcfg_user {
 
 	if [ -n "$user_name" ]; then
 		dialog \
-		    --title "Select shell" \
+		    --title "Select a shell" \
 		    --colors \
 		    --default-item $user_shell \
-		    --hline "If unsure, leave this at the default" \
+		    --hline "Bash is the default shell. It can be changed below." \
 		    --radiolist "\nSelect the command line shell for the user\n\Zn" \
 			10 50 0 \
-			ksh "Ksh93 (Korn Shell)" on \
-			bash "Bash (Bourne-again Shell)" off \
+			bash "Bash (Bourne-again Shell)" on \
+			ksh "Ksh93 (Korn Shell)" off \
 			csh "Csh (C Shell)" off \
 			2> $tmpf
 		stat=$?
@@ -957,7 +957,7 @@ function dcfg_user {
 		    --checklist "\nSelect user privileges\n\Zn" 12 50 0 \
 			pfexec "Grant 'Primary Administrator' role" on \
 			sudo   "Grant 'sudo' access" off \
-			sudopw "  (without password?)" off \
+			sudopw "  (without password authentication?)" off \
 		    2> $tmpf
 		stat=$?
 		[ $stat -ne 0 ] && return
@@ -1023,7 +1023,7 @@ function cfg_user {
 		echo; stty echo
 
 		if [ "$user_pass" != "$user_pass2" ]; then
-			echo "-- Passwords do not match."
+			echo "-- The entered passwords do not match."
 			continue
 		fi
 		break
@@ -1063,7 +1063,7 @@ function cfg_user {
 			user_sudo=$_grp
 			break
 		done
-		ask "Require password for sudo?" \
+		ask "Require password for use of sudo privilege?" \
 		    && user_sudo_nopw= || user_sudo_nopw=y
 	fi
 
@@ -1097,7 +1097,7 @@ function cfg_rootpw {
 		echo; stty echo
 
 		if [ "$root_pass" != "$root_pass2" ]; then
-			echo "-- Passwords do not match."
+			echo "-- The entered passwords do not match."
 			continue
 		fi
 		break
@@ -1115,7 +1115,7 @@ function dcfg_rootpw {
 		    --title "Setting root password" \
 		    --colors \
 		    --insecure \
-		    --mixedform "\nEnter the new password twice below\n\Zn" \
+		    --mixedform "\nEnter and confirm the new password below\n\Zn" \
 			12 50 0 \
 			"        Password :"  1 1  ""  1 22 20 0 1 \
 			" Retype Password :"  2 1  ""  2 22 20 0 1 \
@@ -1127,7 +1127,7 @@ function dcfg_rootpw {
 		[ -z "$root_pass" -o $stat -ne 0 ] && return
 
 		if [ "$root_pass" != "$root_pass2" ]; then
-			d_msg "Entered passwords do not match."
+			d_msg "The entered passwords do not match."
 			continue
 		fi
 		break
@@ -1322,10 +1322,10 @@ function show_sshd {
 
 function cfg_extrarepo {
 	if egrep -s extra.omnios $ALTROOT/var/pkg/pkg5.image; then
-		echo "Removing extra software repository..."
+		echo "Removing bootstrap software repository..."
 		extrarepo -off
 	else
-		echo "Enabling extra software repository..."
+		echo "Enabling bootstrap software repository..."
 		extrarepo -on
 	fi
 }
