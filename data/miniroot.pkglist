@@ -158,7 +158,7 @@ system/ipc
 system/kernel
 system/kernel/cpu-counters
 system/kernel/dtrace/providers
-system/kernel/platform/
+system/kernel/platform
 system/kernel/power
 system/kernel/secure-rpc
 system/kernel/security/gss
