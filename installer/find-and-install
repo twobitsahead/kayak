@@ -54,7 +54,7 @@ until [[ $finished == 1 ]]; do
 						  > /tmp/dp.$$
     cat /tmp/dp.$$
     echo ""
-    echo -n "Enter a digit or the disk device name ==> "
+    echo -n "Enter a digit or the name of the disk device ==> "
     read choice
 
     if [[ $choice == 9 ]]; then
@@ -96,7 +96,7 @@ done
 reality_check() {
     mkfile 64m /tmp/test.$$
     if [[ $? != 0 ]]; then
-	echo "WARNING: Insufficient space in /tmp for installation..."
+	echo "WARNING: There is insufficient space in /tmp for installation."
 	return 1
     fi
     zpool create $1 /tmp/test.$$

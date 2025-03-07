@@ -22,7 +22,7 @@ DATE=/usr/bin/date
 TZDIR=/usr/share/lib/zoneinfo
 
 # Messages
-ERR_NO_SETUP="%s: the time zone files are not set up correctly"
+ERR_NO_SETUP="%s: the time zone files are not set up correctly."
 INFO_LOCATION="Identify a location so that time zone rules \
 can be set correctly."
 INFO_SELECT_CONT="Select a continent or ocean."
