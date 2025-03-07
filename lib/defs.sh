@@ -19,8 +19,10 @@ OOCEREL="${OOCEVER//[a-z]/}"
 
 OOCEPUB=omnios
 EXTRAPUB=extra.omnios
+LOCALPUB=surya
 
 URLPREFIX=https://pkg.omnios.org
+URLSURYA=
 
 MIRRORS=us-west
 MIRRORDOMAIN=mirror.omnios.org
@@ -32,6 +34,7 @@ else
 fi
 OOCEPUBURL=$URLPREFIX/$URLSUFFIX
 OOCEPUBURL_EXTRA="${OOCEPUBURL/core/extra}"
+OOCEPUBURL_LOCAL=$URLSURYA
 
 OOCEBRAICHURL=$URLPREFIX/bloody/braich
 
@@ -39,6 +42,8 @@ DEFPATH=/usr/bin:/usr/sbin:/sbin:/usr/gnu/bin
 DEFSUPATH=/usr/sbin:/sbin:/usr/bin
 EXTRAPATH=/usr/bin:/usr/sbin:/sbin:/opt/ooce/bin:/usr/gnu/bin
 EXTRASUPATH=/usr/sbin:/sbin:/opt/ooce/sbin:/usr/bin:/opt/ooce/bin
+SURYAPATH=$EXTRAPATH:/usr/local/bin
+SURYASUPATH=$EXTRASUPATH:/usr/local/bin
 
 NATIVE_SVCCFG=usr/src/tools/proto/root_i386-nd/opt/onbld/bin/i386/svccfg
 
