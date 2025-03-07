@@ -24,7 +24,7 @@
 : ${GZIP_CMD:=$GZIP}
 
 if [ "`id -u`" != "0" ]; then
-	echo "You must be root to run this script."
+	echo "You must use privileges to run this script."
 	exit 1
 fi
 
@@ -115,11 +115,11 @@ mount $LOFI_BA $BA_ROOT
 
 # Copy the files from the miniroot to the boot archive
 sz=`du -sh $MINIROOT_ROOT | awk '{print $1}'`
-stage "Adding files to boot archive"
+stage "Adding files to the boot archive"
 tar -cf - -C $MINIROOT_ROOT . | pv -s $sz | tar -xf - -C $BA_ROOT
 
 # ...and to the ISO root
-stage "Adding files to ISO root"
+stage "Adding files to the ISO root"
 mkdir $ISO_ROOT
 tar -cf - -C $MINIROOT_ROOT . | pv -s $sz | tar -xf - -C $ISO_ROOT
 
@@ -167,7 +167,7 @@ done
 # Put additional files into the boot-archive on $BA_ROOT, which is
 # what will be / (via ramdisk) once the ISO is booted.
 
-stage "Adding extra files to boot archive"
+stage "Adding extra files to the boot archive"
 
 # Extra files
 for dir in bin; do
@@ -204,7 +204,7 @@ add_to_boot_archive() {
 
 	[ -n "$PROTO" -a -d $PROTO/$dir ] && src=$PROTO || src=/
 
-	echo "Adding $dir/$@ to boot archive"
+	echo "Adding $dir/$@ to the boot archive"
 
 	tar -cf - -C $src/$dir ${@:-.} | tar -xf - -C $BA_ROOT/$dir
 }
@@ -219,7 +219,7 @@ add_to_boot_archive usr/bin netstat
 ######################################################################
 # Configure the loader for installer
 
-stage "Loader configuration"
+stage "Loader Configuration"
 
 cat <<EOF > $ISO_ROOT/boot/loader.conf.local
 loader_menu_title="Welcome to the OmniOS installer"
@@ -247,7 +247,7 @@ EOM
 # The new miniroot is populated.
 # Close it up and install it on $ISO_ROOT as the boot archive.
 #
-stage "Boot archive miniroot size"
+stage "Boot Archive Miniroot Size"
 df -h $BA_ROOT
 stage "Unmounting boot archive image"
 umount $BA_ROOT
