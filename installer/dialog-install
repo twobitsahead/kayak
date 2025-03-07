@@ -41,7 +41,7 @@ diskinfo >/dev/null
 
 diskinfo -H | tr "\t" "^" > $tmpf.disks
 if [ ! -f /.cdrom/.volsetid ]; then
-	d_msg "Installation media not found."
+	d_msg "The installation media was not found."
 	exit 0
 fi
 
@@ -55,7 +55,7 @@ if [ -n "$dev" ]; then
 fi
 
 if [ ! -s $tmpf.disks ]; then
-	d_msg "No disks found."
+	d_msg "A disk was not found."
 	exit 0
 fi
 
@@ -78,9 +78,9 @@ exec 3<&-
 
 while :; do
 	dialog \
-		--title "Select disks for installation" \
+		--title "Select Disk(s) for Installation" \
 		--colors \
-		--checklist "\nSelect disks using arrow keys and space bar.\nIf you select multiple disks, you will be able to choose a RAID level on the next screen.\n\Zn" \
+		--checklist "\nSelect the disk(s) using the arrow keys and the space bar.\nIf multiple disks are selected, a RAID level can be selected on the next screen.\n\Zn" \
 		0 0 0 \
 		"${args[@]}" 2> $tmpf
 
@@ -89,7 +89,7 @@ while :; do
 	DISKLIST="`cat $tmpf`"
 	rm -f $tmpf
 	if [ -z "$DISKLIST" ]; then
-		d_msg "No disks selected"
+		d_msg "No disks were selected."
 		continue
 	fi
 	break
@@ -113,12 +113,12 @@ test_rpool() {
 	logcmd mkfile 64m /tmp/test.$$
 	if [ $? != 0 ]; then
 		[ -f /tmp/test.$$ ] && rm -f /tmp/test.$$
-		d_msg "WARNING: Insufficient space in /tmp for installation..."
+		d_msg "WARNING: There is insufficient space in /tmp for installation."
 		return 1
 	fi
 	logcmd zpool create "$1" /tmp/test.$$
 	if [ $? != 0 ]; then
-		d_msg "Can't test zpool create $1"
+		d_msg "Unable to test zpool create $1."
 		rm -f /tmp/test.$$
 		return 1
 	fi
@@ -139,15 +139,15 @@ if [ "$ndisks" -gt 1 ]; then
 
 	args+=(stripe "Striped (no redundancy)" off)
 	args+=(mirror "${ndisks}-way mirror" on)
-	[ "$ndisks" -ge 3 ] && args+=(raidz "raidz  (single-parity)" off)
-	[ "$ndisks" -ge 4 ] && args+=(raidz2 "raidz2 (dual-parity)" off)
-	[ "$ndisks" -ge 5 ] && args+=(raidz3 "raidz3 (triple-parity)" off)
+	[ "$ndisks" -ge 3 ] && args+=(raidz "raidz  (single parity)" off)
+	[ "$ndisks" -ge 4 ] && args+=(raidz2 "raidz2 (dual parity)" off)
+	[ "$ndisks" -ge 5 ] && args+=(raidz3 "raidz3 (triple parity)" off)
 
 	dialog \
-	    --title "RAID level" \
+	    --title "RAID Level" \
 	    --colors \
 	    --default-item $ztype \
-	    --radiolist "\nSelect the desired pool configuration\n\Zn" \
+	    --radiolist "\nSelect the desired pool configuration\n\Zn." \
 	    12 50 0 \
 	    "${args[@]}" 2> $tmpf
 	[ $? -ne 0 ] && exit 0
@@ -166,16 +166,16 @@ get_rpool_name()
 	NRPOOL="$RPOOL"
 	while :; do
 		dialog \
-			--title "Enter the root pool name" \
+			--title "Enter the root ZFS pool name" \
 			--colors \
-			--inputbox '\nThis is the name of the ZFS pool that will be created using the selected disks and used for the OmniOS installation.\n\nThe default name is \Z7rpool\Zn and should usually be left unchanged.\n\Zn' \
+			--inputbox '\nThis is the name of the ZFS pool that will be created using the selected disk(s) and used for the Surya installation.\n\nThe default ZFS pool name is \Z7rpool\Zn.\n\Zn' \
 			16 40 "$NRPOOL" 2> $tmpf
 		[ $? -ne 0 ] && return
 		NRPOOL="`cat $tmpf`"
 		rm -f $tmpf
 		[ -z "$NRPOOL" ] && continue
 		[[ "$NRPOOL" =~ ^[a-z][-_a-z0-9]*$ ]] && break
-		d_msg "Invalid pool name, $NRPOOL"
+		d_msg "Invalid pool name: $NRPOOL"
 	done
 	RPOOL="$NRPOOL"
 	log "installer: RPOOL name '$RPOOL'"
@@ -190,7 +190,7 @@ cont_help="`d_centre 'Continue with the installation.'`"
 
 RPOOL=rpool
 rpool_label='Root pool name'
-rpool_help="`d_centre 'Customise the name of the root pool if required.'`"
+rpool_help="`d_centre 'Customise the name of the root pool (optional).'`"
 
 PSCHEMES=(UEFI GPT MBR GPT+Active GPT+Slot1)
 PSCHEMES_HELP=(
@@ -207,7 +207,7 @@ pscheme_help="`d_centre "$PSCHEME_HELP"`"
 
 COMPRESSION=YES
 compression_label='Compression'
-compression_help="`d_centre 'Choose whether to enable LZ4 compression on the pool (recommended).'`"
+compression_help="`d_centre 'Choose whether to enable LZ4 compression on the ZFS pool.'`"
 
 SFORCES=(No 4K 8K)
 SFORCES_HELP=(
@@ -244,7 +244,7 @@ while :; do
 	  --item-help \
 	  --no-ok --no-cancel \
 	  --default-item "$defaultitem" \
-	  --menu "\nIf desired, customise aspects of the ZFS Root Pool below; the recommended values have been filled in automatically. Select \Z7Continue\Zn when ready to proceed.\n\Zn" \
+	  --menu "\nIf desired, the default values of the ZFS root pool can be changed below. Select \Z7Continue\Zn when ready to proceed.\n\Zn" \
 	  0 0 0 \
 	  "$cont_label"		"$cont_text"	"$cont_help" \
 	  "$rpool_label"	"$RPOOL"	"$rpool_help" \
@@ -262,17 +262,17 @@ while :; do
 	    "$cont_label")
 		if zpool list -H -o name | egrep -s "^$RPOOL\$"; then
 			dialog --defaultno --yesno \
-			    "\nPool already exists, overwrite?" 7 50
+			    "\nA ZFS Pool already exists. Destroy it?" 7 50
 			[ $? = 0 ] || continue
 			dialog --defaultno --yesno \
-			    "\nConfirm destruction of existing pool?" 7 50
+			    "\nAre you sure?" 7 50
 			[ $? = 0 ] || continue
-			d_info "Destroying pool..."
+			d_info "Destroying ZFS pool..."
 			logcmd zpool destroy "$RPOOL"
 		fi
-		d_info "Checking system..."
+		d_info "Checking the system..."
 		test_rpool "$RPOOL" && break
-		d_msg "Invalid root pool name"
+		d_msg "The ZFS root pool name is invalid."
 		defaultitem="$rpool_label"
 		continue
 		;;
@@ -281,11 +281,11 @@ while :; do
 		PSCHEME="`cycle PSCHEMES[@] "$PSCHEME"`"
 		PSCHEME_HELP="`cycle PSCHEMES_HELP[@] "$PSCHEME_HELP"`"
 		pscheme_help="`d_centre "$PSCHEME_HELP"`"
-		log "Selected partitioning scheme: $PSCHEME"
+		log "Selected a partitioning scheme: $PSCHEME"
 		;;
 	    "$compression_label")
 		COMPRESSION="`toggle "$COMPRESSION"`"
-		log "Selected compression: $COMPRESSION"
+		log "Selected compression type: $COMPRESSION"
 		;;
 	    "$sforce_label")
 		SFORCE="`cycle SFORCES[@] "$SFORCE"`"
@@ -331,7 +331,7 @@ case "$PSCHEME" in
 		for disk in $DISKLIST; do
 			# Single Solaris2 partition
 			if ! logcmd fdisk -B ${disk}p0; then
-				d_msg "Failed to partition $disk"
+				d_msg "$disk could not be partitioned."
 				exit 0
 			fi
 			# At this point, the disk will have three slices:
@@ -359,7 +359,7 @@ esac
 
 if ! logcmd zpool create -$_FLAGS $_OPTS "$RPOOL" $ztype $_DISKLIST || \
    ! logcmd zpool list $RPOOL; then
-	d_msg "Failed to create root pool"
+	d_msg "The ZFS root pool could not be created."
 	exit 0
 fi
 
@@ -371,7 +371,7 @@ log "installer: pool GUID '$pool_guid'"
 fixdb=
 case $PSCHEME in
     GPT+Active)
-	log "Adjusting pool for $PSCHEME"
+	log "Adjusting the ZFS pool for $PSCHEME"
 	logcmd zpool export $RPOOL
 	for disk in $DISKLIST; do
 		# Set first entry in PMBR active
