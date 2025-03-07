@@ -4,7 +4,6 @@ developer/debug/mdb
 developer/linker
 diagnostic/diskinfo
 diagnostic/pci
-driver/audio
 driver/crypto/dca
 driver/crypto/tpm
 driver/firewire
@@ -127,7 +126,6 @@ release/notices
 service/picl
 shell/bash
 shell/pipe-viewer
-system/bhyve
 system/boot/grub
 system/boot/loader
 system/boot/real-mode
