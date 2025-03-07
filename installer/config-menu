@@ -32,7 +32,7 @@ else
 	trap "" TSTP INT TERM ABRT QUIT
 fi
 
-echo "Finding system configuration..."
+echo "Finding system configuration details..."
 
 [ "$1" = "-dialog" ] && . /kayak/lib/dialog.sh
 . /kayak/lib/defs.sh
@@ -49,7 +49,7 @@ function pause {
 	echo
 	echo "$@"
 	echo
-	echo "Press return to continue.\\c"
+	echo "Press ENTER to continue.\\c"
 	read a
 }
 
@@ -100,7 +100,7 @@ function show_dialog_menu {
 
 	tmpf=`mktemp`
 	dialog \
-		--title "Surya 2025.02 menu" \
+		--title "Surya Menu" \
 		--hline "Select an option using the arrow keys" \
 		--no-ok \
 		--no-tags \
@@ -132,7 +132,7 @@ function show_text_menu {
 	clear
 
 	defaultchoice=
-	printf "Surya 2025.02 menu\n\n"
+	printf "Surya Menu\n\n"
 	for i in "${!menu[@]}"; do
 		nameref item=menu[$i]
 		printf "\t%d  %-40s" "$((i + 1))" "${item.menu_str}"
@@ -360,7 +360,7 @@ function dcfg_interface {
 	done
 
 	dialog \
-	    --title "Network interface" \
+	    --title "Network Interface" \
 	    --colors \
 	    --default-item $net_if \
 	    --radiolist "\nSelect the network interface to be configured\n\Zn" \
@@ -403,7 +403,7 @@ function cfg_interface {
 
 		_net_if=`/sbin/dladm show-phys -p -o link | sed -n "${_i}p"`
 		if [ -z "$_net_if" ]; then
-			echo "No such interface, $_net_if"
+			echo "$_net_if is not present."
 			continue
 		fi
 		net_if="$_net_if"
@@ -436,7 +436,7 @@ function dcfg_ip {
 	def="${1:-1}"
 
 	if [ "$net_ifmode" != "static" ]; then
-		d_msg "Network information will be retrieved via DHCP"
+		d_msg "Network information will be retrieved via DHCP."
 		return
 	fi
 
@@ -471,12 +471,12 @@ function dcfg_ip {
 		esac
 
 		dialog \
-		    --title "Configure network" \
+		    --title "Configure Network" \
 		    --colors \
 		    --insecure \
 		    --default-item "$def" \
 		    $extra \
-		    --form "\nEnter the network details below.\nThe netmask can be entered as a dotted quad (e.g. \Z7255.255.255.224\Zn) or as a prefix length (e.g. \Z7/27\Zn)\n\Zn" \
+		    --form "\nEnter the network details below.\nThe netmask can be entered as a dotted quad (e.g. \Z7255.255.255.224\Zn) or as a prefix length (e.g. \Z7/27\Zn)\n\Zn." \
 			18 50 0 \
 			"$_lab_ip"	1 1 "$_net_ip_ip"     1 22 20 0 \
 			"$_lab_prefix"	2 1 "$_net_ip_prefix" 2 22 20 0 \
@@ -488,7 +488,7 @@ function dcfg_ip {
 		if [ $stat -eq 3 ]; then
 			# Extra button selected, clear configuration.
 			clear_networking
-			d_msg "Network configuration removed successfully."
+			d_msg "The network configuration was removed successfully."
 			return
 		fi
 		[ $stat -ne 0 ] && return
@@ -517,7 +517,7 @@ function dcfg_ip {
 		def=1
 
 		if [ -z "$_net_ip_ip" ]; then
-			d_msg "An IP Address must be provided."
+			d_msg "An IP address must be provided."
 			continue
 		fi
 
@@ -534,11 +534,11 @@ function dcfg_ip {
 		typeset xcast=`$IPCALC -b $ip/$prefix | cut -d= -f2`
 
 		if [ "$ip" = "$network" ]; then
-			d_msg "The entered IP is the reserved network address."
+			d_msg "The entered IP address is the reserved network address."
 			continue
 		fi
 		if [ "$ip" = "$xcast" ]; then
-			d_msg "The entered IP is the network broadcast address."
+			d_msg "The entered IP address is the network broadcast address."
 			continue
 		fi
 
@@ -561,7 +561,7 @@ function dcfg_ip {
 			    | cut -d= -f2`
 
 			if [ "$ipnetwork" != "$gwnetwork" ]; then
-				d_msg "The gateway is not on the local network."
+				d_msg "The gateway address is not on the local network."
 				continue
 			fi
 		fi
@@ -633,10 +633,10 @@ function cfg_ipaddress {
 		typeset xcast=`$IPCALC -b $ip/$prefix | cut -d= -f2`
 
 		[ "$ip" = "$network" ] \
-		    && echo "The entered IP is the reserved network address." \
+		    && echo "The entered IP address is the reserved network address." \
 		    && continue
 		[ "$ip" = "$xcast" ] \
-		    && echo "The entered IP is the network broadcast address." \
+		    && echo "The entered IP address is the network broadcast address." \
 		    && continue
 
 		net_ip="$ip/$prefix"
@@ -650,11 +650,11 @@ function show_ipaddress {
 
 function cfg_gateway {
 	if [ "$net_ifmode" != "static" ]; then
-		pause "The gateway address will be retrieved via DHCP"
+		pause "The gateway IP address will be retrieved via DHCP"
 		return
 	fi
 	if [ -z "$net_ip" ]; then
-		pause "Set an IP address first"
+		pause "An IP address must be set before proceeding."
 		return
 	fi
 
@@ -679,7 +679,7 @@ function cfg_gateway {
 		typeset gwnetwork=`$IPCALC -n $gwip/$ipprefix | cut -d= -f2`
 
 		[ "$ipnetwork" != "$gwnetwork" ] \
-		    && echo "The gateway is not on the local network." \
+		    && echo "The gateway IP address is not on the local network." \
 		    && continue
 
 		net_gw="$gwip"
@@ -693,7 +693,7 @@ function show_gateway {
 
 function cfg_domain {
 	if [ "$net_ifmode" != "static" ]; then
-		pause "The domain name will be retrieved via DHCP"
+		pause "The domain name will be retrieved via DHCP."
 		return
 	fi
 	cat <<- EOM
@@ -725,7 +725,7 @@ function show_domain {
 
 function cfg_dns {
 	if [ "$net_ifmode" != "static" ]; then
-		pause "The DNS servers will be retrieved via DHCP"
+		pause "The DNS servers will be retrieved via DHCP."
 		return
 	fi
 
@@ -784,7 +784,7 @@ network_menu=( \
 	dcmds=("dcfg_ip 5")						\
 	current="show_dns"						\
     )									\
-    (menu_str="Return to main configuration menu"			\
+    (menu_str="Return to the main configuration menu"			\
 	cmds=("save_networking" "back")					\
     )									\
 )
@@ -889,12 +889,12 @@ function dcfg_user {
 		    extra=" --extra-button --extra-label Delete "
 
 		dialog \
-		    --title "Creating user" \
+		    --title "Creating User" \
 		    --colors \
 		    --insecure \
 		    --default-item "$def" \
 		    $extra \
-		    --mixedform "\nEnter the new user information below\n\Zn" \
+		    --mixedform "\nEnter the new user information below\n\Zn." \
 			12 50 0 \
 			"        Username :"  1 1  "$user_name" 1 22 20 0 0 \
 			"$plab"               2 1  ""           2 22 20 0 1 \
@@ -935,13 +935,13 @@ function dcfg_user {
 
 	if [ -n "$user_name" ]; then
 		dialog \
-		    --title "Select a shell" \
+		    --title "Select a Shell" \
 		    --colors \
 		    --default-item $user_shell \
-		    --hline "Bash is the default shell. It can be changed below." \
+		    --hline "Bash is the default user shell. It can be changed below." \
 		    --radiolist "\nSelect the command line shell for the user\n\Zn" \
 			10 50 0 \
-			bash "Bash (Bourne-again Shell)" on \
+			bash "Bash (Bourne-Again Shell)" on \
 			ksh "Ksh93 (Korn Shell)" off \
 			csh "Csh (C Shell)" off \
 			2> $tmpf
@@ -951,10 +951,10 @@ function dcfg_user {
 		rm -f $tmpf
 
 		dialog \
-		    --title "Creating user" \
+		    --title "Creating User" \
 		    --colors \
 		    --no-tags \
-		    --checklist "\nSelect user privileges\n\Zn" 12 50 0 \
+		    --checklist "\nSelect the initial user privileges\n\Zn." 12 50 0 \
 			pfexec "Grant 'Primary Administrator' role" on \
 			sudo   "Grant 'sudo' access" off \
 			sudopw "  (without password authentication?)" off \
@@ -976,7 +976,7 @@ function dcfg_user {
 
 	save_user
 
-	d_msg "User $user_name created successfully."
+	d_msg "The user $user_name was created successfully."
 }
 
 function cfg_user {
@@ -1105,14 +1105,14 @@ function cfg_rootpw {
 
 	store_rootpw "$root_pass"
 
-	pause "The root password has been set"
+	pause "The root password has been set."
 }
 
 function dcfg_rootpw {
 	while :; do
 
 		dialog \
-		    --title "Setting root password" \
+		    --title "Setting Root Password" \
 		    --colors \
 		    --insecure \
 		    --mixedform "\nEnter and confirm the new password below\n\Zn" \
