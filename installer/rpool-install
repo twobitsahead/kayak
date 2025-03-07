@@ -28,7 +28,7 @@ tmpf=`mktemp`
 zpool list $RPOOL >& /dev/null
 if [[ $? != 0 ]]; then
    echo "Cannot find ZFS root pool $RPOOL"
-   echo "Press ENTER to exit"
+   echo "Press ENTER to exit."
    read
    exit 1
 fi
