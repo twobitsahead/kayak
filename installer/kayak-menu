@@ -62,7 +62,7 @@ fi
 if [ -n "$USE_DIALOG" ]; then
 	i=10
 	echo; echo
-	echo "Press return to start the Surya installer."
+	echo "Press ENTER to start the Surya installer."
 	while [ $i -gt 0 ]; do
 		unit=second
 		[ $i -gt 1 ] && unit=seconds
@@ -212,7 +212,7 @@ function display_dialog_menu {
 	tmpf=`mktemp`
 	dialog \
 		--title "Surya installer" \
-		--hline "Use arrow or hot keys to select an option above" \
+		--hline "Use arrow or hot keys to select an option above." \
 		--no-ok \
 		--no-tags \
 		--no-lines \
